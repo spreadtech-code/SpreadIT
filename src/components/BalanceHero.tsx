@@ -19,7 +19,8 @@ export interface BalanceHeroProps {
   label: string;
   amountKobo: number;
   actions: RoundActionProps[];
-  automation: { paused: false; text: string } | { paused: true };
+  /** off: automation not switched on yet (muted dot, the given text). */
+  automation: { paused: false; text: string; off?: boolean } | { paused: true };
 }
 
 export function BalanceHero({ initials, label, amountKobo, actions, automation }: BalanceHeroProps) {
@@ -66,7 +67,13 @@ export function BalanceHero({ initials, label, amountKobo, actions, automation }
         <View
           style={[
             styles.dot,
-            { backgroundColor: automation.paused ? colors.critical : colors.brandStrong },
+            {
+              backgroundColor: automation.paused
+                ? colors.critical
+                : automation.off
+                  ? colors.inkMuted
+                  : colors.brandStrong,
+            },
           ]}
         />
         <Text style={styles.calloutText}>{calloutText}</Text>

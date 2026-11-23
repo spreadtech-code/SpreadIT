@@ -1,4 +1,5 @@
-import { nextOnboardingRoute, SMS_CODE_MS, useApp } from './appStore';
+import { goLiveRoute, nextOnboardingRoute, SMS_CODE_MS, useApp } from './appStore';
+import { openAccount } from '../fakebank/identity';
 
 const store = () => useApp.getState();
 
@@ -83,5 +84,32 @@ describe('destination hand-back from S8', () => {
     expect(store().takeDestination('rule')).toBeNull();
     expect(store().takeDestination('fallback')).toEqual(d);
     expect(store().takeDestination('fallback')).toBeNull();
+  });
+});
+
+describe('going live (flow 4: S11 -> S12 -> S13 -> S14)', () => {
+  it('walks Where your money is -> Identity check -> Switch on, skipping steps already done', () => {
+    expect(store().automation.on).toBe(false);
+    expect(goLiveRoute(store())).toBe('/where-your-money-is');
+    store().understandCustody();
+    expect(goLiveRoute(store())).toBe('/identity-check');
+
+    store().identityFailed(1000);
+    expect(store().identityFails).toEqual([1000]);
+
+    const person = { firstName: 'Tunde', lastName: 'Adeyemi' };
+    store().identityPassed(person, openAccount({ ...person, phone: '08031234567' }), 2000);
+    expect(store().identity).toEqual({ ...person, passedAt: 2000 });
+    expect(store().identityFails).toEqual([]);
+    expect(store().spreaditAccount?.accountName).toBe('Tunde Adeyemi');
+    expect(goLiveRoute(store())).toBe('/switch-on-automation');
+
+    store().switchOnAutomation(60, 3000);
+    expect(store().automation).toEqual({ on: true, reviewWindowMinutes: 60, switchedOnAt: 3000 });
+  });
+
+  it('never keeps the BVN', () => {
+    store().identityPassed({ firstName: 'A', lastName: 'B' }, openAccount({ firstName: 'A', lastName: 'B', phone: '1' }), 1);
+    expect(JSON.stringify(store())).not.toMatch(/bvn/i);
   });
 });

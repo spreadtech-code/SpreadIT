@@ -21,7 +21,7 @@ import { checkPlan } from '../src/engine/planChecks';
 import { splitIncome } from '../src/engine/split';
 import type { Rule, RuleLine, SplitResult } from '../src/engine/types';
 import { percentText } from '../src/engine/validate';
-import { useApp } from '../src/state/appStore';
+import { goLiveRoute, useApp } from '../src/state/appStore';
 import { colors, radius, shadow, size, space, type } from '../src/theme/tokens';
 
 /** C5: 10% to 150% of the expected amount, in steps of 10%. */
@@ -54,7 +54,8 @@ export default function PaydaySimulatorScreen() {
   const cost = income
     ? monthlyCost({ plan, expectedKobo: expected, frequency: income.frequency, schedule: feeSchedule, pricing })
     : null;
-  const canSwitchOn = plan.rules.length > 0 && checkPlan(plan, expected, feeSchedule).canSwitchOn && fallback != null;
+  const automationOn = useApp((s) => s.automation.on);
+  const canSwitchOn = !automationOn && plan.rules.length > 0 && checkPlan(plan, expected, feeSchedule).canSwitchOn && fallback != null;
 
   const run = () => {
     Keyboard.dismiss();
@@ -121,7 +122,7 @@ export default function PaydaySimulatorScreen() {
       ) : null}
 
       {canSwitchOn ? (
-        <Button label="Switch on automation" variant="secondary" onPress={() => router.push('/where-your-money-is')} />
+        <Button label="Switch on automation" variant="secondary" onPress={() => router.push(goLiveRoute(useApp.getState()))} />
       ) : null}
     </Screen>
   );

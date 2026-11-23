@@ -17,4 +17,5 @@ export { FieldError, TextField } from './TextField';
 export { Toggle } from './Toggle';
 export { Slider } from './Slider';
 export { CostEstimate } from './CostEstimate';
+export { Sheet } from './Sheet';
 export { categoryIcon } from './categoryIcons';

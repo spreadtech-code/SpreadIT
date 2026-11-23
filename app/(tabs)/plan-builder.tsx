@@ -19,7 +19,7 @@ import { checkPlan } from '../../src/engine/planChecks';
 import { splitIncome } from '../../src/engine/split';
 import type { Rule } from '../../src/engine/types';
 import { percentText, RULE_LIMITS } from '../../src/engine/validate';
-import { useApp } from '../../src/state/appStore';
+import { goLiveRoute, useApp } from '../../src/state/appStore';
 import { colors, radius, shadow, size, space, type } from '../../src/theme/tokens';
 
 export default function PlanBuilderScreen() {
@@ -147,7 +147,7 @@ export default function PlanBuilderScreen() {
         label="Switch on automation"
         variant="secondary"
         disabled={errors.length > 0 || plan.rules.length === 0}
-        onPress={() => router.push('/where-your-money-is')}
+        onPress={() => router.push(goLiveRoute(useApp.getState()))}
       />
       {errors.length > 0 ? <Text style={styles.muted}>Fix the problems at the top of the plan to switch on.</Text> : null}
     </View>

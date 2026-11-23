@@ -3,13 +3,13 @@
 // - Normal: the sentence in ink-muted.
 // - Above 1% of income: the existing warning-hint style (warning-soft fill,
 //   warning icon and text) plus a "Ways to lower your costs" link that opens a
-//   sheet of tips. The wording and the 1% test come from the engine.
+//   Sheet of tips. The wording and the 1% test come from the engine.
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View } from 'react-native';
 import { Receipt, TriangleExclamationPoint } from 'lucide-react-native';
 import { colors, radius, size, space, type } from '../theme/tokens';
 import { Button } from './Button';
+import { Sheet } from './Sheet';
 
 export interface CostEstimateProps {
   /** "This plan costs about ₦875 a month (0.10% of your income)". */
@@ -44,25 +44,15 @@ export function CostEstimate({ text, overLimit, tips }: CostEstimateProps) {
 }
 
 function TipsSheet({ visible, tips, onClose }: { visible: boolean; tips: string[]; onClose: () => void }) {
-  const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <View style={styles.scrim}>
-        <Pressable style={styles.dismiss} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close tips" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + space[5] }]} accessibilityViewIsModal>
-          <Text style={styles.title} accessibilityRole="header">
-            Ways to lower your costs
-          </Text>
-          {tips.map((tip, i) => (
-            <View key={tip} style={styles.tip}>
-              <Text style={styles.number}>{i + 1}.</Text>
-              <Text style={styles.tipText}>{tip}</Text>
-            </View>
-          ))}
-          <Button label="Got it" variant="secondary" onPress={onClose} />
+    <Sheet visible={visible} title="Ways to lower your costs" onClose={onClose}>
+      {tips.map((tip, i) => (
+        <View key={tip} style={styles.tip}>
+          <Text style={styles.number}>{i + 1}.</Text>
+          <Text style={styles.tipText}>{tip}</Text>
         </View>
-      </View>
-    </Modal>
+      ))}
+    </Sheet>
   );
 }
 
@@ -80,17 +70,6 @@ const styles = StyleSheet.create({
     paddingVertical: space[2],
   },
   warningText: { ...type.body, color: colors.warning, flex: 1 },
-  scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'flex-end' },
-  dismiss: { flex: 1 },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    paddingHorizontal: space[5],
-    paddingTop: space[6],
-    gap: space[4],
-  },
-  title: { ...type.titleSm, color: colors.ink },
   tip: { flexDirection: 'row', gap: space[2] },
   number: { ...type.bodyStrong, color: colors.ink },
   tipText: { ...type.body, color: colors.ink, flex: 1 },

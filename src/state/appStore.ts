@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Destination, Plan, Rule, RuleId } from '../engine/types';
+import type { SpreaditAccount } from '../fakebank/identity';
 import { normalisePhone } from '../lib/forms';
 import { prototypeHash, sixDigitCode } from '../lib/secrets';
 import * as edits from './planEdits';
@@ -36,6 +37,22 @@ export interface Income {
 
 export type DestinationFor = 'rule' | 'remainder' | 'fallback';
 
+/** A6: only the result is kept, never the BVN. */
+export interface Identity {
+  firstName: string;
+  lastName: string;
+  passedAt: number;
+}
+
+/** D2: the review window before transfers go out. */
+export type ReviewWindowMinutes = 5 | 15 | 60;
+
+export interface Automation {
+  on: boolean;
+  reviewWindowMinutes: ReviewWindowMinutes;
+  switchedOnAt: number | null;
+}
+
 /** S3: the pretend SMS code expires after 10 minutes (A1). */
 export const SMS_CODE_MS = 10 * 60 * 1000;
 
@@ -47,6 +64,14 @@ interface AppState {
   plan: Plan;
   /** B9: the user's own account for failed transfers and unsplit money. */
   fallback: Destination | null;
+  /** S11: tapped "I understand" (A5). */
+  custodyUnderstood: boolean;
+  identity: Identity | null;
+  /** Times of failed identity checks, for the 3-in-24-hours limit (A6). */
+  identityFails: number[];
+  /** A7: the user's own account at the partner bank. */
+  spreaditAccount: SpreaditAccount | null;
+  automation: Automation;
 
   // Not saved: each app start begins locked, and S8 hands a destination back once.
   unlocked: boolean;
@@ -68,6 +93,10 @@ interface AppState {
   saveRemainderAndFallback: (remainderName: string, remainder: Destination, fallback: Destination | null) => void;
   offerDestination: (forWhat: DestinationFor, destination: Destination) => void;
   takeDestination: (forWhat: DestinationFor) => Destination | null;
+  understandCustody: () => void;
+  identityPassed: (identity: Omit<Identity, 'passedAt'>, account: SpreaditAccount, now: number) => void;
+  identityFailed: (now: number) => void;
+  switchOnAutomation: (reviewWindowMinutes: ReviewWindowMinutes, now: number) => void;
   lock: () => void;
   resetDemo: () => void;
 }
@@ -81,6 +110,11 @@ const initial = {
   income: null,
   plan: edits.emptyPlan,
   fallback: null,
+  custodyUnderstood: false,
+  identity: null as Identity | null,
+  identityFails: [] as number[],
+  spreaditAccount: null as SpreaditAccount | null,
+  automation: { on: false, reviewWindowMinutes: 15, switchedOnAt: null } as Automation,
   unlocked: false,
   pendingDestination: null,
 };
@@ -156,6 +190,13 @@ export const useApp = create<AppState>()(
         return p.destination;
       },
 
+      understandCustody: () => set({ custodyUnderstood: true }),
+      identityPassed: (identity, account, now) =>
+        set({ identity: { ...identity, passedAt: now }, spreaditAccount: account, identityFails: [] }),
+      identityFailed: (now) => set({ identityFails: [...get().identityFails, now] }),
+      switchOnAutomation: (reviewWindowMinutes, now) =>
+        set({ automation: { on: true, reviewWindowMinutes, switchedOnAt: now } }),
+
       lock: () => set({ unlocked: false }),
       resetDemo: () => set({ ...initial }),
     }),
@@ -169,6 +210,11 @@ export const useApp = create<AppState>()(
         income: s.income,
         plan: s.plan,
         fallback: s.fallback,
+        custodyUnderstood: s.custodyUnderstood,
+        identity: s.identity,
+        identityFails: s.identityFails,
+        spreaditAccount: s.spreaditAccount,
+        automation: s.automation,
       }),
     },
   ),
@@ -197,4 +243,16 @@ export function nextOnboardingRoute(s: Pick<AppState, 'account' | 'pin' | 'incom
   if (!s.pin.pinHash) return '/set-pin';
   if (!s.income) return '/income-setup';
   return null;
+}
+
+/**
+ * Where "Switch on automation" leads (flow 4: S11 -> S12 -> S13 -> S14).
+ * Steps already done are skipped, so a verified user goes straight to S14.
+ */
+export function goLiveRoute(
+  s: Pick<AppState, 'custodyUnderstood' | 'identity' | 'spreaditAccount'>,
+): '/where-your-money-is' | '/identity-check' | '/switch-on-automation' {
+  if (!s.custodyUnderstood) return '/where-your-money-is';
+  if (!s.identity || !s.spreaditAccount) return '/identity-check';
+  return '/switch-on-automation';
 }

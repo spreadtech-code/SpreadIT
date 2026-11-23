@@ -134,7 +134,6 @@ export const screens: ScreenInfo[] = [
     id: 'S12', name: 'Identity check', route: '/identity-check',
     purpose: 'Submit BVN.',
     actions: [{ label: 'Submit', to: 'S13', tone: 'primary' }],
-    later: ['Try again'],
   },
   {
     id: 'S13', name: 'Your SpreadIT account', route: '/your-spreadit-account',
@@ -144,7 +143,6 @@ export const screens: ScreenInfo[] = [
       { label: 'Forward mode setup', to: 'S26' },
       { label: 'Switch on automation', to: 'S14' },
     ],
-    later: ['Copy details', 'Share'],
   },
   {
     id: 'S14', name: 'Switch on automation', route: '/switch-on-automation',
