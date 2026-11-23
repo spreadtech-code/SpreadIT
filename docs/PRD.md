@@ -126,7 +126,7 @@ The headline target is 99.5% of payouts succeeding with no manual help. All othe
 | 1 | Hears about SpreadIT in her church WhatsApp group | "Can it handle tithe and family?" | Low |
 | 2 | Signs up and picks the default categories Black Tax, Tithe, Transport, Savings | "The categories already match my life." | Low |
 | 3 | Sets Parents ₦40,000 and Siblings ₦60,000 as priority 1 and 2 | "Now the amount is fixed. I don't have to decide each month." | Medium: if she has to type her siblings' bank details from memory |
-| 4 | Simulates ₦420,000 and sees the remainder of ₦90,000 for herself | "That's tight but honest." | Medium: a small remainder may discourage her |
+| 4 | Simulates ₦420,000 and sees the remainder of ₦187,175 for herself, after ₦825 in fees | "That's tight but honest." | Medium: a small remainder may discourage her |
 | 5 | Completes BVN check and gets her SpreadIT account number | "OK, this is a real bank account." | Medium |
 | 6 | Moves her salary to the SpreadIT account | "One month to switch." | High |
 | 7 | On the 28th, lets the 15-minute countdown run out | "I'll trust it this time." | Low |
