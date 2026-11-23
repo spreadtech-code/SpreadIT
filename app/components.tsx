@@ -20,6 +20,9 @@ import {
 } from '../src/components';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 import { tundeIncomeKobo } from '../src/components/demoData';
+import { feeSchedule } from '../src/data/feeSchedule';
+import { transferCostText } from '../src/engine/fees';
+import { stampDutyHint } from '../src/engine/planChecks';
 
 const noop = () => {};
 const heroActions = [
@@ -106,15 +109,14 @@ export default function ComponentsScreen() {
 
       <Section title="AmountField">
         <View style={styles.stack}>
-          <AmountField label="Amount" valueKobo={amount} onChangeKobo={setAmount} helper="Costs ₦75 to send" />
+          <AmountField label="Amount" valueKobo={amount} onChangeKobo={setAmount} {...costProps(amount)} />
           <AmountField
-            label="Amount (stamp-duty hint)"
+            label="Amount (try ₦10,000 to ₦10,999)"
             valueKobo={stampAmount}
             onChangeKobo={setStampAmount}
-            helper="Costs ₦75 to send"
-            warning="Send ₦501 less to save ₦50 stamp duty"
+            {...costProps(stampAmount)}
           />
-          <Text style={styles.note}>Helper and hint text are fixed examples until the fee schedule exists (stage 2).</Text>
+          <Text style={styles.note}>Cost and stamp-duty hint come from the fee schedule as you type.</Text>
         </View>
       </Section>
 
@@ -159,6 +161,15 @@ export default function ComponentsScreen() {
       </Section>
     </ScrollView>
   );
+}
+
+/** The AmountField helper and stamp-duty hint, from the fee schedule (B3). */
+function costProps(kobo: number | null): { helper: string; warning?: string } {
+  if (!kobo) return { helper: 'Enter an amount to see what it costs to send' };
+  return {
+    helper: transferCostText(kobo, feeSchedule),
+    warning: stampDutyHint(kobo, feeSchedule) ?? undefined,
+  };
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
