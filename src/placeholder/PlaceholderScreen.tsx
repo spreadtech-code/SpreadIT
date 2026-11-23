@@ -1,32 +1,25 @@
 // TEMPORARY (stage 1): a stand-in page for every PRD screen.
-// Uses theme values only. Replaced by real screens built from src/components/.
+// Uses theme values and the real Button. Replaced by real screens in later stages.
+// Hidden: hold the S22 Settings title for 1 second to open the Components screen.
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BellRing, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { colors, radius, shadow, size, space, type } from '../theme/tokens';
 import { floatingNavInset } from '../components/FloatingNav';
+import { Button, type ButtonVariant } from '../components/Button';
 import { followAction } from './navigate';
-import { screensById, type ActionTone, type ScreenAction, type ScreenId } from './screens';
+import { screensById, type ScreenAction, type ScreenId } from './screens';
 
-const toneStyles: Record<ActionTone, { fill: string; text: string }> = {
-  primary: { fill: colors.brand, text: colors.onBrand },
-  secondary: { fill: colors.surfaceSunken, text: colors.ink },
-  quiet: { fill: 'transparent', text: colors.brandStrong },
-  critical: { fill: colors.criticalSoft, text: colors.critical },
-};
+// Emergency cancel on the payday screen is a quiet button with critical text (design system).
+const variantFor = (a: ScreenAction): ButtonVariant =>
+  a.label === 'Emergency cancel' ? 'quietCritical' : (a.tone ?? 'secondary');
 
 export function PlaceholderScreen({ id }: { id: ScreenId }) {
   const screen = screensById[id];
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const bottomInset = screen.tab ? floatingNavInset(insets.bottom) : insets.bottom + space[5];
-
-  // Emergency cancel on the payday screen is a quiet button with critical text (design system).
-  const toneFor = (a: ScreenAction): { fill: string; text: string } =>
-    a.label === 'Emergency cancel'
-      ? { fill: 'transparent', text: colors.critical }
-      : toneStyles[a.tone ?? 'secondary'];
 
   return (
     <ScrollView
@@ -53,9 +46,17 @@ export function PlaceholderScreen({ id }: { id: ScreenId }) {
         <Text style={styles.meta}>
           {screen.id} · Placeholder
         </Text>
-        <Text style={styles.title} accessibilityRole="header">
-          {screen.name}
-        </Text>
+        {id === 'S22' ? (
+          <Pressable onLongPress={() => router.push('/components')} delayLongPress={1000}>
+            <Text style={styles.title} accessibilityRole="header">
+              {screen.name}
+            </Text>
+          </Pressable>
+        ) : (
+          <Text style={styles.title} accessibilityRole="header">
+            {screen.name}
+          </Text>
+        )}
         <Text style={styles.body}>{screen.purpose}</Text>
       </View>
 
@@ -64,7 +65,7 @@ export function PlaceholderScreen({ id }: { id: ScreenId }) {
           <Text style={styles.headline}>{screen.banner.text}</Text>
           <View style={styles.buttons}>
             {screen.banner.actions.map((action) => (
-              <ActionButton key={action.label} action={action} tone={toneFor(action)} />
+              <Button key={action.label} label={action.label} variant={variantFor(action)} onPress={() => followAction(router, action)} />
             ))}
           </View>
         </View>
@@ -73,7 +74,7 @@ export function PlaceholderScreen({ id }: { id: ScreenId }) {
       {screen.actions.length > 0 ? (
         <View style={styles.buttons}>
           {screen.actions.map((action) => (
-            <ActionButton key={action.label} action={action} tone={toneFor(action)} />
+            <Button key={action.label} label={action.label} variant={variantFor(action)} onPress={() => followAction(router, action)} />
           ))}
         </View>
       ) : null}
@@ -109,20 +110,6 @@ export function PlaceholderScreen({ id }: { id: ScreenId }) {
         </View>
       ) : null}
     </ScrollView>
-  );
-}
-
-function ActionButton({ action, tone }: { action: ScreenAction; tone: { fill: string; text: string } }) {
-  const router = useRouter();
-  return (
-    <Pressable
-      onPress={() => followAction(router, action)}
-      accessibilityRole="button"
-      accessibilityLabel={action.label}
-      style={({ pressed }) => [styles.button, { backgroundColor: tone.fill }, pressed && styles.pressed]}
-    >
-      <Text style={[styles.buttonText, { color: tone.text }]}>{action.label}</Text>
-    </Pressable>
   );
 }
 
@@ -172,15 +159,6 @@ const styles = StyleSheet.create({
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   sectionTitle: { ...type.titleSm, color: colors.ink },
   buttons: { gap: space[2] },
-  button: {
-    minHeight: size.buttonHeight,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: space[6],
-    paddingVertical: space[3],
-  },
-  buttonText: { ...type.bodyStrong, textAlign: 'center' },
   pressed: { opacity: 0.7 },
   linkRow: {
     flexDirection: 'row',

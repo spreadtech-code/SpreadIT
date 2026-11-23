@@ -79,5 +79,17 @@ export const shadow = {
   float: { shadowColor: '#12191B', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
 } as const;
 
-export const theme = { colors, space, radius, size, fonts, type, shadow };
+// Added in stage 1b (new entries only; no value above was changed).
+// Sizes the design system's component specs name, plus two marked "proposed"
+// that the specs leave open. Confirm or correct with the founder.
+export const component = {
+  koboText: { fontFamily: fonts.extrabold, fontSize: 18, lineHeight: 24 }, // BalanceHero kobo, "18px on the baseline"
+  focusRingWidth: 2, // "a 2px brand-strong ring"
+  focusHaloWidth: 3, // AmountField "3px brand-soft halo"
+  badgeIcon: 14, // proposed: icon inside a 13px StatusBadge
+  splitBarHeight: 12, // proposed: PaydayCountdown split bar
+  disabledOpacity: 0.45, // Button "Disabled buttons drop to 45% opacity"
+} as const;
+
+export const theme = { colors, space, radius, size, fonts, type, shadow, component };
 export type Theme = typeof theme;
