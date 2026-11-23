@@ -76,10 +76,10 @@ export const type = {
 // Shadows: iOS uses the shadow* values, Android uses elevation.
 export const shadow = {
   card: { shadowColor: '#12191B', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
-  float: { shadowColor: '#12191B', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
+  float: { shadowColor: '#12191B', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 12 }, elevation: 6 }, // Android elevation lowered 12 -> 6 (founder, stage 1b): 12 drew a hard grey slab under the nav
 } as const;
 
-// Added in stage 1b (new entries only; no value above was changed).
+// Added in stage 1b (new entries only; the only value above changed is shadow.float.elevation).
 // Sizes the design system's component specs name, plus two marked "proposed"
 // that the specs leave open. Confirm or correct with the founder.
 export const component = {

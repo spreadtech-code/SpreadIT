@@ -80,7 +80,7 @@ Button, RoundAction, BalanceHero, RuleCard, StatusBadge, ActivityList, InsightCa
 2. Install `@expo-google-fonts/source-sans-3` and load Regular, SemiBold, Bold and ExtraBold with `useFonts` before the first screen renders.
 3. Light mode only: set `"userInterfaceStyle": "light"` in the Expo app config so the phone's dark mode doesn't change the app.
 4. FloatingNav: a custom `tabBar` for Expo Router's `Tabs`, 20px from each side, 16px above the safe-area bottom.
-5. Shadows: iOS takes the shadow values; on Android use `elevation` 3 for `shadow-card` and 12 for `shadow-float`.
+5. Shadows: iOS takes the shadow values; on Android use `elevation` 3 for `shadow-card` and 6 for `shadow-float` (lowered from 12 by the founder: 12 drew a hard grey slab on Android).
 6. In CLAUDE.md: "Follow docs/design-system.md and src/theme/tokens.ts for every colour, size and font. Light mode only. Ask before adding a new colour."
 
 ## Token values
