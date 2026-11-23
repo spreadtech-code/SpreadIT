@@ -72,7 +72,7 @@ Body text 16px minimum; layouts hold at 200% text size; touch targets 44 × 44 o
 
 ## Components
 
-Button, RoundAction, BalanceHero, RuleCard, StatusBadge, ActivityList, InsightCard, PaydayCountdown, SegmentedControl, AmountField, FloatingNav. The previews are HTML for review; the app rebuilds them in React Native.
+Button, RoundAction, BalanceHero, RuleCard, StatusBadge, ActivityList, InsightCard, PaydayCountdown, SegmentedControl, AmountField, FloatingNav. Added in stage 3 with the founder's approval: TextField, PinField, Toggle, OptionList. The previews are HTML for review; the app rebuilds them in React Native.
 
 ## Building it in the Expo app
 
@@ -222,3 +222,40 @@ Every transfer and funding state from the PRD, as a pill with an icon and a word
 | Pending, Sent to fallback, Skipped | neutral |
 | Retrying, Reversed, Partly funded | warning |
 | Failed, Paused | critical |
+
+### Added in stage 3 (founder-approved, 23 November 2026)
+
+Built only from existing tokens. All four appear on the hidden Components screen.
+
+#### TextField
+
+Text entry for phone, email, password, names and account numbers.
+
+- A `surface-sunken` well (`radius-md`, at least 56px tall) like AmountField, with the label above in `label` / `ink-muted`.
+- Focus: 2px `brand-strong` border plus a 3px `brand-soft` halo.
+- Error: a `critical` border, and an icon plus `critical` text under the field. Never colour alone.
+- Optional fixed suffix (e.g. `%`) in `ink-muted`.
+
+#### PinField
+
+The 6-digit PIN and the SMS code.
+
+- 6 `surface-sunken` boxes (44 × 56, `radius-sm`) over the phone's number keyboard.
+- PIN digits show as `ink` dots; an SMS code shows the digits.
+- The box being typed in gets the 2px `brand-strong` ring. Errors as TextField.
+
+#### Toggle
+
+An on/off row: `headline` label, optional `label` description, switch on the right.
+
+- On is `brand-strong` (deep teal), never aqua, so the one-aqua rule holds when there are many switches.
+- The whole row is the touch target (44px or more) and announces on/off.
+- Disabled drops to 45% opacity and shows the reason.
+
+#### OptionList
+
+Pick one option: income type, frequency, bank.
+
+- A white card (`radius-lg`, `shadow-card`) of rows at least 56px tall, with hairlines between them.
+- The selected row is `brand-soft` with a `brand-strong` check. Rows can carry a `label` description.
+

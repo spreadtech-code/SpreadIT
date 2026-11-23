@@ -2,6 +2,8 @@
 // S1-S30 come from PRD 3.4; S31 and S32 were added by the founder (23 Nov 2026)
 // to fix the PRD's S1 Sign in -> S4 link. Each real screen replaces its
 // placeholder in later stages. Names, purposes and action labels follow the PRD.
+// Built for real (no longer placeholders): S1-S9, S31, S32 (stage 3). Their
+// entries stay here so the nav-map tests still cover the whole app.
 
 export type ScreenId =
   | 'S1' | 'S2' | 'S3' | 'S4' | 'S5' | 'S6' | 'S7' | 'S8' | 'S9' | 'S10'

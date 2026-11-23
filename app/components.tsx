@@ -12,12 +12,17 @@ import {
   BalanceHero,
   Button,
   InsightCard,
+  OptionList,
+  PinField,
   RuleCard,
   SegmentedControl,
   StatusBadge,
+  TextField,
+  Toggle,
   badgeStates,
   type BadgeState,
 } from '../src/components';
+import { useApp } from '../src/state/appStore';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 import { tundeIncomeKobo } from '../src/components/demoData';
 import { feeSchedule } from '../src/data/feeSchedule';
@@ -37,6 +42,11 @@ export default function ComponentsScreen() {
   const [ruleType, setRuleType] = useState<'fixed' | 'percent'>('fixed');
   const [amount, setAmount] = useState<number | null>(2_500_000);
   const [stampAmount, setStampAmount] = useState<number | null>(1_050_000);
+  const [text, setText] = useState('');
+  const [pin, setPin] = useState('');
+  const [toggle, setToggle] = useState(true);
+  const [option, setOption] = useState<'monthly' | 'twoWeekly'>('monthly');
+  const resetDemo = useApp((s) => s.resetDemo);
 
   return (
     <ScrollView
@@ -154,6 +164,38 @@ export default function ComponentsScreen() {
             { id: 's2', Icon: Settings, name: 'Review window', meta: '15 minutes', onPress: noop },
           ]}
         />
+      </Section>
+
+      <Section title="TextField, PinField, Toggle, OptionList (stage 3)">
+        <View style={styles.stack}>
+          <TextField label="Email" value={text} onChangeText={setText} placeholder="name@example.com" helper="Helper text sits here." />
+          <TextField label="With an error" value="tunde@" onChangeText={noop} error="Enter an email address, like name@example.com." />
+          <PinField label="6-digit PIN" value={pin} onChange={setPin} autoFocus={false} />
+          <Toggle label="Keep trying if it fails" description="On is deep teal, never aqua." value={toggle} onValueChange={setToggle} />
+          <Toggle label="Disabled switch" value={false} onValueChange={noop} disabled disabledReason="Shown greyed out with the reason." />
+        </View>
+        <OptionList
+          accessibilityLabel="Pay frequency"
+          options={[
+            { value: 'monthly', label: 'Monthly' },
+            { value: 'twoWeekly', label: 'Every 2 weeks', description: 'Rows can carry a description.' },
+          ]}
+          value={option}
+          onChange={setOption}
+        />
+      </Section>
+
+      <Section title="Demo data">
+        <Button
+          label="Reset demo data"
+          variant="critical"
+          onPress={() => {
+            resetDemo();
+            if (router.canDismiss()) router.dismissAll();
+            router.replace('/welcome');
+          }}
+        />
+        <Text style={styles.note}>Deletes the pretend account and plan on this phone and goes back to Welcome.</Text>
       </Section>
 
       <Section title="PaydayCountdown">

@@ -16,6 +16,12 @@ interface RuleBase {
   id: RuleId;
   name: string;
   destination?: Destination;
+  /** Which B1 category it came from, or 'custom' (B2). */
+  categoryKey?: string;
+  /** B15: keep retrying a temporary failure for up to 72 hours. */
+  keepTrying?: boolean;
+  /** B13: skip this rule on the next payday only. */
+  skipNextPayday?: boolean;
 }
 
 export interface FixedRule extends RuleBase {

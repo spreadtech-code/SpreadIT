@@ -1,6 +1,51 @@
-import { PlaceholderScreen } from '../src/placeholder/PlaceholderScreen';
+// S32 Unlock (founder addition, A3): the PIN when the app reopens -> S15 Home.
+// 5 wrong PINs in a row lock sign-in for 30 minutes and (pretend) send an SMS alert.
+import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { Button, FieldError, PinField, PIN_LENGTH, Screen } from '../src/components';
+import { useApp } from '../src/state/appStore';
 
-// S32 Unlock (added by the founder, not in PRD v1.1). Placeholder until its build stage.
+function timeText(ms: number): string {
+  return new Date(ms).toLocaleTimeString('en-NG', { hour: 'numeric', minute: '2-digit' });
+}
+
 export default function UnlockScreen() {
-  return <PlaceholderScreen id="S32" />;
+  const router = useRouter();
+  const enterPin = useApp((s) => s.enterPin);
+  const lockedUntil = useApp((s) => s.pin.lockedUntil);
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState<string | null>(
+    lockedUntil && Date.now() < lockedUntil ? lockedText(lockedUntil) : null,
+  );
+
+  const onChange = (value: string) => {
+    setPin(value);
+    if (value.length < PIN_LENGTH) return;
+    const outcome = enterPin(value, Date.now());
+    setPin('');
+    if (outcome.result === 'ok') {
+      if (router.canDismiss()) router.dismissAll();
+      router.replace('/home');
+    } else if (outcome.result === 'wrong') {
+      setError(`Wrong PIN. ${outcome.attemptsLeft} ${outcome.attemptsLeft === 1 ? 'try' : 'tries'} left.`);
+    } else {
+      setError(lockedText(outcome.until));
+    }
+  };
+
+  return (
+    <Screen
+      title="Enter your PIN"
+      subtitle="Unlock SpreadIT to continue."
+      onBack={null}
+      footer={<Button label="Sign in with your password instead" variant="quiet" onPress={() => router.push('/sign-in')} />}
+    >
+      <PinField label="6-digit PIN" value={pin} onChange={onChange} />
+      {error ? <FieldError message={error} /> : null}
+    </Screen>
+  );
+}
+
+function lockedText(until: number): string {
+  return `Too many wrong PINs. Try again at ${timeText(until)}. We've sent an SMS alert to your phone.`;
 }
