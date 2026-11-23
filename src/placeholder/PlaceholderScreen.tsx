@@ -59,26 +59,22 @@ export function PlaceholderScreen({ id }: { id: ScreenId }) {
         <Text style={styles.body}>{screen.purpose}</Text>
       </View>
 
+      {screen.banner ? (
+        <View style={styles.card} accessibilityRole="summary">
+          <Text style={styles.headline}>{screen.banner.text}</Text>
+          <View style={styles.buttons}>
+            {screen.banner.actions.map((action) => (
+              <ActionButton key={action.label} action={action} tone={toneFor(action)} />
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       {screen.actions.length > 0 ? (
         <View style={styles.buttons}>
-          {screen.actions.map((action) => {
-            const tone = toneFor(action);
-            return (
-              <Pressable
-                key={action.label}
-                onPress={() => followAction(router, action)}
-                accessibilityRole="button"
-                accessibilityLabel={action.label}
-                style={({ pressed }) => [
-                  styles.button,
-                  { backgroundColor: tone.fill },
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={[styles.buttonText, { color: tone.text }]}>{action.label}</Text>
-              </Pressable>
-            );
-          })}
+          {screen.actions.map((action) => (
+            <ActionButton key={action.label} action={action} tone={toneFor(action)} />
+          ))}
         </View>
       ) : null}
 
@@ -95,10 +91,10 @@ export function PlaceholderScreen({ id }: { id: ScreenId }) {
         <View style={styles.card}>
           <View style={styles.sectionHead}>
             <BellRing size={size.icon} color={colors.ink} strokeWidth={1.75} />
-            <Text style={styles.sectionTitle}>Pretend notifications</Text>
+            <Text style={styles.sectionTitle}>Pretend events</Text>
           </View>
           <Text style={styles.label}>
-            Stand-ins for push notifications until the fake bank is built.
+            Stand-ins for push notifications and the app reopening, until the fake bank is built.
           </Text>
           {screen.pretendPush.map((push) => (
             <LinkRow key={push.label} action={push} onPress={() => followAction(router, push)} />
@@ -113,6 +109,20 @@ export function PlaceholderScreen({ id }: { id: ScreenId }) {
         </View>
       ) : null}
     </ScrollView>
+  );
+}
+
+function ActionButton({ action, tone }: { action: ScreenAction; tone: { fill: string; text: string } }) {
+  const router = useRouter();
+  return (
+    <Pressable
+      onPress={() => followAction(router, action)}
+      accessibilityRole="button"
+      accessibilityLabel={action.label}
+      style={({ pressed }) => [styles.button, { backgroundColor: tone.fill }, pressed && styles.pressed]}
+    >
+      <Text style={[styles.buttonText, { color: tone.text }]}>{action.label}</Text>
+    </Pressable>
   );
 }
 

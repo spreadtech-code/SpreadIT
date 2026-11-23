@@ -5,14 +5,29 @@ import { screens, screensById, type ScreenAction, type ScreenId } from './screen
 const appDir = path.join(__dirname, '..', '..', 'app');
 const allTargets = (id: ScreenId): ScreenAction[] => {
   const s = screensById[id];
-  return [...s.actions, ...(s.links ?? []), ...(s.pretendPush ?? [])];
+  return [...s.actions, ...(s.links ?? []), ...(s.pretendPush ?? []), ...(s.banner?.actions ?? [])];
 };
 
 describe('stage 1 screen map (PRD 3.4)', () => {
-  it('has exactly S1 to S30, once each', () => {
+  it('has exactly S1 to S32, once each (S31 Sign in and S32 Unlock added by the founder)', () => {
     expect(screens.map((s) => s.id)).toEqual(
-      Array.from({ length: 30 }, (_, i) => `S${i + 1}`),
+      Array.from({ length: 32 }, (_, i) => `S${i + 1}`),
     );
+  });
+
+  it('sends S1 Sign in to S31, and S31 and S32 to Home', () => {
+    expect(screensById.S1.actions.find((a) => a.label === 'Sign in')?.to).toBe('S31');
+    expect(screensById.S31.actions.map((a) => a.to)).toEqual(['S15']);
+    expect(screensById.S32.actions.map((a) => a.to)).toEqual(['S15']);
+  });
+
+  it('sends S17 Hold to Home, and the Home banner to S17 and S29', () => {
+    expect(screensById.S17.actions.find((a) => a.label === 'Hold')?.to).toBe('S15');
+    expect(screensById.S15.banner?.text).toBe('₦380,000 held, not split yet');
+    expect(screensById.S15.banner?.actions.map((a) => [a.label, a.to])).toEqual([
+      ['Split now', 'S17'],
+      ['Send to my account', 'S29'],
+    ]);
   });
 
   it('has a route file in app/ for every screen', () => {

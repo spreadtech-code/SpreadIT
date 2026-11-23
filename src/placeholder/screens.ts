@@ -1,11 +1,13 @@
-// TEMPORARY (stage 1): the map of all 30 screens from PRD 3.4, used by the
-// placeholder pages. Each real screen replaces its placeholder in later stages.
-// Names, purposes and action labels are copied from the PRD table.
+// TEMPORARY (stage 1): the map of every screen, used by the placeholder pages.
+// S1-S30 come from PRD 3.4; S31 and S32 were added by the founder (23 Nov 2026)
+// to fix the PRD's S1 Sign in -> S4 link. Each real screen replaces its
+// placeholder in later stages. Names, purposes and action labels follow the PRD.
 
 export type ScreenId =
   | 'S1' | 'S2' | 'S3' | 'S4' | 'S5' | 'S6' | 'S7' | 'S8' | 'S9' | 'S10'
   | 'S11' | 'S12' | 'S13' | 'S14' | 'S15' | 'S16' | 'S17' | 'S18' | 'S19' | 'S20'
-  | 'S21' | 'S22' | 'S23' | 'S24' | 'S25' | 'S26' | 'S27' | 'S28' | 'S29' | 'S30';
+  | 'S21' | 'S22' | 'S23' | 'S24' | 'S25' | 'S26' | 'S27' | 'S28' | 'S29' | 'S30'
+  | 'S31' | 'S32';
 
 export type ActionTone = 'primary' | 'secondary' | 'quiet' | 'critical';
 
@@ -14,7 +16,7 @@ export type ActionTone = 'primary' | 'secondary' | 'quiet' | 'critical';
  * - push: open the target on top (Back returns here).
  * - back: return to the previous screen (falls back to opening the target).
  * - tab:  close screens until a tab screen is reached (Home, Plan, Activity, Profile).
- * - reset: clear everything behind (used once, when onboarding ends) so Back can't return to it.
+ * - reset: clear everything behind (end of onboarding, sign in, unlock) so Back can't return to it.
  */
 export type NavMode = 'push' | 'back' | 'tab' | 'reset';
 
@@ -39,8 +41,10 @@ export interface ScreenInfo {
   links?: ScreenAction[];
   /** PRD "Main actions" that stay on the screen; built in a later stage. */
   later?: string[];
-  /** Stand-ins for push notifications that open a screen (Home only). */
+  /** Stand-ins for push notifications and app events that open a screen (Home only). */
   pretendPush?: ScreenAction[];
+  /** A placeholder status banner near the top of the screen. */
+  banner?: { text: string; actions: ScreenAction[] };
 }
 
 export const screens: ScreenInfo[] = [
@@ -50,7 +54,7 @@ export const screens: ScreenInfo[] = [
     purpose: 'Explains SpreadIT in 3 cards.',
     actions: [
       { label: 'Sign up', to: 'S2', tone: 'primary' },
-      { label: 'Sign in', to: 'S4', tone: 'secondary' },
+      { label: 'Sign in', to: 'S31', tone: 'secondary' },
     ],
   },
   {
@@ -155,9 +159,16 @@ export const screens: ScreenInfo[] = [
     actions: [
       { label: 'Open event', to: 'S16', tone: 'secondary' },
       { label: 'Open plan', to: 'S6', tone: 'secondary' },
-      { label: 'Send to my account', to: 'S29', tone: 'secondary' },
       { label: 'Emergency pause', to: 'S24', tone: 'critical' },
     ],
+    // Shown when a payday was held on S17. "Send to my account" lives here, next to the unsplit money.
+    banner: {
+      text: '₦380,000 held, not split yet',
+      actions: [
+        { label: 'Split now', to: 'S17', tone: 'secondary' },
+        { label: 'Send to my account', to: 'S29', tone: 'secondary' },
+      ],
+    },
     links: [
       { label: 'Income history', to: 'S19' },
       { label: 'Resume automation (when paused)', to: 'S23' },
@@ -168,6 +179,7 @@ export const screens: ScreenInfo[] = [
       { label: 'Payment below qualifying minimum', to: 'S18' },
       { label: 'Salary-switch kit (after 2nd payday)', to: 'S27' },
       { label: 'Monthly summary', to: 'S30' },
+      { label: 'App reopened', to: 'S32' },
     ],
   },
   {
@@ -185,8 +197,9 @@ export const screens: ScreenInfo[] = [
     actions: [
       { label: 'Run in priority order', to: 'S16', tone: 'primary' },
       { label: 'Adjust this payday', to: 'S16', tone: 'secondary' },
+      // Founder decision (23 Nov 2026): Hold keeps the money unsplit and returns to Home.
+      { label: 'Hold', to: 'S15', mode: 'tab', tone: 'secondary' },
     ],
-    later: ['Hold'],
   },
   {
     id: 'S18', name: 'Is this income?', route: '/is-this-income',
@@ -276,6 +289,18 @@ export const screens: ScreenInfo[] = [
     actions: [],
     links: [{ label: 'Home', to: 'S15', mode: 'tab' }],
     later: ['Share image'],
+  },
+
+  // Added by the founder (not in PRD v1.1)
+  {
+    id: 'S31', name: 'Sign in', route: '/sign-in',
+    purpose: 'Sign in with phone or email and password.',
+    actions: [{ label: 'Sign in', to: 'S15', mode: 'reset', tone: 'primary' }],
+  },
+  {
+    id: 'S32', name: 'Unlock', route: '/unlock',
+    purpose: 'Unlock with PIN or biometric when the app reopens.',
+    actions: [{ label: 'Unlock', to: 'S15', mode: 'reset', tone: 'primary' }],
   },
 ];
 
