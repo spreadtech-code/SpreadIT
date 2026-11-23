@@ -9,6 +9,8 @@ import { Calculator, Church, Heart, House, PiggyBank, Plus, Send, Settings, Shie
 import {
   ActivityList,
   AmountField,
+  CostEstimate,
+  Slider,
   BalanceHero,
   Button,
   InsightCard,
@@ -28,6 +30,7 @@ import { tundeIncomeKobo } from '../src/components/demoData';
 import { feeSchedule } from '../src/data/feeSchedule';
 import { transferCostText } from '../src/engine/fees';
 import { stampDutyHint } from '../src/engine/planChecks';
+import { costTips } from '../src/engine/monthlyCost';
 
 const noop = () => {};
 const heroActions = [
@@ -46,6 +49,7 @@ export default function ComponentsScreen() {
   const [pin, setPin] = useState('');
   const [toggle, setToggle] = useState(true);
   const [option, setOption] = useState<'monthly' | 'twoWeekly'>('monthly');
+  const [pct, setPct] = useState(100);
   const resetDemo = useApp((s) => s.resetDemo);
 
   return (
@@ -183,6 +187,24 @@ export default function ComponentsScreen() {
           value={option}
           onChange={setOption}
         />
+      </Section>
+
+      <Section title="Slider, CostEstimate (stage 4)">
+        <View style={styles.stack}>
+          <Slider
+            label="What if you're paid"
+            valueText={`${pct}% of expected`}
+            value={pct}
+            min={10}
+            max={150}
+            step={10}
+            onChange={setPct}
+            minText="10%"
+            maxText="150%"
+          />
+          <CostEstimate text="This plan costs about ₦875 a month (0.10% of your income)" overLimit={false} tips={[]} />
+          <CostEstimate text="This plan costs about ₦315 a month (1.58% of your income)" overLimit tips={costTips(feeSchedule)} />
+        </View>
       </Section>
 
       <Section title="Demo data">

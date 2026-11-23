@@ -1,5 +1,5 @@
 // S6 Plan builder (B1, B2, B6, B8-B12): categories with switches, rules in
-// priority order (drag to reorder), plan summary bar, plan checks.
+// priority order (drag to reorder), plan summary bar, monthly cost estimate (C6), plan checks.
 // Goes to S7 (rule editor), S9 (remainder and fallback), S10 (simulator) and
 // the going-live flow (S11, which leads to S14).
 import { Alert, StyleSheet, Text, View } from 'react-native';
@@ -7,11 +7,13 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DraggableFlatList, { type RenderItemParams } from 'react-native-draggable-flatlist';
 import { RotateCcw, TriangleExclamationPoint, Wallet } from 'lucide-react-native';
-import { ActivityList, Button, FieldError, RuleCard, Toggle, categoryIcon } from '../../src/components';
+import { ActivityList, Button, CostEstimate, FieldError, RuleCard, Toggle, categoryIcon } from '../../src/components';
 import { floatingNavInset } from '../../src/components/FloatingNav';
 import { defaultCategories } from '../../src/data/categories';
 import { feeSchedule } from '../../src/data/feeSchedule';
+import { pricing } from '../../src/data/pricing';
 import { formatNaira, maskAccount } from '../../src/engine/format';
+import { costTips, monthlyCost } from '../../src/engine/monthlyCost';
 import { shareDown } from '../../src/engine/money';
 import { checkPlan } from '../../src/engine/planChecks';
 import { splitIncome } from '../../src/engine/split';
@@ -42,6 +44,11 @@ export default function PlanBuilderScreen() {
     atExpected = null;
   }
 
+  // C6: monthly cost at the expected amount and pay frequency. Recalculated on every change.
+  const cost = income
+    ? monthlyCost({ plan, expectedKobo: expected, frequency: income.frequency, schedule: feeSchedule, pricing })
+    : null;
+
   const ruleAmount = (r: Rule) => (r.kind === 'fixed' ? r.amountKobo : shareDown(expected, r.basisPoints));
 
   const switchOff = (rules: Rule[], label: string) => {
@@ -60,6 +67,9 @@ export default function PlanBuilderScreen() {
         <Text style={styles.subtitle}>Changes apply from your next payday.</Text>
       </View>
       <SummaryBar expectedKobo={expected} split={atExpected} />
+      {cost && plan.rules.length > 0 ? (
+        <CostEstimate text={cost.text} overLimit={cost.overLimit} tips={costTips(feeSchedule)} />
+      ) : null}
       {errors.map((e) => (
         <FieldError key={e} message={e} />
       ))}

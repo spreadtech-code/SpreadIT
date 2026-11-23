@@ -15,4 +15,6 @@ export { PinField, PIN_LENGTH } from './PinField';
 export { Screen } from './Screen';
 export { FieldError, TextField } from './TextField';
 export { Toggle } from './Toggle';
+export { Slider } from './Slider';
+export { CostEstimate } from './CostEstimate';
 export { categoryIcon } from './categoryIcons';

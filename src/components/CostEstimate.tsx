@@ -1,0 +1,97 @@
+// CostEstimate (added stage 4, founder-approved): the C6 monthly cost line on
+// the plan builder (S6) and the Payday Simulator (S10).
+// - Normal: the sentence in ink-muted.
+// - Above 1% of income: the existing warning-hint style (warning-soft fill,
+//   warning icon and text) plus a "Ways to lower your costs" link that opens a
+//   sheet of tips. The wording and the 1% test come from the engine.
+import { useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Receipt, TriangleExclamationPoint } from 'lucide-react-native';
+import { colors, radius, size, space, type } from '../theme/tokens';
+import { Button } from './Button';
+
+export interface CostEstimateProps {
+  /** "This plan costs about ₦875 a month (0.10% of your income)". */
+  text: string;
+  overLimit: boolean;
+  /** Shown in the "Ways to lower your costs" sheet. */
+  tips: string[];
+}
+
+export function CostEstimate({ text, overLimit, tips }: CostEstimateProps) {
+  const [open, setOpen] = useState(false);
+
+  if (!overLimit) {
+    return (
+      <View style={styles.row} accessible accessibilityLabel={text}>
+        <Receipt size={size.icon} color={colors.inkMuted} strokeWidth={1.75} />
+        <Text style={styles.text}>{text}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.wrap}>
+      <View style={styles.warning} accessible accessibilityRole="alert" accessibilityLabel={`Warning. ${text}. That is more than 1% of your income.`}>
+        <TriangleExclamationPoint size={size.icon} color={colors.warning} strokeWidth={1.75} />
+        <Text style={styles.warningText}>{text}</Text>
+      </View>
+      <Button label="Ways to lower your costs" variant="quiet" onPress={() => setOpen(true)} />
+      <TipsSheet visible={open} tips={tips} onClose={() => setOpen(false)} />
+    </View>
+  );
+}
+
+function TipsSheet({ visible, tips, onClose }: { visible: boolean; tips: string[]; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+      <View style={styles.scrim}>
+        <Pressable style={styles.dismiss} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close tips" />
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + space[5] }]} accessibilityViewIsModal>
+          <Text style={styles.title} accessibilityRole="header">
+            Ways to lower your costs
+          </Text>
+          {tips.map((tip, i) => (
+            <View key={tip} style={styles.tip}>
+              <Text style={styles.number}>{i + 1}.</Text>
+              <Text style={styles.tipText}>{tip}</Text>
+            </View>
+          ))}
+          <Button label="Got it" variant="secondary" onPress={onClose} />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+  text: { ...type.body, color: colors.inkMuted, flex: 1 },
+  wrap: { gap: space[1] },
+  warning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
+    backgroundColor: colors.warningSoft,
+    borderRadius: radius.sm,
+    paddingHorizontal: space[3],
+    paddingVertical: space[2],
+  },
+  warningText: { ...type.body, color: colors.warning, flex: 1 },
+  scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'flex-end' },
+  dismiss: { flex: 1 },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    paddingHorizontal: space[5],
+    paddingTop: space[6],
+    gap: space[4],
+  },
+  title: { ...type.titleSm, color: colors.ink },
+  tip: { flexDirection: 'row', gap: space[2] },
+  number: { ...type.bodyStrong, color: colors.ink },
+  tipText: { ...type.body, color: colors.ink, flex: 1 },
+});

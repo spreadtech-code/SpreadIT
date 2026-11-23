@@ -72,7 +72,7 @@ Body text 16px minimum; layouts hold at 200% text size; touch targets 44 × 44 o
 
 ## Components
 
-Button, RoundAction, BalanceHero, RuleCard, StatusBadge, ActivityList, InsightCard, PaydayCountdown, SegmentedControl, AmountField, FloatingNav. Added in stage 3 with the founder's approval: TextField, PinField, Toggle, OptionList. The previews are HTML for review; the app rebuilds them in React Native.
+Button, RoundAction, BalanceHero, RuleCard, StatusBadge, ActivityList, InsightCard, PaydayCountdown, SegmentedControl, AmountField, FloatingNav. Added in stage 3 with the founder's approval: TextField, PinField, Toggle, OptionList. Added in stage 4 with the founder's approval: Slider, CostEstimate. The previews are HTML for review; the app rebuilds them in React Native.
 
 ## Building it in the Expo app
 
@@ -259,3 +259,23 @@ Pick one option: income type, frequency, bank.
 - A white card (`radius-lg`, `shadow-card`) of rows at least 56px tall, with hairlines between them.
 - The selected row is `brand-soft` with a `brand-strong` check. Rows can carry a `label` description.
 
+### Added in stage 4 (founder-approved, 23 November 2026)
+
+Built only from existing tokens. Both appear on the hidden Components screen.
+
+#### Slider
+
+The what-if slider on the Payday Simulator (C5). Uses `@react-native-community/slider`, which runs in Expo Go.
+
+- `headline` label on the left, the current value in `body-strong` / `brand-strong` on the right. The value is always written out, never shown by the thumb's position alone.
+- Filled track and thumb in `brand-strong` (deep teal), never aqua; the empty track is `line`. The touch area is at least 44px tall.
+- The end values sit under each end in `label` / `ink-muted`.
+- Screen readers treat it as adjustable and read the written value.
+
+#### CostEstimate
+
+The monthly cost line (C6) on the plan builder and the simulator.
+
+- Normal: a receipt icon and the sentence in `body` / `ink-muted`.
+- Above 1% of income: the warning-hint style (`warning-soft` fill, `warning` icon and text), then a quiet "Ways to lower your costs" button.
+- That button opens a bottom sheet (`surface`, `radius-xl` top corners, `scrim` behind) with numbered tips and a secondary "Got it" button.

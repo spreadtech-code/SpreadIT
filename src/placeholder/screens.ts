@@ -122,7 +122,6 @@ export const screens: ScreenInfo[] = [
     purpose: 'Split pretend income with real fees; what-if slider; monthly cost estimate.',
     actions: [{ label: 'Edit plan', to: 'S6', mode: 'back', tone: 'quiet' }],
     links: [{ label: 'Where your money is', to: 'S11' }],
-    later: ['Run simulation', 'Move slider'],
   },
 
   // Flow 4: Going live
