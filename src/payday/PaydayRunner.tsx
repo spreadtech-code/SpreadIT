@@ -1,16 +1,19 @@
 // Mounted once in the root layout:
 // - runs the payday loop every second while the app is open (tick);
 // - shows the newest pretend alert as a banner over every screen, once unlocked.
+// - locks the app after 5 minutes in the background (F5).
 // Also exports useNow() for screens that show a live countdown or status.
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { AlertBanner } from '../components/AlertBanner';
 import { now, useBank } from '../fakebank/bankStore';
+import { useAutoLock } from '../lib/autoLock';
 import { useApp } from '../state/appStore';
 import { dismissAlert, tick, usePaydays } from './paydayStore';
 
 export function PaydayRunner() {
   const router = useRouter();
+  useAutoLock(); // F5
   const unlocked = useApp((s) => s.unlocked);
   const alert = usePaydays((s) => s.alerts[0]);
 

@@ -1,6 +1,8 @@
 // S7 Rule editor (B2-B5, B7, B13, B15): rule type, amount or %, frequency,
 // destination, keep trying; shows the transfer cost and stamp-duty hint.
 // Opened with ?ruleId=… (edit), ?category=… (switch a B1 category on) or ?custom=1 (B2).
+// Once automation is live, Save and Delete need a one-time code (F2, S23), and a
+// new account waits 24 hours before it is paid (F3).
 import { useCallback, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -23,7 +25,9 @@ import { stampDutyHint } from '../src/engine/planChecks';
 import type { Destination, Frequency, Rule } from '../src/engine/types';
 import { percentText, planErrors, ruleErrors } from '../src/engine/validate';
 import { newRuleId, upsertRule } from '../src/state/planEdits';
-import { useApp } from '../src/state/appStore';
+import { isLive, useApp } from '../src/state/appStore';
+import { now } from '../src/fakebank/bankStore';
+import { cooldownText } from '../src/state/sensitiveChanges';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 
 /** "10" -> 1000, "10.5" -> 1050; null if not a number with at most one decimal place. */
@@ -42,6 +46,8 @@ export default function RuleEditorScreen() {
   const deleteRule = useApp((s) => s.deleteRule);
   const setSkipNext = useApp((s) => s.setSkipNext);
   const takeDestination = useApp((s) => s.takeDestination);
+  const requestChange = useApp((s) => s.requestChange);
+  const live = useApp((s) => isLive(s));
 
   const existing = plan.rules.find((r) => r.id === params.ruleId);
   const category = categoryByKey(params.category ?? existing?.categoryKey ?? '');
@@ -91,6 +97,11 @@ export default function RuleEditorScreen() {
     if (!destination) problems.push('Add a destination account to save this rule.');
     setErrors(problems);
     if (problems.length > 0 || !rule) return;
+    if (live) {
+      requestChange({ kind: 'saveRule', rule });
+      router.replace('/verify-change');
+      return;
+    }
     saveRule(rule);
     router.back();
   };
@@ -103,12 +114,20 @@ export default function RuleEditorScreen() {
         text: 'Delete rule',
         style: 'destructive',
         onPress: () => {
+          if (live) {
+            requestChange({ kind: 'deleteRules', ruleIds: [existing.id] });
+            router.replace('/verify-change');
+            return;
+          }
           deleteRule(existing.id);
           router.back();
         },
       },
     ]);
   };
+
+  const sameDestination =
+    destination?.accountNumber === existing?.destination?.accountNumber && destination?.bankName === existing?.destination?.bankName;
 
   const fixedHelper = amount ? transferCostText(amount, feeSchedule) : 'Enter an amount to see what it costs to send.';
   const stampHint = amount ? stampDutyHint(amount, feeSchedule) : null;
@@ -120,7 +139,7 @@ export default function RuleEditorScreen() {
   return (
     <Screen
       title={existing ? `Edit ${existing.name}` : category ? category.name : 'New category'}
-      subtitle="Changes apply from your next payday."
+      subtitle={live ? 'Changes apply from your next payday. Saving needs a one-time code.' : 'Changes apply from your next payday.'}
       footer={<Button label="Save rule" variant="primary" onPress={save} />}
     >
       <TextField label="Name" value={name} onChangeText={setName} maxLength={30} autoCapitalize="words" helper="Up to 30 characters, e.g. Mum or School fees." />
@@ -164,6 +183,12 @@ export default function RuleEditorScreen() {
         ) : (
           <Text style={styles.cardLabel}>Not added yet.</Text>
         )}
+        {existing && sameDestination && cooldownText(existing, now()) ? (
+          <Text style={styles.cardNote}>{cooldownText(existing, now())}</Text>
+        ) : null}
+        {live && !sameDestination ? (
+          <Text style={styles.cardNote}>A new account starts getting paid 24 hours after you save.</Text>
+        ) : null}
         <Button
           label={destination ? 'Change account' : 'Add destination account'}
           variant={destination ? 'quiet' : 'secondary'}
@@ -201,5 +226,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[2], ...shadow.card },
   cardLabel: { ...type.label, color: colors.inkMuted },
   cardName: { ...type.headline, color: colors.ink },
+  cardNote: { ...type.label, color: colors.brandStrong },
   more: { gap: space[2], marginTop: space[4] },
 });

@@ -19,7 +19,9 @@ import { checkPlan } from '../../src/engine/planChecks';
 import { splitIncome } from '../../src/engine/split';
 import type { Rule } from '../../src/engine/types';
 import { percentText, RULE_LIMITS } from '../../src/engine/validate';
-import { goLiveRoute, useApp } from '../../src/state/appStore';
+import { useNow } from '../../src/payday/PaydayRunner';
+import { goLiveRoute, isLive, useApp } from '../../src/state/appStore';
+import { cooldownText } from '../../src/state/sensitiveChanges';
 import { colors, radius, shadow, size, space, type } from '../../src/theme/tokens';
 
 export default function PlanBuilderScreen() {
@@ -31,6 +33,9 @@ export default function PlanBuilderScreen() {
   const reorderRules = useApp((s) => s.reorderRules);
   const moveRule = useApp((s) => s.moveRule);
   const deleteRule = useApp((s) => s.deleteRule);
+  const requestChange = useApp((s) => s.requestChange);
+  const live = useApp((s) => isLive(s));
+  const t = useNow();
 
   const expected = income?.expectedKobo ?? 0;
   const check = checkPlan(plan, expected, feeSchedule);
@@ -54,7 +59,17 @@ export default function PlanBuilderScreen() {
   const switchOff = (rules: Rule[], label: string) => {
     Alert.alert(`Switch off ${label}?`, 'This takes it out of your plan. Changes apply from your next payday.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Switch off', style: 'destructive', onPress: () => rules.forEach((r) => deleteRule(r.id)) },
+      {
+        text: 'Switch off',
+        style: 'destructive',
+        onPress: () => {
+          // F2: once live, taking rules out needs a one-time code.
+          if (live) {
+            requestChange({ kind: 'deleteRules', ruleIds: rules.map((r) => r.id) });
+            router.push('/verify-change');
+          } else rules.forEach((r) => deleteRule(r.id));
+        },
+      },
     ]);
   };
 
@@ -172,7 +187,7 @@ export default function PlanBuilderScreen() {
             bankName={item.destination?.bankName}
             accountNumber={item.destination?.accountNumber}
             amountKobo={ruleAmount(item)}
-            note={item.skipNextPayday ? 'Skipping next payday' : undefined}
+            note={[item.skipNextPayday ? 'Skipping next payday' : null, cooldownText(item, t)].filter(Boolean).join(' · ') || undefined}
             showDragHandle
             onDrag={drag}
             onMove={(delta) => moveRule(item.id, delta)}

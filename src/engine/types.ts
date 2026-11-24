@@ -12,10 +12,19 @@ export interface Destination {
   accountName: string;
 }
 
-interface RuleBase {
+/**
+ * F3: a new or changed account becomes active 24 hours after the change.
+ * Until then, paydays pay the previous account (or the fallback if there was none).
+ */
+export interface DestinationCooldown {
+  destination?: Destination;
+  destinationActiveFrom?: number;
+  previousDestination?: Destination;
+}
+
+interface RuleBase extends DestinationCooldown {
   id: RuleId;
   name: string;
-  destination?: Destination;
   /** Which B1 category it came from, or 'custom' (B2). */
   categoryKey?: string;
   /** B15: keep retrying a temporary failure for up to 72 hours. */
@@ -42,7 +51,7 @@ export interface Plan {
   /** In the user's priority order: index 0 is priority 1 (B6). */
   rules: Rule[];
   /** Where leftover money goes (B8). null = not chosen yet. */
-  remainder: { name: string; destination?: Destination } | null;
+  remainder: ({ name: string } & DestinationCooldown) | null;
 }
 
 export type Funding = 'Fully funded' | 'Partly funded' | 'Skipped';

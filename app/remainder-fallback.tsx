@@ -1,12 +1,16 @@
 // S9 Remainder and fallback (B8, B9): where leftover money goes, and the
 // user's own account for failed transfers and unsplit money. Save -> S6.
+// Once automation is live, Save needs a one-time code (F2, S23), and a new
+// leftover account waits 24 hours before it is paid (F3).
 import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, FieldError, OptionList, Screen, TextField } from '../src/components';
 import { maskAccount } from '../src/engine/format';
 import type { Destination } from '../src/engine/types';
-import { useApp } from '../src/state/appStore';
+import { now } from '../src/fakebank/bankStore';
+import { isLive, useApp } from '../src/state/appStore';
+import { cooldownText } from '../src/state/sensitiveChanges';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 
 const presetNames = ['Everyday spending', 'Savings', 'Primary account'] as const;
@@ -18,6 +22,8 @@ export default function RemainderFallbackScreen() {
   const savedFallback = useApp((s) => s.fallback);
   const save = useApp((s) => s.saveRemainderAndFallback);
   const takeDestination = useApp((s) => s.takeDestination);
+  const requestChange = useApp((s) => s.requestChange);
+  const live = useApp((s) => isLive(s));
 
   const savedName = plan.remainder?.name;
   const [choice, setChoice] = useState<Choice | null>(
@@ -44,6 +50,11 @@ export default function RemainderFallbackScreen() {
     if (!remainder) problems.push('Add the account for leftover money.');
     setErrors(problems);
     if (problems.length > 0 || !name || !remainder) return;
+    if (live) {
+      requestChange({ kind: 'remainderFallback', remainderName: name, remainder, fallback });
+      router.replace('/verify-change');
+      return;
+    }
     save(name, remainder, fallback);
     router.back();
   };
@@ -51,7 +62,7 @@ export default function RemainderFallbackScreen() {
   return (
     <Screen
       title="Remainder and fallback"
-      subtitle="Changes apply from your next payday."
+      subtitle={live ? 'Changes apply from your next payday. Saving needs a one-time code.' : 'Changes apply from your next payday.'}
       footer={<Button label="Save" variant="primary" onPress={onSave} />}
     >
       <Text style={styles.section}>Where leftover money goes</Text>
@@ -71,6 +82,13 @@ export default function RemainderFallbackScreen() {
         title="Account for leftover money"
         destination={remainder}
         onChange={() => router.push('/add-destination?for=remainder')}
+        note={
+          plan.remainder && remainder?.accountNumber === plan.remainder.destination?.accountNumber
+            ? cooldownText(plan.remainder, now())
+            : live
+              ? 'A new account starts getting paid 24 hours after you save.'
+              : null
+        }
       />
 
       <Text style={styles.section}>Fallback account</Text>
@@ -89,7 +107,17 @@ export default function RemainderFallbackScreen() {
   );
 }
 
-function AccountCard({ title, destination, onChange }: { title: string; destination?: Destination; onChange: () => void }) {
+function AccountCard({
+  title,
+  destination,
+  onChange,
+  note,
+}: {
+  title: string;
+  destination?: Destination;
+  onChange: () => void;
+  note?: string | null;
+}) {
   return (
     <View style={styles.card}>
       <Text style={styles.muted}>{title}</Text>
@@ -103,6 +131,7 @@ function AccountCard({ title, destination, onChange }: { title: string; destinat
       ) : (
         <Text style={styles.muted}>Not added yet.</Text>
       )}
+      {note ? <Text style={styles.note}>{note}</Text> : null}
       <Button label={destination ? 'Change account' : 'Add account'} variant={destination ? 'quiet' : 'secondary'} onPress={onChange} />
     </View>
   );
@@ -114,4 +143,5 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[2], ...shadow.card },
   muted: { ...type.label, color: colors.inkMuted },
   name: { ...type.headline, color: colors.ink },
+  note: { ...type.label, color: colors.brandStrong },
 });

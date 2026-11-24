@@ -9,7 +9,9 @@ import { formatNaira } from '../engine/format';
 import type { RuleId } from '../engine/types';
 import { FINAL_STATUSES, type Transfer, type TransferStatus } from '../fakebank/bank';
 import * as bank from '../fakebank/bankStore';
-import { useApp } from '../state/appStore';
+import { payDates, dayMonth } from '../lib/payDates';
+import { isPaused, useApp } from '../state/appStore';
+import { activePlan, type ChangeAlert } from '../state/sensitiveChanges';
 import {
   narration,
   paidThisMonth,
@@ -47,6 +49,11 @@ const newId = (prefix: string) => `${prefix}${bank.now().toString(36)}${(counter
 function alert(title: string, body: string, route: string): void {
   const a: PretendAlert = { id: newId('AL'), title, body, route, createdAt: bank.now() };
   usePaydays.setState((s) => ({ alerts: [...s.alerts, a] }));
+}
+
+/** F4: the pretend email and SMS for a sensitive change. Tapping it = "This wasn't me". */
+export function securityAlerts(alerts: readonly ChangeAlert[]): void {
+  for (const a of alerts) alert(a.title, a.body, '/emergency-pause?notMe=1');
 }
 
 export function dismissAlert(id: string): void {
@@ -97,18 +104,30 @@ export async function handlePaymentNotice(notice: {
     payment,
     expectedKobo: app.income.expectedKobo,
     qualifyingMinimumKobo: app.income.qualifyingMinimumKobo,
-    plan: app.plan,
+    // F3: accounts still in their 24-hour wait are swapped for the previous one.
+    plan: activePlan(app.plan, bank.now()),
     paidThisMonth: paidThisMonth(usePaydays.getState().events, payment.receivedAt),
     reviewWindowMinutes: app.automation.reviewWindowMinutes,
     schedule: feeSchedule,
     now: bank.now(),
   });
+  // F1: while paused, nothing counts down; the money waits until the user resumes.
+  const paused = isPaused(app);
+  if (paused && event.stage === 'review') {
+    event.stage = 'held';
+    event.reviewEndsAt = null;
+  }
   usePaydays.setState((s) => ({ events: [...s.events, event] }));
 
   const amount = formatNaira(event.amountKobo);
+  if (paused && event.stage === 'held') {
+    alert('Income received', `${amount} arrived. Automation is paused, so it stays in your SpreadIT account until you resume.`, eventRoute(event));
+    return 'event';
+  }
   if (event.stage === 'askIncome') alert('Is this income?', `${amount} arrived. Should SpreadIT split it?`, eventRoute(event));
   else if (event.stage === 'needsApproval') alert('Short payday', `${amount} arrived, less than half of what you expect. Nothing is sent until you say so.`, eventRoute(event));
   else if (event.stage === 'tooSmall') alert('Money received', `${amount} arrived. This payment is too small to split.`, '/home');
+  else if (app.automation.reviewWindowMinutes === 0) alert('Income received', `${amount} arrived. Your split is going out now.`, eventRoute(event));
   else alert('Income received', `${amount} arrived. Your split goes out in ${app.automation.reviewWindowMinutes} minutes.`, eventRoute(event));
   return 'event';
 }
@@ -122,24 +141,25 @@ export async function handlePaymentNotice(notice: {
  * Founder decision (24 Nov 2026): D1 + D4 win over flow 6's "S18 -> S16".
  */
 export function answerIsThisIncome(id: string, yes: boolean): void {
-  const minutes = useApp.getState().automation.reviewWindowMinutes;
   update(id, (e) => {
     if (e.stage !== 'askIncome') return e;
     if (!yes) return { ...e, stage: 'notIncome' };
     if (e.split.status === 'tooSmall') return { ...e, stage: 'tooSmall' };
     if (e.split.status === 'needsApproval') return { ...e, stage: 'needsApproval' };
-    return { ...e, stage: 'review', reviewEndsAt: bank.now() + minutes * 60_000 };
+    return startReview(e);
   });
+}
+
+/** The review window starts, or, while paused (F1), the payday is held. */
+function startReview(e: IncomeEvent): IncomeEvent {
+  const app = useApp.getState();
+  if (isPaused(app)) return { ...e, stage: 'held', reviewEndsAt: null };
+  return { ...e, stage: 'review', reviewEndsAt: bank.now() + app.automation.reviewWindowMinutes * 60_000 };
 }
 
 /** S17 "Run in priority order": start the review window (S17 -> S16). */
 export function runInPriorityOrder(id: string): void {
-  const minutes = useApp.getState().automation.reviewWindowMinutes;
-  update(id, (e) =>
-    e.stage === 'needsApproval' || e.stage === 'held'
-      ? { ...e, stage: 'review', reviewEndsAt: bank.now() + minutes * 60_000 }
-      : e,
-  );
+  update(id, (e) => (e.stage === 'needsApproval' || e.stage === 'held' ? startReview(e) : e));
 }
 
 /** S17 "Adjust this payday": skip rules for this payday only; the split is worked out again. */
@@ -161,11 +181,24 @@ export function cancelEvent(id: string): void {
   update(id, (e) => (e.stage === 'sending' || e.stage === 'done' ? e : { ...e, stage: 'cancelled', reviewEndsAt: null }));
 }
 
-/** S16 "Execute now", or the window closing: send every transfer (D6). */
+/**
+ * F1 Emergency pause: automation stops at once. A payday counting down is held,
+ * so nothing is sent until the user resumes and taps "Execute now". Transfers
+ * already with the bank finish.
+ */
+export function pauseAutomation(at: number): void {
+  useApp.getState().pause(at);
+  usePaydays.setState((s) => ({
+    events: s.events.map((e) => (e.stage === 'review' ? { ...e, stage: 'held', reviewEndsAt: null } : e)),
+  }));
+}
+
+/** S16 "Execute now", or the window closing: send every transfer (D6). Nothing is sent while paused (F1). */
 export async function executeEvent(id: string): Promise<void> {
   const e = getEvent(id);
   if (!e || (e.stage !== 'review' && e.stage !== 'held')) return;
   const app = useApp.getState();
+  if (isPaused(app)) return;
   const transfers = transfersFor(e, app.fallback);
   update(id, (x) => ({ ...x, stage: 'sending', executedAt: bank.now(), reviewEndsAt: null, transfers }));
 
@@ -256,6 +289,7 @@ export async function tick(): Promise<void> {
 async function tickOnce(): Promise<void> {
   bank.advanceBank();
   const t = bank.now();
+  pauseReminder(t);
 
   for (const e of usePaydays.getState().events) {
     if (e.stage === 'review' && e.reviewEndsAt !== null && t >= e.reviewEndsAt) await executeEvent(e.id);
@@ -284,12 +318,34 @@ async function tickOnce(): Promise<void> {
     if (e.stage === 'sending' && allFinal) {
       const ok = e.transfers.filter((tr) => bankTransfer(tr.reference)?.status === 'Successful').length;
       const notOk = e.transfers.length - ok;
-      alert('Payday split', `${ok} successful${notOk ? `, ${notOk} not successful` : ''}. Tap to see where your money went.`, '/home');
+      // G2: the SMS copy can be switched off; the push always comes.
+      const sms = useApp.getState().notifications.paydaySummarySms ? ' Also sent by SMS.' : '';
+      alert('Payday split', `${ok} successful${notOk ? `, ${notOk} not successful` : ''}. Tap to see where your money went.${sms}`, '/home');
       update(e.id, (x) => ({ ...x, stage: 'done', doneAt: t, alerted }));
     } else if (changed) {
       update(e.id, (x) => ({ ...x, alerted }));
     }
   }
+}
+
+const DAY = 24 * 60 * 60 * 1000;
+
+/** G3: 1 reminder at day 7 of a pause and 1 at day 14, none after that. */
+export function pauseReminderDue(pausedAt: number | null | undefined, sent: number, t: number): boolean {
+  if (pausedAt === null || pausedAt === undefined || sent >= 2) return false;
+  return t - pausedAt >= (sent === 0 ? 7 : 14) * DAY;
+}
+
+function pauseReminder(t: number): void {
+  const app = useApp.getState();
+  if (!pauseReminderDue(app.automation.pausedAt, app.automation.pauseReminders ?? 0, t)) return;
+  const next = app.income ? payDates(app.income, new Date(t)).next : null;
+  alert(
+    'Your plan is paused',
+    next ? `Your plan is paused. Resume before your next payday on ${dayMonth(next)}?` : 'Your plan is paused. Resume before your next payday?',
+    '/verify-change?resume=1',
+  );
+  app.notePauseReminder();
 }
 
 /** Demo controls: clear every payday and alert. */

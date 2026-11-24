@@ -23,6 +23,7 @@ import {
   usePaydays,
 } from '../src/payday/paydayStore';
 import { useBank } from '../src/fakebank/bankStore';
+import { isPaused, useApp } from '../src/state/appStore';
 import { colors, space, type } from '../src/theme/tokens';
 
 export default function PaydayScreen() {
@@ -31,6 +32,7 @@ export default function PaydayScreen() {
   const events = usePaydays((s) => s.events);
   useBank((s) => s.bank); // re-render when a transfer's status changes
   const t = useNow();
+  const paused = useApp((s) => isPaused(s));
   const event = eventId ? events.find((e) => e.id === eventId) : latestEvent(events);
   const home = () => {
     if (router.canDismiss()) router.dismissAll();
@@ -80,6 +82,14 @@ export default function PaydayScreen() {
         allocations={allocations}
         feesKobo={event.split.totalFeesKobo}
         onExecute={async () => {
+          // F1: nothing is sent while automation is paused.
+          if (paused) {
+            Alert.alert('Automation is paused', 'Resume automation first. Then come back and tap "Execute now".', [
+              { text: 'Not now', style: 'cancel' },
+              { text: 'Resume', onPress: () => router.push('/verify-change?resume=1') },
+            ]);
+            return;
+          }
           await executeEvent(event.id);
         }}
         onPause={event.stage === 'review' ? () => holdEvent(event.id) : undefined}

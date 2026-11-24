@@ -3,6 +3,8 @@
 // transfer, unsplit balance, next expected pay date, Automation On label and
 // the Emergency pause button.
 // - Automation off: a prompt to switch on.
+// - Paused (F1): "Automation paused" in the hero, the pause message and Resume
+//   (PIN + one-time code, S23).
 // - A payday waiting for the user (review window, short payday, "Is this
 //   income?", held) shows as a card at the top with the way to act on it.
 // - The last split payday shows where the money went, with live statuses.
@@ -22,7 +24,7 @@ import { unsplitKobo, WAITING_STAGES, type IncomeEvent } from '../../src/payday/
 import { useNow } from '../../src/payday/PaydayRunner';
 import { bankTransfer, eventRoute, usePaydays } from '../../src/payday/paydayStore';
 import { transferItems } from '../../src/payday/transferItems';
-import { goLiveRoute, useApp } from '../../src/state/appStore';
+import { goLiveRoute, isPaused, useApp } from '../../src/state/appStore';
 import { colors, radius, shadow, size, space, type } from '../../src/theme/tokens';
 
 export default function HomeDashboardScreen() {
@@ -33,6 +35,7 @@ export default function HomeDashboardScreen() {
   const account = useApp((s) => s.account);
   const identity = useApp((s) => s.identity);
   const automationOn = useApp((s) => s.automation.on);
+  const paused = useApp((s) => isPaused(s));
   const events = usePaydays((s) => s.events);
   const balance = useBank((s) => s.bank.balanceKobo);
   useBank((s) => s.bank.transfers); // re-render when a status changes
@@ -67,9 +70,11 @@ export default function HomeDashboardScreen() {
         amountKobo={lastSplit?.amountKobo ?? 0}
         actions={heroActions}
         automation={
-          automationOn
-            ? { paused: false, text: automationText(next, today) }
-            : { paused: false, off: true, text: 'Automation off' }
+          !automationOn
+            ? { paused: false, off: true, text: 'Automation off' }
+            : paused
+              ? { paused: true }
+              : { paused: false, text: automationText(next, today) }
         }
         onWordmarkLongPress={() => router.push('/demo-controls')}
       />
@@ -88,6 +93,14 @@ export default function HomeDashboardScreen() {
             <Button label="Switch on automation" variant="secondary" onPress={() => router.push(goLiveRoute(useApp.getState()))} />
           ) : null}
         </>
+      ) : null}
+
+      {automationOn && paused ? (
+        <View style={styles.card} accessibilityRole="summary">
+          <Text style={styles.cardTitle}>Automation paused</Text>
+          <Text style={styles.body}>Income will stay in your SpreadIT account until you resume.</Text>
+          <Button label="Resume" variant="secondary" accessibilityHint="Needs your PIN and a one-time code." onPress={() => router.push('/verify-change?resume=1')} />
+        </View>
       ) : null}
 
       {waiting.map((e) => (
@@ -122,12 +135,14 @@ export default function HomeDashboardScreen() {
         <Button label="Income history" variant="secondary" onPress={() => router.navigate('/income-history')} />
       </View>
 
-      <Button
-        label="Emergency pause"
-        variant="critical"
-        accessibilityHint="Stops all automation. You will need your PIN."
-        onPress={() => router.push('/emergency-pause')}
-      />
+      {automationOn && !paused ? (
+        <Button
+          label="Emergency pause"
+          variant="critical"
+          accessibilityHint="Stops all automation. You will need your PIN."
+          onPress={() => router.push('/emergency-pause')}
+        />
+      ) : null}
     </ScrollView>
   );
 }

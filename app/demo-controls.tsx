@@ -10,7 +10,8 @@ import { formatNaira } from '../src/engine/format';
 import { failNextTransfer, now, resetBank, reverseLastSuccessful, skipAhead, useBank } from '../src/fakebank/bankStore';
 import { handlePaymentNotice, monthlySummaryAlert, resetPaydays, tick } from '../src/payday/paydayStore';
 import { monthLabel, previousMonth } from '../src/payday/summary';
-import { useApp } from '../src/state/appStore';
+import { lockNow } from '../src/lib/autoLock';
+import { isPaused, useApp } from '../src/state/appStore';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 
 const MINUTE = 60_000;
@@ -20,6 +21,7 @@ export default function DemoControlsScreen() {
   const router = useRouter();
   const income = useApp((s) => s.income);
   const automationOn = useApp((s) => s.automation.on);
+  const paused = useApp((s) => isPaused(s));
   const identity = useApp((s) => s.identity);
   const balance = useBank((s) => s.bank.balanceKobo);
   const offset = useBank((s) => s.clockOffsetMs);
@@ -53,15 +55,16 @@ export default function DemoControlsScreen() {
     setMessage(`Skipped ahead ${label}.`);
   };
 
-  const hours = Math.floor(offset / (60 * MINUTE));
+  const days = Math.floor(offset / (24 * 60 * MINUTE));
+  const hours = Math.floor((offset % (24 * 60 * MINUTE)) / (60 * MINUTE));
   const mins = Math.floor((offset % (60 * MINUTE)) / MINUTE);
 
   return (
     <Screen title="Demo controls" subtitle="Pretend bank events for trying the payday flows. Not part of the real app.">
       <View style={styles.card} accessible>
-        <Text style={styles.line}>Automation: {automationOn ? 'On' : 'Off'}</Text>
+        <Text style={styles.line}>Automation: {!automationOn ? 'Off' : paused ? 'Paused' : 'On'}</Text>
         <Text style={styles.line}>SpreadIT account balance: {formatNaira(balance)}</Text>
-        <Text style={styles.line}>Demo clock: {offset === 0 ? 'real time' : `${hours}h ${mins}m ahead`}</Text>
+        <Text style={styles.line}>Demo clock: {offset === 0 ? 'real time' : `${days ? `${days}d ` : ''}${hours}h ${mins}m ahead`}</Text>
         {nextFailure ? <Text style={styles.line}>Next transfer will fail: {nextFailure}</Text> : null}
       </View>
 
@@ -118,6 +121,14 @@ export default function DemoControlsScreen() {
         <Button label="Skip ahead 1 minute" variant="secondary" onPress={() => skip(MINUTE, '1 minute')} />
         <Button label="Skip ahead 15 minutes" variant="secondary" onPress={() => skip(15 * MINUTE, '15 minutes')} />
         <Button label="Skip ahead 6 hours" variant="secondary" onPress={() => skip(6 * 60 * MINUTE, '6 hours')} />
+        <Button label="Skip ahead 1 day" variant="secondary" onPress={() => skip(24 * 60 * MINUTE, '1 day')} />
+        <Button label="Skip ahead 7 days" variant="secondary" onPress={() => skip(7 * 24 * 60 * MINUTE, '7 days')} />
+        <Text style={styles.note}>1 day ends a new account's 24-hour wait (F3). 7 days brings a pause reminder (G3).</Text>
+      </Section>
+
+      <Section title="Security">
+        <Button label="Lock the app now" variant="secondary" onPress={() => lockNow(router)} />
+        <Text style={styles.note}>The same as leaving SpreadIT in the background for 5 minutes (F5).</Text>
       </Section>
 
       <Section title="Start again">

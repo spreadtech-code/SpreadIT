@@ -105,7 +105,7 @@ describe('going live (flow 4: S11 -> S12 -> S13 -> S14)', () => {
     expect(goLiveRoute(store())).toBe('/switch-on-automation');
 
     store().switchOnAutomation(60, 3000);
-    expect(store().automation).toEqual({ on: true, reviewWindowMinutes: 60, switchedOnAt: 3000 });
+    expect(store().automation).toEqual({ on: true, reviewWindowMinutes: 60, switchedOnAt: 3000, pausedAt: null, pauseReminders: 0 });
   });
 
   it('never keeps the BVN', () => {

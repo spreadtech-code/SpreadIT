@@ -8,8 +8,10 @@ import type { Destination, Plan, Rule, RuleId } from '../engine/types';
 import type { SpreaditAccount } from '../fakebank/identity';
 import { normalisePhone } from '../lib/forms';
 import { prototypeHash, sixDigitCode } from '../lib/secrets';
+import { otherDemoDevices, type SignedInDevice } from '../data/devices';
 import * as edits from './planEdits';
 import { tryPin, type PinResult, type PinState } from './pinLock';
+import { changeAlerts, CODE_TRIES, withCooldown, type ChangeAlert, type SensitiveChange } from './sensitiveChanges';
 
 export interface Account {
   phone: string;
@@ -44,13 +46,37 @@ export interface Identity {
   passedAt: number;
 }
 
-/** D2: the review window before transfers go out. */
-export type ReviewWindowMinutes = 5 | 15 | 60;
+/** D2: the review window before transfers go out. 0 = off (only after 3 split paydays). */
+export type ReviewWindowMinutes = 0 | 5 | 15 | 60;
 
 export interface Automation {
   on: boolean;
   reviewWindowMinutes: ReviewWindowMinutes;
   switchedOnAt: number | null;
+  /** F1: when Emergency pause was tapped (demo clock); null or missing = not paused. */
+  pausedAt?: number | null;
+  /** G3: pause reminders sent so far (day 7, day 14). */
+  pauseReminders?: number;
+}
+
+/** F2: a change waiting for its one-time code (S23). Not saved on the phone. */
+export interface PendingChange {
+  change: SensitiveChange;
+  code: string;
+  expiresAt: number;
+  wrongCodes: number;
+}
+
+export type ChangeCodeResult =
+  | { result: 'ok'; alerts: ChangeAlert[] }
+  | { result: 'wrong'; triesLeft: number }
+  | { result: 'cancelled' }
+  | { result: 'expired' }
+  | { result: 'none' };
+
+/** G2: notifications the user can switch off. Security and failure alerts can't be. */
+export interface NotificationSettings {
+  paydaySummarySms: boolean;
 }
 
 /** S3: the pretend SMS code expires after 10 minutes (A1). */
@@ -72,10 +98,16 @@ interface AppState {
   /** A7: the user's own account at the partner bank. */
   spreaditAccount: SpreaditAccount | null;
   automation: Automation;
+  notifications: NotificationSettings;
+  /** F6: other phones signed in to this account (pretend). */
+  otherDevices: SignedInDevice[];
+  /** A3: "Sign out" in Settings. The next start asks for the password, not the PIN. */
+  signedOut: boolean;
 
   // Not saved: each app start begins locked, and S8 hands a destination back once.
   unlocked: boolean;
   pendingDestination: { for: DestinationFor; destination: Destination } | null;
+  pendingChange: PendingChange | null;
 
   signUp: (details: { phone: string; email: string; password: string; dateOfBirth: string }) => void;
   sendSmsCode: () => void;
@@ -97,9 +129,26 @@ interface AppState {
   identityPassed: (identity: Omit<Identity, 'passedAt'>, account: SpreaditAccount, now: number) => void;
   identityFailed: (now: number) => void;
   switchOnAutomation: (reviewWindowMinutes: ReviewWindowMinutes, now: number) => void;
+  setReviewWindow: (minutes: ReviewWindowMinutes) => void;
+  /** F1: Emergency pause. Use pauseAutomation in paydayStore, which also holds waiting paydays. */
+  pause: (at: number) => void;
+  notePauseReminder: () => void;
+  /** F2: ask for a one-time code before a sensitive change. */
+  requestChange: (change: SensitiveChange) => void;
+  resendChangeCode: () => void;
+  /** `now` is the real time (code expiry); `at` is the demo clock (F3 wait). */
+  submitChangeCode: (code: string, now: number, at: number) => ChangeCodeResult;
+  cancelChange: () => void;
+  setPaydaySummarySms: (on: boolean) => void;
+  signOutDevice: (id: string) => void;
+  signOut: () => void;
   lock: () => void;
   resetDemo: () => void;
 }
+
+/** F2-F4 apply once automation has been switched on: before that no money moves. */
+export const isLive = (s: Pick<AppState, 'automation'>): boolean => s.automation.switchedOnAt !== null;
+export const isPaused = (s: Pick<AppState, 'automation'>): boolean => (s.automation.pausedAt ?? null) !== null;
 
 const freshPin: PinState = { pinHash: null, biometric: false, wrongAttempts: 0, lockedUntil: null };
 
@@ -114,9 +163,13 @@ const initial = {
   identity: null as Identity | null,
   identityFails: [] as number[],
   spreaditAccount: null as SpreaditAccount | null,
-  automation: { on: false, reviewWindowMinutes: 15, switchedOnAt: null } as Automation,
+  automation: { on: false, reviewWindowMinutes: 15, switchedOnAt: null, pausedAt: null, pauseReminders: 0 } as Automation,
+  notifications: { paydaySummarySms: true } as NotificationSettings,
+  otherDevices: otherDemoDevices as SignedInDevice[],
+  signedOut: false,
   unlocked: false,
   pendingDestination: null,
+  pendingChange: null as PendingChange | null,
 };
 
 export const useApp = create<AppState>()(
@@ -169,7 +222,7 @@ export const useApp = create<AppState>()(
         const id = phoneOrEmail.trim().toLowerCase();
         const matches = id === account.email || normalisePhone(id) === account.phone;
         if (!matches || prototypeHash(password) !== account.passwordHash) return false;
-        set({ unlocked: true });
+        set({ unlocked: true, signedOut: false });
         return true;
       },
 
@@ -195,7 +248,46 @@ export const useApp = create<AppState>()(
         set({ identity: { ...identity, passedAt: now }, spreaditAccount: account, identityFails: [] }),
       identityFailed: (now) => set({ identityFails: [...get().identityFails, now] }),
       switchOnAutomation: (reviewWindowMinutes, now) =>
-        set({ automation: { on: true, reviewWindowMinutes, switchedOnAt: now } }),
+        set({ automation: { on: true, reviewWindowMinutes, switchedOnAt: now, pausedAt: null, pauseReminders: 0 } }),
+
+      setReviewWindow: (minutes) => set({ automation: { ...get().automation, reviewWindowMinutes: minutes } }),
+      pause: (at) => set({ automation: { ...get().automation, pausedAt: at, pauseReminders: 0 } }),
+      notePauseReminder: () =>
+        set({ automation: { ...get().automation, pauseReminders: (get().automation.pauseReminders ?? 0) + 1 } }),
+
+      requestChange: (change) =>
+        set({ pendingChange: { change, code: sixDigitCode(), expiresAt: Date.now() + SMS_CODE_MS, wrongCodes: 0 } }),
+      resendChangeCode: () => {
+        const p = get().pendingChange;
+        if (p) set({ pendingChange: { ...p, code: sixDigitCode(), expiresAt: Date.now() + SMS_CODE_MS } });
+      },
+      submitChangeCode: (code, now, at) => {
+        const s = get();
+        const p = s.pendingChange;
+        if (!p) return { result: 'none' };
+        if (now > p.expiresAt) return { result: 'expired' };
+        if (code !== p.code) {
+          const wrongCodes = p.wrongCodes + 1;
+          if (wrongCodes >= CODE_TRIES) {
+            set({ pendingChange: null });
+            return { result: 'cancelled' };
+          }
+          set({ pendingChange: { ...p, wrongCodes } });
+          return { result: 'wrong', triesLeft: CODE_TRIES - wrongCodes };
+        }
+        const alerts = changeAlerts(
+          p.change,
+          { plan: s.plan, fallback: s.fallback, reviewWindowMinutes: s.automation.reviewWindowMinutes },
+          at,
+        );
+        set({ ...applyChange(s, p.change, at), pendingChange: null });
+        return { result: 'ok', alerts };
+      },
+      cancelChange: () => set({ pendingChange: null }),
+
+      setPaydaySummarySms: (on) => set({ notifications: { ...get().notifications, paydaySummarySms: on } }),
+      signOutDevice: (id) => set({ otherDevices: get().otherDevices.filter((d) => d.id !== id) }),
+      signOut: () => set({ unlocked: false, signedOut: true, pendingChange: null }),
 
       lock: () => set({ unlocked: false }),
       resetDemo: () => set({ ...initial }),
@@ -215,6 +307,9 @@ export const useApp = create<AppState>()(
         identityFails: s.identityFails,
         spreaditAccount: s.spreaditAccount,
         automation: s.automation,
+        notifications: s.notifications,
+        otherDevices: s.otherDevices,
+        signedOut: s.signedOut,
       }),
     },
   ),
@@ -255,4 +350,31 @@ export function goLiveRoute(
   if (!s.custodyUnderstood) return '/where-your-money-is';
   if (!s.identity || !s.spreaditAccount) return '/identity-check';
   return '/switch-on-automation';
+}
+
+/**
+ * F2/F3: the state after a verified change. A new or changed account starts
+ * its 24-hour wait (F3).
+ */
+export function applyChange(
+  s: Pick<AppState, 'plan' | 'fallback' | 'automation'>,
+  change: SensitiveChange,
+  at: number,
+): Partial<Pick<AppState, 'plan' | 'fallback' | 'automation'>> {
+  switch (change.kind) {
+    case 'saveRule': {
+      const before = s.plan.rules.find((r) => r.id === change.rule.id);
+      return { plan: edits.upsertRule(s.plan, withCooldown(before, change.rule, at)) };
+    }
+    case 'deleteRules':
+      return { plan: change.ruleIds.reduce(edits.removeRule, s.plan) };
+    case 'remainderFallback': {
+      const remainder = withCooldown(s.plan.remainder ?? undefined, { name: change.remainderName, destination: change.remainder }, at);
+      return { plan: { ...s.plan, remainder }, fallback: change.fallback };
+    }
+    case 'reviewWindow':
+      return { automation: { ...s.automation, reviewWindowMinutes: change.minutes as ReviewWindowMinutes } };
+    case 'resume':
+      return { automation: { ...s.automation, pausedAt: null, pauseReminders: 0 } };
+  }
 }

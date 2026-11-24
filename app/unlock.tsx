@@ -1,7 +1,10 @@
 // S32 Unlock (founder addition, A3): the PIN when the app reopens -> S15 Home.
 // 5 wrong PINs in a row lock sign-in for 30 minutes and (pretend) send an SMS alert.
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+// Also shown by auto-lock (F5). Back and the swipe-back gesture are blocked here,
+// so a locked app can't be opened without the PIN.
+import { useEffect, useState } from 'react';
+import { BackHandler } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { Button, FieldError, PinField, PIN_LENGTH, Screen } from '../src/components';
 import { useApp } from '../src/state/appStore';
 
@@ -17,6 +20,11 @@ export default function UnlockScreen() {
   const [error, setError] = useState<string | null>(
     lockedUntil && Date.now() < lockedUntil ? lockedText(lockedUntil) : null,
   );
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => sub.remove();
+  }, []);
 
   const onChange = (value: string) => {
     setPin(value);
@@ -40,6 +48,7 @@ export default function UnlockScreen() {
       onBack={null}
       footer={<Button label="Sign in with your password instead" variant="quiet" onPress={() => router.push('/sign-in')} />}
     >
+      <Stack.Screen options={{ gestureEnabled: false }} />
       <PinField label="6-digit PIN" value={pin} onChange={onChange} />
       {error ? <FieldError message={error} /> : null}
     </Screen>
