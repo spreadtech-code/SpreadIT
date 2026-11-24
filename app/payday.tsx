@@ -107,7 +107,8 @@ export default function PaydayScreen() {
         subtitle={`${formatNaira(event.amountKobo)} received ${dayMonth(new Date(event.receivedAt))}`}
         footer={<Button label="Back to Home" variant="secondary" onPress={home} />}
       >
-        <ActivityList title="Where it's going" items={transferItems(event, t)} />
+        <ActivityList title="Where it's going" items={transferItems(event, t, (ref) => router.push(`/transfer-receipt?event=${event.id}&ref=${ref}`))} />
+        <Button label="See full details" variant="quiet" onPress={() => router.push(`/income-event?event=${event.id}`)} />
         <Text style={styles.muted}>Bank fees: {formatNaira(event.split.totalFeesKobo)}</Text>
       </Screen>
     );

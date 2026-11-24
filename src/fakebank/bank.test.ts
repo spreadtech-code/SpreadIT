@@ -132,6 +132,27 @@ describe('Failures, retry and fallback (D7)', () => {
   });
 });
 
+describe('Receipt details (E3)', () => {
+  it('a Successful transfer has a partner reference, a 30-digit session ID and a completion time', () => {
+    const s = advance(send(funded()).state, T0 + 5_000);
+    const tr = s.transfers.TR1;
+    expect(tr.partnerReference).toMatch(/^TRF_[0-9a-z]{8,}$/);
+    expect(tr.sessionId).toMatch(/^\d{30}$/);
+    expect(tr.completedAt).toBe(T0 + 5_000);
+  });
+
+  it('the same transfer always gets the same IDs', () => {
+    const a = advance(send(funded()).state, T0 + 5_000).transfers.TR1;
+    const b = advance(send(funded()).state, T0 + 5_000).transfers.TR1;
+    expect(a.partnerReference).toBe(b.partnerReference);
+    expect(a.sessionId).toBe(b.sessionId);
+  });
+
+  it('a transfer still in progress has no session ID yet', () => {
+    expect(send(funded()).state.transfers.TR1.sessionId).toBeNull();
+  });
+});
+
 describe('Reversals (D10)', () => {
   it('marks a Successful transfer Reversed and returns the amount', () => {
     let s = advance(send(funded()).state, T0 + 5_000);

@@ -18,7 +18,9 @@ import {
   tick,
   usePaydays,
   bankTransfer,
+  sendAgain,
 } from './paydayStore';
+import { monthlySummary, previousMonth, summaryShareText } from './summary';
 
 const naira = (n: number) => Math.round(n * 100);
 const app = () => useApp.getState();
@@ -251,5 +253,76 @@ describe('startEvent', () => {
       now: 0,
     });
     expect(e.stage).toBe('tooSmall');
+  });
+});
+
+describe('Send again (D8)', () => {
+  it('re-sends a Failed transfer from the SpreadIT balance, once', async () => {
+    useApp.setState({ fallback: null }); // with no fallback, a failure is "Failed" and the money comes back
+    await pay(850_000);
+    bank.failNextTransfer('permanent');
+    await executeEvent(latest().id);
+    await after(5_000);
+    const failed = latest().transfers[0];
+    expect(bankTransfer(failed.reference)?.status).toBe('Failed');
+
+    expect(await sendAgain(latest().id, failed.reference)).toBe('sent');
+    expect(await sendAgain(latest().id, failed.reference)).toBe('notAllowed'); // only once
+    const again = latest().transfers.find((t) => t.resendOf === failed.reference)!;
+    expect(again.amountKobo).toBe(failed.amountKobo);
+    await after(5_000);
+    expect(bankTransfer(again.reference)?.status).toBe('Successful');
+  });
+
+  it('is not offered for a Successful transfer', async () => {
+    await pay(850_000);
+    await executeEvent(latest().id);
+    await after(5_000);
+    expect(await sendAgain(latest().id, latest().transfers[0].reference)).toBe('notAllowed');
+  });
+});
+
+describe('Monthly summary (E4)', () => {
+  it('matches the income history to the kobo', async () => {
+    // Give Mum and Savings their categories, as a plan built in the app would.
+    useApp.setState({
+      plan: {
+        ...tunde.plan,
+        rules: tunde.plan.rules.map((r) =>
+          r.id === 'tunde-mum' ? { ...r, categoryKey: 'family' } : r.id === 'tunde-savings' ? { ...r, categoryKey: 'savings' } : r,
+        ),
+      },
+    });
+    await pay(850_000);
+    await executeEvent(latest().id);
+    await pay(30_000); // below the minimum, then "No"
+    answerIsThisIncome(latest().id, false);
+    await after(5_000);
+
+    const t = new Date(bank.now());
+    const s = monthlySummary(events(), bank.useBank.getState().bank.transfers, t.getFullYear(), t.getMonth());
+    expect(s.receivedKobo).toBe(naira(850_000 + 30_000));
+    expect(s.paymentsCount).toBe(2);
+    const sentInHistory = events()
+      .flatMap((e) => e.transfers)
+      .filter((tr) => bankTransfer(tr.reference)?.status === 'Successful')
+      .reduce((sum, tr) => sum + tr.amountKobo, 0);
+    expect(s.sentTotalKobo).toBe(sentInHistory);
+    expect(s.feesKobo).toBe(naira(875 + 300)); // Tunde's payday + the inflow fee on ₦30,000
+    expect(s.familyPaymentsDelivered).toBe(1);
+    expect(s.savingsSinceJoinedKobo).toBe(naira(127_500));
+    expect(s.sentByCategory.find((l) => l.name === 'Black Tax / Family Support')?.kobo).toBe(naira(80_000));
+  });
+
+  it('hides amounts in the shared text unless asked', async () => {
+    await pay(850_000);
+    const t = new Date(bank.now());
+    const s = monthlySummary(events(), bank.useBank.getState().bank.transfers, t.getFullYear(), t.getMonth());
+    expect(summaryShareText(s, false)).not.toMatch(/850,000/);
+    expect(summaryShareText(s, true)).toMatch(/₦850,000/);
+  });
+
+  it('previousMonth crosses the year end', () => {
+    expect(previousMonth(new Date(2027, 0, 1).getTime())).toEqual({ year: 2026, month: 11 });
   });
 });

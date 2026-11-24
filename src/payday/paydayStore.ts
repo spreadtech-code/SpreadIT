@@ -119,7 +119,7 @@ export async function handlePaymentNotice(notice: {
  * S18: No = leave it unsplit. Yes = an income event is created (D1), so the usual
  * rules apply: below 50% of expected it waits for "Run in priority order" (D4, S17);
  * otherwise the review window starts (S16).
- * [Open with the founder: flow 6 says S18 -> S16; D1 + D4 say below 50% goes to S17.]
+ * Founder decision (24 Nov 2026): D1 + D4 win over flow 6's "S18 -> S16".
  */
 export function answerIsThisIncome(id: string, yes: boolean): void {
   const minutes = useApp.getState().automation.reviewWindowMinutes;
@@ -184,6 +184,47 @@ export async function executeEvent(id: string): Promise<void> {
   }
   // B13: "Skip next payday" applies once.
   for (const ruleId of e.plan.rules.filter((r) => r.skipNextPayday).map((r) => r.id)) app.setSkipNext(ruleId, false);
+}
+
+/** D8: only these can be sent again: their money is back in the SpreadIT account. */
+export const CAN_SEND_AGAIN: readonly TransferStatus[] = ['Failed', 'Reversed'];
+
+export type SendAgainResult = 'sent' | 'insufficientFunds' | 'notAllowed';
+
+/**
+ * D8 "Send again": the same amount to the same account, from the SpreadIT
+ * balance. The screen asks for the PIN first. Adds a new transfer to the event.
+ */
+export async function sendAgain(eventId: string, reference: string): Promise<SendAgainResult> {
+  const e = getEvent(eventId);
+  const tr = e?.transfers.find((x) => x.reference === reference);
+  const status = bankTransfer(reference)?.status;
+  if (!e || !tr || !status || !CAN_SEND_AGAIN.includes(status)) return 'notAllowed';
+  // Each transfer can be sent again once; a failed resend has its own row.
+  if (e.transfers.some((x) => x.resendOf === reference)) return 'notAllowed';
+
+  const app = useApp.getState();
+  const fallbackCode = app.fallback ? (await bank.createRecipient(app.fallback)).code : null;
+  const recipient = await bank.createRecipient(tr.destination);
+  const fullName = app.identity ? `${app.identity.firstName} ${app.identity.lastName}` : 'SpreadIT user';
+  const againRef = `${reference}-again`;
+  const result = await bank.sendTransfer({
+    reference: againRef,
+    recipientCode: recipient.code,
+    amountKobo: tr.amountKobo,
+    narration: narration(fullName, tr.name),
+    keepTrying: tr.keepTrying,
+    fallbackRecipientCode: fallbackCode,
+  });
+  if (!result.ok) return result.reason === 'insufficientFunds' ? 'insufficientFunds' : 'notAllowed';
+  const again = { ...tr, reference: againRef, resendOf: reference, feeKobo: result.transfer.feeKobo };
+  update(eventId, (x) => ({ ...x, stage: 'sending', transfers: [...x.transfers, again] }));
+  return 'sent';
+}
+
+/** E4 demo: the "1st of the month, 10am" alert that opens the monthly summary. */
+export function monthlySummaryAlert(label: string): void {
+  alert(`Your ${label} summary`, 'See what SpreadIT did with your money.', '/monthly-summary');
 }
 
 // ---------- the loop ----------

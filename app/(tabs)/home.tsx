@@ -8,7 +8,7 @@
 // - The last split payday shows where the money went, with live statuses.
 // Hold the "SpreadIT" name for 1 second to open the hidden Demo controls.
 // Goes to: S10 (Simulate), S28 (Send extra), S7 (Add rule), S16-S18 (a waiting
-// payday), S21 (a transfer), S29 (Send to my account), S6, S19, S24.
+// payday), S20 (Open event), S21 (a transfer), S29 (Send to my account), S6, S19, S24.
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -174,8 +174,8 @@ function LastPayday({ event, now }: { event: IncomeEvent; now: number }) {
   const date = dayMonth(new Date(event.receivedAt));
   const first = event.transfers.find((tr) => tr.id !== 'remainder' && bankTransfer(tr.reference)?.status === 'Successful');
   const items: ActivityItem[] = [
-    { id: 'income', name: 'Payday', meta: date, direction: 'in', amountKobo: event.amountKobo, onPress: () => router.push(`/payday?event=${event.id}`) },
-    ...transferItems(event, now, () => router.push('/transfer-receipt')),
+    { id: 'income', name: 'Payday', meta: date, direction: 'in', amountKobo: event.amountKobo, onPress: () => router.push(`/income-event?event=${event.id}`) },
+    ...transferItems(event, now, (ref) => router.push(`/transfer-receipt?event=${event.id}&ref=${ref}`)),
     {
       id: 'fees',
       name: 'Bank fees',
@@ -189,7 +189,7 @@ function LastPayday({ event, now }: { event: IncomeEvent; now: number }) {
     <>
       {first ? <InsightCard title={`${first.name} paid`} text={`${first.name} got ${formatNaira(first.amountKobo)} on ${date}.`} /> : null}
       <ActivityList title="Where it went" items={items} />
-      <Button label="Open event" variant="quiet" onPress={() => router.push(`/payday?event=${event.id}`)} />
+      <Button label="Open event" variant="quiet" onPress={() => router.push(`/income-event?event=${event.id}`)} />
     </>
   );
 }

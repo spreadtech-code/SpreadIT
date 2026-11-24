@@ -37,6 +37,8 @@ export interface EventTransfer {
   /** One reference per event and rule, so a repeat never sends twice (D9). */
   reference: string;
   keepTrying: boolean;
+  /** D8: set when this is a "Send again" of an earlier transfer (its reference). */
+  resendOf?: string;
 }
 
 export interface IncomeEvent {
@@ -182,3 +184,16 @@ export function unsplitKobo(balanceKobo: number, events: readonly IncomeEvent[])
     .reduce((sum, e) => sum + e.amountKobo - e.split.inflowFeeKobo, 0);
   return Math.max(0, balanceKobo - waiting);
 }
+
+/** Each payday's state in words, for history and detail screens (status never by colour alone). */
+export const stageText: Record<EventStage, string> = {
+  askIncome: 'Is this income?',
+  needsApproval: 'Needs your OK',
+  review: 'Waiting to send',
+  held: 'Held, not split yet',
+  sending: 'Sending',
+  done: 'Split',
+  notIncome: 'Not income, not split',
+  cancelled: 'Cancelled, not split',
+  tooSmall: 'Too small to split',
+};

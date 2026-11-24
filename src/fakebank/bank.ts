@@ -64,6 +64,10 @@ export interface Transfer {
   nextAttemptAt: number | null;
   completedAt: number | null;
   reversedAt: number | null;
+  /** E3: the partner's own reference for the transfer, e.g. "TRF_8k2m9x1q4z". */
+  partnerReference?: string;
+  /** E3: the 30-digit bank session ID, set when the transfer completes. */
+  sessionId?: string | null;
 }
 
 export interface BankState {
@@ -137,6 +141,31 @@ export function createRecipient(
   return { state: { ...state, recipients: { ...state.recipients, [code]: recipient } }, recipient };
 }
 
+// ---------- receipt details (E3) ----------
+
+/** A small, repeatable number from a text, so the same transfer always gets the same IDs. */
+function hash(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619) >>> 0;
+  return h;
+}
+
+export function partnerReferenceFor(reference: string): string {
+  return `TRF_${hash(reference).toString(36).padStart(7, '0')}${hash(`${reference}#`).toString(36).slice(0, 3)}`;
+}
+
+/**
+ * A NIBSS-style 30-digit session ID: 6-digit bank code, the date and time
+ * (yymmddhhmmss), then 12 digits. Pretend, but the same shape as a real one.
+ */
+export function sessionIdFor(reference: string, at: number): string {
+  const d = new Date(at);
+  const two = (n: number) => String(n).padStart(2, '0');
+  const stamp = `${two(d.getFullYear() % 100)}${two(d.getMonth() + 1)}${two(d.getDate())}${two(d.getHours())}${two(d.getMinutes())}${two(d.getSeconds())}`;
+  const tail = `${hash(reference)}${hash(`${reference}*`)}`.padStart(12, '0').slice(-12);
+  return `999999${stamp}${tail}`;
+}
+
 // ---------- sendTransfer ----------
 
 export type SendResult =
@@ -178,6 +207,8 @@ export function sendTransfer(
     nextAttemptAt: null,
     completedAt: null,
     reversedAt: null,
+    partnerReference: partnerReferenceFor(t.reference),
+    sessionId: null,
   };
   return {
     ok: true,
@@ -196,7 +227,10 @@ export function sendTransfer(
 
 function toFallback(state: BankState, tr: Transfer, at: number): { state: BankState; tr: Transfer } {
   if (tr.fallbackRecipientCode) {
-    return { state, tr: { ...tr, status: 'Sent to fallback', completedAt: at, nextAttemptAt: null } };
+    return {
+      state,
+      tr: { ...tr, status: 'Sent to fallback', completedAt: at, nextAttemptAt: null, sessionId: sessionIdFor(`${tr.reference}-fallback`, at) },
+    };
   }
   // Nowhere to send it: the money (and the unused fee) goes back to the SpreadIT account.
   return {
@@ -216,7 +250,7 @@ function advanceOne(state: BankState, start: Transfer, now: number): { state: Ba
     if (tr.status === 'Processing' && now >= tr.createdAt + SETTLE_AFTER_MS) {
       const at = tr.createdAt + SETTLE_AFTER_MS;
       if (tr.plannedFailure === null) {
-        tr = { ...tr, status: 'Successful', completedAt: at };
+        tr = { ...tr, status: 'Successful', completedAt: at, sessionId: sessionIdFor(tr.reference, at) };
       } else if (tr.plannedFailure === 'permanent') {
         tr = { ...tr, failureReason: failureReasons.permanent, firstFailedAt: at };
         ({ state: s, tr } = toFallback(s, tr, at));

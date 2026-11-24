@@ -7,8 +7,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Screen } from '../src/components';
 import { formatNaira } from '../src/engine/format';
-import { failNextTransfer, resetBank, reverseLastSuccessful, skipAhead, useBank } from '../src/fakebank/bankStore';
-import { handlePaymentNotice, resetPaydays, tick } from '../src/payday/paydayStore';
+import { failNextTransfer, now, resetBank, reverseLastSuccessful, skipAhead, useBank } from '../src/fakebank/bankStore';
+import { handlePaymentNotice, monthlySummaryAlert, resetPaydays, tick } from '../src/payday/paydayStore';
+import { monthLabel, previousMonth } from '../src/payday/summary';
 import { useApp } from '../src/state/appStore';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 
@@ -97,6 +98,18 @@ export default function DemoControlsScreen() {
             const ref = reverseLastSuccessful();
             await tick();
             setMessage(ref ? 'The bank reversed the last successful transfer.' : 'No successful transfer to reverse yet.');
+          }}
+        />
+      </Section>
+
+      <Section title="Notifications">
+        <Button
+          label="Monthly summary alert"
+          variant="secondary"
+          onPress={() => {
+            const m = previousMonth(now());
+            monthlySummaryAlert(monthLabel(m.year, m.month));
+            setMessage('Sent the "1st of the month" summary alert.');
           }}
         />
       </Section>
