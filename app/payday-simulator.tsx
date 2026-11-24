@@ -19,8 +19,8 @@ import { formatNaira } from '../src/engine/format';
 import { costTips, monthlyCost } from '../src/engine/monthlyCost';
 import { checkPlan } from '../src/engine/planChecks';
 import { splitIncome } from '../src/engine/split';
-import type { Rule, RuleLine, SplitResult } from '../src/engine/types';
-import { percentText } from '../src/engine/validate';
+import type { Rule, SplitResult } from '../src/engine/types';
+import { lineNote, ruleTypeText } from '../src/lib/splitText';
 import { goLiveRoute, useApp } from '../src/state/appStore';
 import { colors, radius, shadow, size, space, type } from '../src/theme/tokens';
 
@@ -191,21 +191,6 @@ function Results({ result, rules }: { result: SplitResult; rules: Rule[] }) {
       </View>
     </View>
   );
-}
-
-/** B4: "10% of ₦500,000 = ₦50,000" for percentage rules; "Fixed" otherwise. */
-function ruleTypeText(rule: Rule | undefined, incomeKobo: number, line: RuleLine): string {
-  if (rule?.kind === 'percent') {
-    return `${percentText(rule.basisPoints)} of ${formatNaira(incomeKobo)} = ${formatNaira(line.targetKobo)}`;
-  }
-  return rule?.kind === 'fixed' && rule.frequency === 'oncePerMonth' ? 'Fixed, once a month' : 'Fixed';
-}
-
-/** C3: the shortfall in naira, or why a rule was skipped. */
-function lineNote(line: RuleLine): string | undefined {
-  if (line.funding === 'Fully funded') return undefined;
-  if (line.shortfallKobo > 0) return `${formatNaira(line.shortfallKobo)} short of ${formatNaira(line.targetKobo)}`;
-  return line.reason;
 }
 
 function Row({ label, detail, value, strong = false }: { label: string; detail?: string; value: string; strong?: boolean }) {

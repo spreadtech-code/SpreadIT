@@ -11,6 +11,7 @@ import { SourceSans3_700Bold } from '@expo-google-fonts/source-sans-3/700Bold';
 import { SourceSans3_800ExtraBold } from '@expo-google-fonts/source-sans-3/800ExtraBold';
 import { colors } from '../src/theme/tokens';
 import { useHydrated } from '../src/state/appStore';
+import { PaydayRunner, usePaydaysHydrated } from '../src/payday/PaydayRunner';
 
 // Keep the splash screen up until the fonts and the saved demo data have loaded.
 SplashScreen.preventAutoHideAsync();
@@ -22,7 +23,7 @@ export default function RootLayout() {
     SourceSans3_700Bold,
     SourceSans3_800ExtraBold,
   });
-  const hydrated = useHydrated();
+  const hydrated = useHydrated() && usePaydaysHydrated();
   const ready = (fontsLoaded || fontError != null) && hydrated;
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.canvas },
         }}
       />
+      <PaydayRunner />
     </GestureHandlerRootView>
   );
 }

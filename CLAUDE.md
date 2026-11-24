@@ -84,7 +84,7 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 4. **Payday Simulator:** S10, including the what-if slider and the monthly cost estimate (C1–C6).
 5. **Fake bank + payday flows:** S11–S18. Add a hidden "Demo controls" menu to fire a payday, a short payday, a payment below the minimum, a failed transfer and a reversal.
 6. **Dashboard, history, receipts, summary:** S15, S19–S21, S30.
-   - *Order change (founder decision, 23 Nov 2026):* S15 Home was built early, after stage 4, using a temporary demo payday (`src/fakebank/demoPayday.ts`). Stage 5 wires it to real fake-bank paydays and removes the demo.
+   - *Order change (founder decision, 23 Nov 2026):* S15 Home was built early, after stage 4. Stage 5b wired it to fake-bank paydays and removed the temporary demo payday.
 7. **Settings, security and v1.1 features:** S22–S29 (Forward mode, salary-switch kit, send extra once, skip once, send to my account, pause).
 
 ## UI rules (PRD 4.1)

@@ -25,6 +25,8 @@ import {
   type BadgeState,
 } from '../src/components';
 import { useApp } from '../src/state/appStore';
+import { resetBank } from '../src/fakebank/bankStore';
+import { resetPaydays } from '../src/payday/paydayStore';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 import { tundeIncomeKobo } from '../src/components/demoData';
 import { feeSchedule } from '../src/data/feeSchedule';
@@ -213,11 +215,18 @@ export default function ComponentsScreen() {
           variant="critical"
           onPress={() => {
             resetDemo();
+            resetPaydays();
+            resetBank();
             if (router.canDismiss()) router.dismissAll();
             router.replace('/welcome');
           }}
         />
-        <Text style={styles.note}>Deletes the pretend account and plan on this phone and goes back to Welcome.</Text>
+        <Text style={styles.note}>Deletes the pretend account, plan, paydays and fake bank on this phone and goes back to Welcome.</Text>
+      </Section>
+
+      <Section title="Demo controls">
+        <Button label="Open Demo controls" variant="secondary" onPress={() => router.push('/demo-controls')} />
+        <Text style={styles.note}>Also opens by holding the "SpreadIT" name on Home for 1 second.</Text>
       </Section>
 
       <Section title="PaydayCountdown">

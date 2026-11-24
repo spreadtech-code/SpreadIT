@@ -72,7 +72,7 @@ Body text 16px minimum; layouts hold at 200% text size; touch targets 44 × 44 o
 
 ## Components
 
-Button, RoundAction, BalanceHero, RuleCard, StatusBadge, ActivityList, InsightCard, PaydayCountdown, SegmentedControl, AmountField, FloatingNav. Added in stage 3 with the founder's approval: TextField, PinField, Toggle, OptionList. Added in stage 4 with the founder's approval: Slider, CostEstimate. The previews are HTML for review; the app rebuilds them in React Native.
+Button, RoundAction, BalanceHero, RuleCard, StatusBadge, ActivityList, InsightCard, PaydayCountdown, SegmentedControl, AmountField, FloatingNav. Added in stage 3 with the founder's approval: TextField, PinField, Toggle, OptionList. Added in stage 4 with the founder's approval: Slider, CostEstimate. Added in stage 5 with the founder's approval: Sheet, AlertBanner. The previews are HTML for review; the app rebuilds them in React Native.
 
 ## Building it in the Expo app
 
@@ -279,3 +279,20 @@ The monthly cost line (C6) on the plan builder and the simulator.
 - Normal: a receipt icon and the sentence in `body` / `ink-muted`.
 - Above 1% of income: the warning-hint style (`warning-soft` fill, `warning` icon and text), then a quiet "Ways to lower your costs" button.
 - That button opens a bottom sheet (`surface`, `radius-xl` top corners, `scrim` behind) with numbered tips and a secondary "Got it" button.
+
+### Added in stage 5 (founder-approved, 24 November 2026)
+
+#### Sheet
+
+A bottom sheet for short explainers and tips ("Ways to lower your costs", the S11 explainer).
+
+- `surface` panel with `radius-xl` top corners over a `scrim`; at most 85% of the screen tall, scrolling inside.
+- `title-sm` heading, `body` text, then a secondary "Got it" button. Tapping the scrim also closes it.
+
+#### AlertBanner
+
+The prototype's pretend push notification ("Income received", "Is this income?"). Real pushes come later.
+
+- A white `surface` card (`radius-lg`, `shadow-float`) that slides down under the status bar, over any screen.
+- An icon in a `surface-sunken` circle, a `headline` title and a `label` line, plus a close button (44px).
+- Tapping it opens the screen it names. One at a time; the newest waits behind the one showing.

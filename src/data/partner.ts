@@ -4,4 +4,6 @@ export const partner = {
   name: 'Demo Partner Bank',
   /** Support contact shown after 3 failed identity checks in 24 hours (A6). */
   supportContact: 'help@spreadit.example · 0700 000 0000',
+  /** D15: transfer narrations are cut to this length [ASSUMPTION until a partner is chosen]. */
+  narrationMaxChars: 50,
 } as const;

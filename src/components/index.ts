@@ -18,4 +18,5 @@ export { Toggle } from './Toggle';
 export { Slider } from './Slider';
 export { CostEstimate } from './CostEstimate';
 export { Sheet } from './Sheet';
+export { AlertBanner } from './AlertBanner';
 export { categoryIcon } from './categoryIcons';

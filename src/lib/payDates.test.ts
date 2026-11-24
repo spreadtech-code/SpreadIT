@@ -1,8 +1,4 @@
-// Pay dates and the demo payday shown on Home (E1).
-import { feeSchedule } from '../data/feeSchedule';
-import { tunde } from '../data/demoUsers';
-import { demoPayday } from '../fakebank/demoPayday';
-import type { Income } from '../state/appStore';
+// Pay dates shown on Home (E1).
 import { automationText, dayMonth, daysBetween, payDates } from './payDates';
 
 const day = (y: number, m: number, d: number) => new Date(y, m - 1, d);
@@ -72,34 +68,5 @@ describe('Words', () => {
     expect(automationText(day(2026, 11, 26), today)).toBe('Automation on · next payday tomorrow');
     expect(automationText(today, today)).toBe('Automation on · payday today');
     expect(automationText(null, today)).toBe('Automation on');
-  });
-});
-
-describe('Demo payday (temporary, until stage 5)', () => {
-  const income: Income = {
-    type: 'regular',
-    expectedKobo: tunde.expectedKobo,
-    frequency: 'monthly',
-    payDayOfMonth: 25,
-    payWeekday: null,
-    qualifyingMinimumKobo: tunde.qualifyingMinimumKobo,
-    arrival: 'direct',
-    weeklyBatching: false,
-  };
-
-  it("splits the user's plan at the expected amount, every transfer Successful", () => {
-    const p = demoPayday(tunde.plan, income, feeSchedule, day(2026, 11, 26))!;
-    expect(p.date).toEqual(day(2026, 11, 25));
-    expect(p.split.incomeKobo).toBe(85_000_000);
-    expect(p.split.totalFeesKobo).toBe(87_500);
-    expect(p.transfers).toHaveLength(6); // 5 rules + remainder
-    expect(p.transfers.every((t) => t.status === 'Successful')).toBe(true);
-    const sent = p.transfers.reduce((s, t) => s + t.amountKobo, 0);
-    expect(sent + p.split.totalFeesKobo + p.split.unsplitKobo).toBe(p.split.incomeKobo);
-  });
-
-  it('is null without income or rules', () => {
-    expect(demoPayday(tunde.plan, null, feeSchedule, day(2026, 11, 26))).toBeNull();
-    expect(demoPayday({ rules: [], remainder: null }, income, feeSchedule, day(2026, 11, 26))).toBeNull();
   });
 });

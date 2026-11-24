@@ -8,7 +8,7 @@
 // Founder decision (stage 1b): on Home the nav pill is the one aqua element, so
 // the avatar uses brand-mid and the "on" dot uses brand-strong.
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, component, fonts, radius, shadow, size, space, type } from '../theme/tokens';
 import { formatNaira, nairaParts } from '../engine/format';
 import { RoundAction, type RoundActionProps } from './RoundAction';
@@ -21,9 +21,11 @@ export interface BalanceHeroProps {
   actions: RoundActionProps[];
   /** off: automation not switched on yet (muted dot, the given text). */
   automation: { paused: false; text: string; off?: boolean } | { paused: true };
+  /** Prototype only: holding the wordmark opens the hidden Demo controls. */
+  onWordmarkLongPress?: () => void;
 }
 
-export function BalanceHero({ initials, label, amountKobo, actions, automation }: BalanceHeroProps) {
+export function BalanceHero({ initials, label, amountKobo, actions, automation, onWordmarkLongPress }: BalanceHeroProps) {
   const [calloutHeight, setCalloutHeight] = useState(0);
   const parts = nairaParts(amountKobo);
   const calloutText = automation.paused ? 'Automation paused' : automation.text;
@@ -33,9 +35,11 @@ export function BalanceHero({ initials, label, amountKobo, actions, automation }
     <View style={[styles.wrap, { paddingBottom: Math.max(0, space[8] + space[2] - calloutHeight / 2) }]}>
       <View style={[styles.card, { paddingBottom: space[6] + calloutHeight / 2 }]}>
         <View style={styles.topRow}>
-          <Text style={styles.wordmark} accessibilityRole="header">
-            SpreadIT
-          </Text>
+          <Pressable onLongPress={onWordmarkLongPress} delayLongPress={1000} disabled={!onWordmarkLongPress}>
+            <Text style={styles.wordmark} accessibilityRole="header">
+              SpreadIT
+            </Text>
+          </Pressable>
           <View style={styles.avatar} accessible accessibilityLabel={`Profile, ${initials}`}>
             <Text style={styles.initials}>{initials}</Text>
           </View>

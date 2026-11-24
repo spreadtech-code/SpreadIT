@@ -1,22 +1,27 @@
-// S15 Home dashboard (E1), built early (founder decision, 23 Nov 2026).
+// S15 Home dashboard (E1).
 // E1: latest income amount and date, allocation by category, status of each
 // transfer, unsplit balance, next expected pay date, Automation On label and
 // the Emergency pause button.
-// Automation off (not switched on yet): no payday, a prompt to switch on.
-// Automation on: until stage 5b the payday is a DEMO worked out from the
-// user's own plan (src/fakebank/demoPayday.ts).
-// Goes to: S10 (Simulate), S28 (Send extra), S7 (Add rule), S20 (Open event),
-// S21 (a transfer), S29 (Send to my account), S6 (Open plan), S19 (history), S24 (pause).
+// - Automation off: a prompt to switch on.
+// - A payday waiting for the user (review window, short payday, "Is this
+//   income?", held) shows as a card at the top with the way to act on it.
+// - The last split payday shows where the money went, with live statuses.
+// Hold the "SpreadIT" name for 1 second to open the hidden Demo controls.
+// Goes to: S10 (Simulate), S28 (Send extra), S7 (Add rule), S16-S18 (a waiting
+// payday), S21 (a transfer), S29 (Send to my account), S6, S19, S24.
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CalendarDays, Calculator, Plus, Receipt, Send, Wallet } from 'lucide-react-native';
-import { ActivityList, BalanceHero, Button, InsightCard, categoryIcon, type ActivityItem } from '../../src/components';
+import { ActivityList, BalanceHero, Button, InsightCard, type ActivityItem } from '../../src/components';
 import { floatingNavInset } from '../../src/components/FloatingNav';
-import { feeSchedule } from '../../src/data/feeSchedule';
-import { formatNaira, maskAccount } from '../../src/engine/format';
-import { demoPayday } from '../../src/fakebank/demoPayday';
-import { automationText, dayMonth } from '../../src/lib/payDates';
+import { formatNaira } from '../../src/engine/format';
+import { useBank } from '../../src/fakebank/bankStore';
+import { automationText, dayMonth, payDates } from '../../src/lib/payDates';
+import { unsplitKobo, WAITING_STAGES, type IncomeEvent } from '../../src/payday/events';
+import { useNow } from '../../src/payday/PaydayRunner';
+import { bankTransfer, eventRoute, usePaydays } from '../../src/payday/paydayStore';
+import { transferItems } from '../../src/payday/transferItems';
 import { goLiveRoute, useApp } from '../../src/state/appStore';
 import { colors, radius, shadow, size, space, type } from '../../src/theme/tokens';
 
@@ -28,13 +33,22 @@ export default function HomeDashboardScreen() {
   const account = useApp((s) => s.account);
   const identity = useApp((s) => s.identity);
   const automationOn = useApp((s) => s.automation.on);
+  const events = usePaydays((s) => s.events);
+  const balance = useBank((s) => s.bank.balanceKobo);
+  useBank((s) => s.bank.transfers); // re-render when a status changes
+  const t = useNow();
+  const today = new Date(t);
 
-  const today = new Date();
-  const payday = automationOn ? demoPayday(plan, income, feeSchedule, today) : null;
   // The name comes from the identity check (A6); before that, the email.
   const initials = identity
     ? `${identity.firstName[0]}${identity.lastName[0]}`.toUpperCase()
     : (account?.email.slice(0, 2) ?? 'SI').toUpperCase();
+
+  const newestFirst = [...events].sort((a, b) => b.receivedAt - a.receivedAt);
+  const waiting = newestFirst.filter((e) => WAITING_STAGES.includes(e.stage));
+  const lastSplit = newestFirst.find((e) => e.stage === 'sending' || e.stage === 'done');
+  const unsplit = unsplitKobo(balance, events);
+  const next = income ? payDates(income, today).next : null;
 
   const heroActions = [
     { label: 'Simulate', Icon: Calculator, onPress: () => router.push('/payday-simulator') },
@@ -42,123 +56,64 @@ export default function HomeDashboardScreen() {
     { label: 'Add rule', Icon: Plus, onPress: () => router.push('/rule-editor?custom=1') },
   ];
 
-  const nav = { paddingTop: insets.top + space[4], paddingBottom: floatingNavInset(insets.bottom) };
+  return (
+    <ScrollView
+      style={styles.page}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + space[4], paddingBottom: floatingNavInset(insets.bottom) }]}
+    >
+      <BalanceHero
+        initials={initials}
+        label={lastSplit ? `Last payday · ${dayMonth(new Date(lastSplit.receivedAt))}` : 'No payday yet'}
+        amountKobo={lastSplit?.amountKobo ?? 0}
+        actions={heroActions}
+        automation={
+          automationOn
+            ? { paused: false, text: automationText(next, today) }
+            : { paused: false, off: true, text: 'Automation off' }
+        }
+        onWordmarkLongPress={() => router.push('/demo-controls')}
+      />
 
-  if (!payday) {
-    const hasRules = plan.rules.length > 0;
-    return (
-      <ScrollView style={styles.page} contentContainerStyle={[styles.content, nav]}>
-        <BalanceHero
-          initials={initials}
-          label="No payday yet"
-          amountKobo={0}
-          actions={heroActions}
-          automation={
-            automationOn
-              ? { paused: false, text: 'Automation on' }
-              : { paused: false, off: true, text: 'Automation off' }
-          }
-        />
-        {automationOn ? (
-          <InsightCard title="Nothing to show yet" text="Add at least one rule to your plan. Your payday will show here." />
-        ) : (
+      {!automationOn ? (
+        <>
           <InsightCard
             title="Automation is off"
             text={
-              hasRules
+              plan.rules.length > 0
                 ? 'Switch it on and your next payday will be split by your plan.'
                 : 'Add at least one rule to your plan, then switch on automation.'
             }
           />
-        )}
-        {!automationOn && hasRules ? (
-          <Button
-            label="Switch on automation"
-            variant="secondary"
-            onPress={() => router.push(goLiveRoute(useApp.getState()))}
-          />
-        ) : null}
-        <Button label="Open plan" variant="secondary" onPress={() => router.navigate('/plan-builder')} />
-        <Button label="Try the simulator" variant="quiet" onPress={() => router.push('/payday-simulator')} />
-      </ScrollView>
-    );
-  }
-
-  const { split, transfers } = payday;
-  const date = dayMonth(payday.date);
-  const first = transfers.find((t) => t.status === 'Successful' && t.id !== 'remainder');
-
-  const items: ActivityItem[] = [
-    {
-      id: 'income',
-      name: 'Payday',
-      meta: date,
-      direction: 'in',
-      amountKobo: split.incomeKobo,
-      onPress: () => router.push('/income-event'),
-    },
-    ...transfers.map(
-      (t): ActivityItem => ({
-        id: t.id,
-        name: t.name,
-        meta: t.destination ? `${t.destination.bankName} ${maskAccount(t.destination.accountNumber)}` : 'No account yet',
-        direction: 'out',
-        amountKobo: t.amountKobo,
-        status: t.status,
-        Icon: t.id === 'remainder' ? Wallet : categoryIcon(t.categoryKey),
-        onPress: () => router.push('/transfer-receipt'),
-      }),
-    ),
-    {
-      id: 'fees',
-      name: 'Bank fees',
-      meta: `${formatNaira(split.inflowFeeKobo)} to receive + ${formatNaira(split.totalFeesKobo - split.inflowFeeKobo)} to send`,
-      direction: 'out',
-      amountKobo: split.totalFeesKobo,
-      Icon: Receipt,
-    },
-  ];
-
-  return (
-    <ScrollView style={styles.page} contentContainerStyle={[styles.content, nav]}>
-      <BalanceHero
-        initials={initials}
-        label={`Last payday · ${date}`}
-        amountKobo={split.incomeKobo}
-        actions={heroActions}
-        automation={{ paused: false, text: automationText(payday.nextDate, today) }}
-      />
-
-      <Text style={styles.demo} accessibilityRole="text">
-        Demo payday: pretend money, worked out from your plan.
-      </Text>
-
-      {first ? (
-        <InsightCard title={`${first.name} paid`} text={`${first.name} got ${formatNaira(first.amountKobo)} on ${date}.`} />
+          {plan.rules.length > 0 ? (
+            <Button label="Switch on automation" variant="secondary" onPress={() => router.push(goLiveRoute(useApp.getState()))} />
+          ) : null}
+        </>
       ) : null}
 
-      <ActivityList title="Where it went" items={items} />
-      <Button label="Open event" variant="quiet" onPress={() => router.push('/income-event')} />
+      {waiting.map((e) => (
+        <WaitingCard key={e.id} event={e} now={t} />
+      ))}
+
+      {lastSplit ? (
+        <LastPayday event={lastSplit} now={t} />
+      ) : automationOn && waiting.length === 0 ? (
+        <InsightCard title="Waiting for your next payday" text="When income reaches your SpreadIT account, you'll see it here." />
+      ) : null}
 
       <View style={styles.card}>
         <Fact
           Icon={Wallet}
           label="Unsplit money"
-          value={formatNaira(split.unsplitKobo)}
-          detail={split.unsplitKobo > 0 ? 'Too little to be worth the fee to send.' : 'Nothing waiting. Every naira was split.'}
+          value={formatNaira(unsplit)}
+          detail={unsplit > 0 ? 'In your SpreadIT account, not part of any split.' : 'Nothing waiting. Every naira was split.'}
         />
-        <Button
-          label="Send to my account"
-          variant="secondary"
-          disabled={split.unsplitKobo === 0}
-          onPress={() => router.push('/send-to-my-account')}
-        />
+        <Button label="Send to my account" variant="secondary" disabled={unsplit === 0} onPress={() => router.push('/send-to-my-account')} />
         <View style={styles.hairline} />
         <Fact
           Icon={CalendarDays}
           label="Next payday"
-          value={payday.nextDate ? dayMonth(payday.nextDate) : 'When income arrives'}
-          detail={payday.nextDate ? undefined : 'Your income varies, so there is no set date.'}
+          value={next ? dayMonth(next) : 'When income arrives'}
+          detail={next ? undefined : 'Your income varies, so there is no set date.'}
         />
       </View>
 
@@ -174,6 +129,68 @@ export default function HomeDashboardScreen() {
         onPress={() => router.push('/emergency-pause')}
       />
     </ScrollView>
+  );
+}
+
+/** A payday that needs the user: review window, short payday, "Is this income?" or held. */
+function WaitingCard({ event, now }: { event: IncomeEvent; now: number }) {
+  const router = useRouter();
+  const amount = formatNaira(event.amountKobo);
+  const open = () => router.push(eventRoute(event) as never);
+  let title = '';
+  let text = '';
+  let action = 'Open payday';
+  if (event.stage === 'review') {
+    const s = Math.max(0, Math.floor(((event.reviewEndsAt ?? now) - now) / 1000));
+    title = `${amount} received`;
+    text = `Your split goes out in ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}.`;
+  } else if (event.stage === 'needsApproval') {
+    title = `Short payday: ${amount}`;
+    text = 'Less than half of what you expect. Nothing is sent until you choose.';
+    action = 'Review it';
+  } else if (event.stage === 'askIncome') {
+    title = 'Is this income?';
+    text = `${amount} arrived, below your qualifying minimum.`;
+    action = 'Answer';
+  } else {
+    title = `${amount} held, not split yet`;
+    text = 'Nothing is sent until you split it.';
+    action = 'Split now';
+  }
+  return (
+    <View style={styles.card} accessibilityRole="summary">
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.body}>{text}</Text>
+      <Button label={action} variant="secondary" onPress={open} />
+      {event.stage === 'held' ? (
+        <Button label="Send to my account" variant="quiet" onPress={() => router.push('/send-to-my-account')} />
+      ) : null}
+    </View>
+  );
+}
+
+function LastPayday({ event, now }: { event: IncomeEvent; now: number }) {
+  const router = useRouter();
+  const date = dayMonth(new Date(event.receivedAt));
+  const first = event.transfers.find((tr) => tr.id !== 'remainder' && bankTransfer(tr.reference)?.status === 'Successful');
+  const items: ActivityItem[] = [
+    { id: 'income', name: 'Payday', meta: date, direction: 'in', amountKobo: event.amountKobo, onPress: () => router.push(`/payday?event=${event.id}`) },
+    ...transferItems(event, now, () => router.push('/transfer-receipt')),
+    {
+      id: 'fees',
+      name: 'Bank fees',
+      meta: `${formatNaira(event.split.inflowFeeKobo)} to receive + ${formatNaira(event.split.totalFeesKobo - event.split.inflowFeeKobo)} to send`,
+      direction: 'out',
+      amountKobo: event.split.totalFeesKobo,
+      Icon: Receipt,
+    },
+  ];
+  return (
+    <>
+      {first ? <InsightCard title={`${first.name} paid`} text={`${first.name} got ${formatNaira(first.amountKobo)} on ${date}.`} /> : null}
+      <ActivityList title="Where it went" items={items} />
+      <Button label="Open event" variant="quiet" onPress={() => router.push(`/payday?event=${event.id}`)} />
+    </>
   );
 }
 
@@ -195,8 +212,9 @@ function Fact({ Icon, label, value, detail }: { Icon: typeof Wallet; label: stri
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.canvas },
   content: { paddingHorizontal: space[5], gap: space[4] },
-  demo: { ...type.label, color: colors.inkMuted, textAlign: 'center' },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[3], ...shadow.card },
+  cardTitle: { ...type.headline, color: colors.ink },
+  body: { ...type.body, color: colors.ink },
   fact: { flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: size.touchMin },
   iconCircle: {
     width: size.iconCircle,

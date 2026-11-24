@@ -11,21 +11,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, component, radius, shadow, space, type } from '../theme/tokens';
 import { formatNaira } from '../engine/format';
 import { Button } from './Button';
+import type { FundingState } from './RuleCard';
+import { StatusBadge } from './StatusBadge';
 
 export interface PaydayAllocation {
   id: string;
   name: string;
   amountKobo: number;
+  /** D3: bank and last 4 digits, e.g. "GTBank ••4821". */
+  meta?: string;
+  /** D4: the funding label, shown when not every rule is fully funded. */
+  funding?: FundingState;
 }
 
 export interface PaydayCountdownProps {
   receivedKobo: number;
-  secondsLeft: number;
+  /** null when the window is paused: no countdown, and no "Pause for review". */
+  secondsLeft: number | null;
   /** In the user's priority order. */
   allocations: PaydayAllocation[];
   feesKobo: number;
   onExecute: () => void;
-  onPause: () => void;
+  onPause?: () => void;
   onCancel: () => void;
 }
 
@@ -51,7 +58,7 @@ export function PaydayCountdown({
   onCancel,
 }: PaydayCountdownProps) {
   const insets = useSafeAreaInsets();
-  const time = clock(secondsLeft);
+  const time = secondsLeft === null ? null : clock(secondsLeft);
   const funded = allocations.filter((a) => a.amountKobo > 0);
 
   return (
@@ -68,10 +75,17 @@ export function PaydayCountdown({
           <Text style={styles.big}>{formatNaira(receivedKobo)}</Text>
         </View>
 
-        <View style={styles.centre} accessible accessibilityLabel={`Executing in ${time.spoken}`}>
-          <Text style={styles.label}>Executing in</Text>
-          <Text style={styles.big}>{time.text}</Text>
-        </View>
+        {time ? (
+          <View style={styles.centre} accessible accessibilityLabel={`Executing in ${time.spoken}`}>
+            <Text style={styles.label}>Executing in</Text>
+            <Text style={styles.big}>{time.text}</Text>
+          </View>
+        ) : (
+          <View style={styles.centre} accessible accessibilityLabel="Paused for review. Nothing is sent until you tap Execute now.">
+            <StatusBadge state="Paused" />
+            <Text style={styles.label}>Nothing is sent until you tap Execute now.</Text>
+          </View>
+        )}
 
         <View style={styles.bar} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           {funded.map((a, i) => (
@@ -84,9 +98,20 @@ export function PaydayCountdown({
 
         <View>
           {allocations.map((a, i) => (
-            <View key={a.id} style={[styles.row, i > 0 && styles.hairline]} accessible accessibilityLabel={`${a.name}, ${formatNaira(a.amountKobo)}`}>
-              <Text style={styles.rowName}>{a.name}</Text>
-              <Text style={styles.rowAmount}>{formatNaira(a.amountKobo)}</Text>
+            <View
+              key={a.id}
+              style={[styles.row, i > 0 && styles.hairline]}
+              accessible
+              accessibilityLabel={[a.name, a.meta, formatNaira(a.amountKobo), a.funding ? `Status: ${a.funding}` : null].filter(Boolean).join(', ')}
+            >
+              <View style={styles.rowText}>
+                <Text style={styles.rowName}>{a.name}</Text>
+                {a.meta ? <Text style={styles.rowMeta}>{a.meta}</Text> : null}
+              </View>
+              <View style={styles.rowRight}>
+                <Text style={styles.rowAmount}>{formatNaira(a.amountKobo)}</Text>
+                {a.funding ? <StatusBadge state={a.funding} /> : null}
+              </View>
             </View>
           ))}
           <View style={[styles.row, styles.hairline]} accessible accessibilityLabel={`Fees, ${formatNaira(feesKobo)}`}>
@@ -97,7 +122,7 @@ export function PaydayCountdown({
 
         <View style={styles.buttons}>
           <Button label="Execute now" variant="primary" onPress={onExecute} />
-          <Button label="Pause for review" variant="secondary" onPress={onPause} />
+          {onPause ? <Button label="Pause for review" variant="secondary" onPress={onPause} /> : null}
           <Button label="Emergency cancel" variant="quietCritical" onPress={onCancel} />
         </View>
       </View>
@@ -133,7 +158,10 @@ const styles = StyleSheet.create({
     paddingVertical: space[3],
   },
   hairline: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line },
-  rowName: { ...type.body, color: colors.ink, flex: 1 },
+  rowText: { flex: 1 },
+  rowName: { ...type.body, color: colors.ink },
+  rowMeta: { ...type.label, color: colors.inkMuted },
+  rowRight: { alignItems: 'flex-end', gap: space[1] },
   rowAmount: { ...type.amountMd, color: colors.ink, fontVariant: ['tabular-nums'] },
   feeName: { ...type.body, color: colors.inkMuted, flex: 1 },
   feeAmount: { ...type.amountMd, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
