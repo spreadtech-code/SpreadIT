@@ -11,6 +11,7 @@ import { failNextTransfer, now, resetBank, reverseLastSuccessful, skipAhead, use
 import { handlePaymentNotice, monthlySummaryAlert, resetPaydays, tick } from '../src/payday/paydayStore';
 import { monthLabel, previousMonth } from '../src/payday/summary';
 import { lockNow } from '../src/lib/autoLock';
+import { dayMonth, payDates } from '../src/lib/payDates';
 import { isPaused, useApp } from '../src/state/appStore';
 import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 
@@ -33,9 +34,9 @@ export default function DemoControlsScreen() {
   const sender = income?.arrival === 'forward' && identity ? `${identity.firstName} ${identity.lastName}` : 'Employer payroll';
   const wholeNaira = (kobo: number) => Math.max(100_000, Math.floor(kobo / 100) * 100);
 
-  const fire = async (label: string, amountKobo: number) => {
+  const fire = async (label: string, amountKobo: number, from = sender) => {
     lastReference = `DEMO${Date.now().toString(36)}`;
-    const result = await handlePaymentNotice({ reference: lastReference, amountKobo, sender });
+    const result = await handlePaymentNotice({ reference: lastReference, amountKobo, sender: from });
     setMessage(
       result === 'automationOff'
         ? `${label}: ${formatNaira(amountKobo)} arrived. Automation is off, so it wasn't split.`
@@ -53,6 +54,19 @@ export default function DemoControlsScreen() {
     skipAhead(ms);
     await tick();
     setMessage(`Skipped ahead ${label}.`);
+  };
+
+  /** Moves the demo clock to a time on the next payday (or today). */
+  const skipTo = async (hour: number, today = false) => {
+    const t = now();
+    let day: Date | null = new Date(t);
+    if (!today) day = income ? payDates(income, new Date(t)).next : null;
+    if (!day) return setMessage('Your income varies, so there is no set payday.');
+    const target = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, 0, 0).getTime();
+    if (target <= t) return setMessage("It's already past that time.");
+    skipAhead(target - t);
+    await tick();
+    setMessage(`Demo clock moved to ${hour === 9 ? '9am' : '6pm'}, ${dayMonth(new Date(target))}.`);
   };
 
   const days = Math.floor(offset / (24 * 60 * MINUTE));
@@ -84,6 +98,16 @@ export default function DemoControlsScreen() {
           onPress={() => fire('Below the minimum', wholeNaira(Math.min(3_000_000, minimum / 2)))}
         />
         <Button label="Send the last payment notice again" variant="secondary" onPress={resend} />
+        {income?.arrival === 'forward' ? (
+          <Button
+            label="Salary paid in by an employer (not forwarded)"
+            variant="secondary"
+            onPress={() => fire('Salary from employer', expected, 'Employer payroll')}
+          />
+        ) : null}
+        <Text style={styles.note}>
+          {income?.arrival === 'forward' ? `In Forward mode, payments come from you (${sender}).` : `Payments come from ${sender}.`}
+        </Text>
         {minimum >= expected / 2 ? (
           <Text style={styles.note}>
             Your qualifying minimum is {formatNaira(minimum)}, so a short payday asks "Is this income?" first. Tap Yes to reach the short payday review.
@@ -124,6 +148,12 @@ export default function DemoControlsScreen() {
         <Button label="Skip ahead 1 day" variant="secondary" onPress={() => skip(24 * 60 * MINUTE, '1 day')} />
         <Button label="Skip ahead 7 days" variant="secondary" onPress={() => skip(7 * 24 * 60 * MINUTE, '7 days')} />
         <Text style={styles.note}>1 day ends a new account's 24-hour wait (F3). 7 days brings a pause reminder (G3).</Text>
+      </Section>
+
+      <Section title="Forward mode reminders">
+        <Button label="Skip to next payday, 9am" variant="secondary" onPress={() => skipTo(9)} />
+        <Button label="Skip to 6pm today" variant="secondary" onPress={() => skipTo(18, true)} />
+        <Text style={styles.note}>Reminders only come in Forward mode with automation on (A9).</Text>
       </Section>
 
       <Section title="Security">

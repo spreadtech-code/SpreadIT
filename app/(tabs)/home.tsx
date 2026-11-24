@@ -8,6 +8,7 @@
 // - A payday waiting for the user (review window, short payday, "Is this
 //   income?", held) shows as a card at the top with the way to act on it.
 // - The last split payday shows where the money went, with live statuses.
+// - "Sent from your balance": the latest one-off transfers (B14, D13).
 // Hold the "SpreadIT" name for 1 second to open the hidden Demo controls.
 // Goes to: S10 (Simulate), S28 (Send extra), S7 (Add rule), S16-S18 (a waiting
 // payday), S20 (Open event), S21 (a transfer), S29 (Send to my account), S6, S19, S24.
@@ -37,6 +38,7 @@ export default function HomeDashboardScreen() {
   const automationOn = useApp((s) => s.automation.on);
   const paused = useApp((s) => isPaused(s));
   const events = usePaydays((s) => s.events);
+  const oneOffs = usePaydays((s) => s.oneOffs);
   const balance = useBank((s) => s.bank.balanceKobo);
   useBank((s) => s.bank.transfers); // re-render when a status changes
   const t = useNow();
@@ -111,6 +113,23 @@ export default function HomeDashboardScreen() {
         <LastPayday event={lastSplit} now={t} />
       ) : automationOn && waiting.length === 0 ? (
         <InsightCard title="Waiting for your next payday" text="When income reaches your SpreadIT account, you'll see it here." />
+      ) : null}
+
+      {oneOffs.length > 0 ? (
+        <ActivityList
+          title="Sent from your balance"
+          items={[...oneOffs]
+            .sort((a, b) => b.createdAt - a.createdAt)
+            .slice(0, 3)
+            .map((o) => ({
+              id: o.reference,
+              name: o.kind === 'extra' ? `Extra for ${o.name}` : o.name,
+              meta: `${dayMonth(new Date(o.createdAt))} · ${bankTransfer(o.reference)?.status ?? 'Pending'}`,
+              direction: 'out' as const,
+              amountKobo: o.amountKobo,
+              onPress: () => router.push(`/transfer-receipt?ref=${o.reference}`),
+            }))}
+        />
       ) : null}
 
       <View style={styles.card}>

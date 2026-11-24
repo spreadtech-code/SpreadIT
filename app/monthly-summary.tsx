@@ -17,13 +17,14 @@ import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 export default function MonthlySummaryScreen() {
   const router = useRouter();
   const events = usePaydays((s) => s.events);
+  const oneOffs = usePaydays((s) => s.oneOffs);
   const transfers = useBank((s) => s.bank.transfers);
   const t = useNow();
   const [which, setWhich] = useState<'last' | 'this'>('last');
   const [showAmounts, setShowAmounts] = useState(false);
 
   const month = which === 'last' ? previousMonth(t) : { year: new Date(t).getFullYear(), month: new Date(t).getMonth() };
-  const s = monthlySummary(events, transfers, month.year, month.month);
+  const s = monthlySummary(events, transfers, month.year, month.month, oneOffs);
   const empty = s.paymentsCount === 0 && s.sentTotalKobo === 0;
 
   return (

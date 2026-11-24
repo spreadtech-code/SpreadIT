@@ -65,7 +65,7 @@ export default function IncomeEventScreen() {
     <Screen
       title="Income event"
       subtitle={`${formatNaira(event.amountKobo)} from ${event.sender}`}
-      footer={<Button label="Get help" variant="quiet" onPress={() => router.push('/get-help')} />}
+      footer={<Button label="Get help" variant="quiet" onPress={() => router.push(`/get-help?event=${event.id}`)} />}
     >
       <View style={styles.card}>
         <Row label="Received" value={`${dayMonth(new Date(event.receivedAt))}, ${timeText(event.receivedAt)}`} />

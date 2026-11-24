@@ -16,7 +16,7 @@ import { Button, OptionList, SegmentedControl, Toggle } from '../../src/componen
 import { floatingNavInset } from '../../src/components/FloatingNav';
 import { dayMonth } from '../../src/lib/payDates';
 import { timeText } from '../../src/lib/splitText';
-import { bankTransfer, usePaydays } from '../../src/payday/paydayStore';
+import { successfulPaydays, usePaydays } from '../../src/payday/paydayStore';
 import { goLiveRoute, isLive, isPaused, useApp, type Income, type ReviewWindowMinutes } from '../../src/state/appStore';
 import { colors, radius, shadow, space, type } from '../../src/theme/tokens';
 
@@ -39,10 +39,8 @@ export default function SettingsScreen() {
   const events = usePaydays((s) => s.events);
   const { saveIncome, setReviewWindow, requestChange, setPaydaySummarySms, signOutDevice, signOut } = useApp.getState();
 
-  const successfulPaydays = events.filter(
-    (e) => e.stage === 'done' && e.transfers.length > 0 && e.transfers.every((t) => bankTransfer(t.reference)?.status === 'Successful'),
-  ).length;
-  const canSwitchWindowOff = successfulPaydays >= PAYDAYS_BEFORE_WINDOW_OFF || automation.reviewWindowMinutes === 0;
+  const successful = successfulPaydays(events);
+  const canSwitchWindowOff = successful >= PAYDAYS_BEFORE_WINDOW_OFF || automation.reviewWindowMinutes === 0;
 
   const changeWindow = (value: WindowOption) => {
     const minutes = Number(value) as ReviewWindowMinutes;
@@ -121,7 +119,7 @@ export default function SettingsScreen() {
         />
         {!canSwitchWindowOff ? (
           <Text style={styles.muted}>
-            You can switch it off after {PAYDAYS_BEFORE_WINDOW_OFF} successful paydays ({successfulPaydays} so far).
+            You can switch it off after {PAYDAYS_BEFORE_WINDOW_OFF} successful paydays ({successful} so far).
           </Text>
         ) : null}
       </Section>
@@ -138,7 +136,10 @@ export default function SettingsScreen() {
             onChange={changeArrival}
           />
           {income.arrival === 'forward' ? (
-            <Button label="Forward mode setup" variant="quiet" onPress={() => router.push('/forward-mode-setup')} />
+            <>
+              <Button label="Forward mode setup" variant="quiet" onPress={() => router.push('/forward-mode-setup')} />
+              <Button label="Salary-switch kit" variant="quiet" onPress={() => router.push('/salary-switch-kit')} />
+            </>
           ) : null}
         </Section>
       ) : null}

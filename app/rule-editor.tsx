@@ -214,7 +214,7 @@ export default function RuleEditorScreen() {
           ) : (
             <Button label="Skip next payday" variant="secondary" onPress={() => router.push(`/confirm-pin?action=skipNext&ruleId=${existing.id}`)} />
           )}
-          <Button label="Send extra once" variant="secondary" onPress={() => router.push('/send-extra-once')} />
+          <Button label="Send extra once" variant="secondary" onPress={() => router.push(`/send-extra-once?ruleId=${existing.id}`)} />
           <Button label="Delete rule" variant="critical" onPress={remove} />
         </View>
       ) : null}

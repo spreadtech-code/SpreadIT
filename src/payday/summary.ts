@@ -1,10 +1,14 @@
 // E4 Monthly summary: what SpreadIT did in one calendar month, worked out
 // from the income history and the fake bank's transfers, so every total
 // matches the history to the kobo. Pure.
+// One-off transfers (B14 Send extra once, D13 Send to my account) count too:
+// an extra for Mum adds to Family Support, and money moved out shows as
+// "To my account".
 import { categoryByKey } from '../data/categories';
 import { formatNaira } from '../engine/format';
 import type { Transfer } from '../fakebank/bank';
 import type { EventTransfer, IncomeEvent } from './events';
+import type { OneOffTransfer } from './paydayStore';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -63,6 +67,7 @@ export function monthlySummary(
   transfers: Readonly<Record<string, Transfer>>,
   year: number,
   month: number,
+  oneOffs: readonly OneOffTransfer[] = [],
 ): MonthlySummary {
   const endOfMonth = new Date(year, month + 1, 1).getTime();
   const received = events.filter((e) => inMonth(e.receivedAt, year, month));
@@ -90,6 +95,21 @@ export function monthlySummary(
       }
       if (b.status === 'Sent to fallback') sentToFallbackKobo += tr.amountKobo;
     }
+  }
+
+  for (const o of oneOffs) {
+    const b = transfers[o.reference];
+    if (!b) continue;
+    if (inMonth(b.createdAt, year, month) && b.status !== 'Failed') transferFees += b.feeKobo;
+    if (b.status === 'Successful' && o.categoryKey === 'savings' && (b.completedAt ?? 0) < endOfMonth) {
+      savingsSinceJoinedKobo += o.amountKobo;
+    }
+    if (!inMonth(b.completedAt, year, month)) continue;
+    if (b.status === 'Successful') {
+      const name = o.kind === 'toMyAccount' ? 'To my account' : lineName({ id: o.kind, name: o.name, categoryKey: o.categoryKey } as EventTransfer);
+      byName.set(name, (byName.get(name) ?? 0) + o.amountKobo);
+    }
+    if (b.status === 'Sent to fallback') sentToFallbackKobo += o.amountKobo;
   }
 
   const sentByCategory = [...byName.entries()].map(([name, kobo]) => ({ name, kobo })).sort((a, b) => b.kobo - a.kobo);

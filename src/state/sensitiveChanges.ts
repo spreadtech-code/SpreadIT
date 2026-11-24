@@ -4,10 +4,12 @@
 //   one-time code. 3 wrong codes cancel the change. Resuming after a pause
 //   (F1) needs the PIN and a code too.
 //   Before going live no money moves, so plan building needs no code
-//   (prototype choice, 24 Nov 2026).
+//   (prototype choice, 24 Nov 2026). Reordering rules by dragging needs no
+//   code (founder decision, 24 Nov 2026).
 // - F3: a new or changed account for a rule or for leftover money becomes
 //   active 24 hours later; until then paydays pay the previous account, or the
-//   fallback account if there was none.
+//   fallback account if there was none. The fallback account itself has no
+//   wait: it needs the code and sends an alert only (founder decision, 24 Nov 2026).
 // - F4: each change sends a pretend email and SMS naming the rule and the old
 //   and new account (last 4 digits only), with "This wasn't me".
 import { formatNaira, maskAccount } from '../engine/format';

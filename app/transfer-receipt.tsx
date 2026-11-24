@@ -1,9 +1,10 @@
 // S21 Transfer receipt (E3): partner reference, bank session ID, time
 // completed and fee, for one transfer. "Share receipt" shares it as text for
 // now (founder decision, 24 Nov 2026: image sharing later).
-// Opened with ?event=<id>&ref=<transfer reference>.
+// Opened with ?event=<id>&ref=<transfer reference>, or ?ref=<reference> alone for
+// a one-off transfer (B14 Send extra once, D13 Send to my account).
 import { Share, StyleSheet, Text, View } from 'react-native';
-import { Redirect, useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Button, Screen, StatusBadge } from '../src/components';
 import { formatNaira, maskAccount } from '../src/engine/format';
 import { useBank } from '../src/fakebank/bankStore';
@@ -15,12 +16,14 @@ import { colors, radius, shadow, space, type } from '../src/theme/tokens';
 
 export default function TransferReceiptScreen() {
   const { event: eventId, ref } = useLocalSearchParams<{ event?: string; ref?: string }>();
+  const router = useRouter();
   const event = usePaydays((s) => s.events.find((e) => e.id === eventId));
+  const oneOff = usePaydays((s) => (eventId ? undefined : s.oneOffs.find((o) => o.reference === ref)));
   const b = useBank((s) => (ref ? s.bank.transfers[ref] : undefined));
   const account = useApp((s) => s.spreaditAccount);
-  const tr = event?.transfers.find((x) => x.reference === ref);
+  const tr = event?.transfers.find((x) => x.reference === ref) ?? oneOff;
 
-  if (!event || !tr) return <Redirect href="/income-history" />;
+  if (!tr) return <Redirect href="/income-history" />;
 
   const status = b?.status ?? 'Pending';
   const to = `${tr.destination.accountName}, ${tr.destination.bankName} ${maskAccount(tr.destination.accountNumber)}`;
@@ -48,6 +51,11 @@ export default function TransferReceiptScreen() {
         <>
           <Button label="Share receipt" variant="secondary" onPress={share} />
           <Text style={styles.note}>Shared as text for now.</Text>
+          <Button
+            label="Get help"
+            variant="quiet"
+            onPress={() => router.push(`/get-help?${event ? `event=${event.id}&` : ''}ref=${tr.reference}`)}
+          />
         </>
       }
     >

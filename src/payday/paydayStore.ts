@@ -5,8 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { feeSchedule } from '../data/feeSchedule';
+import { transferFee } from '../engine/fees';
 import { formatNaira } from '../engine/format';
-import type { RuleId } from '../engine/types';
+import type { Destination, RuleId } from '../engine/types';
 import { FINAL_STATUSES, type Transfer, type TransferStatus } from '../fakebank/bank';
 import * as bank from '../fakebank/bankStore';
 import { payDates, dayMonth } from '../lib/payDates';
@@ -18,6 +19,7 @@ import {
   splitFor,
   startEvent,
   transfersFor,
+  unsplitKobo,
   type IncomeEvent,
 } from './events';
 
@@ -31,13 +33,45 @@ export interface PretendAlert {
   createdAt: number;
 }
 
+/** B14 "Send extra once" and D13 "Send to my account": transfers outside a payday. */
+export interface OneOffTransfer {
+  kind: 'extra' | 'toMyAccount';
+  /** B14: the rule it was sent for. */
+  ruleId?: RuleId;
+  name: string;
+  categoryKey?: string;
+  destination: Destination;
+  amountKobo: number;
+  feeKobo: number;
+  reference: string;
+  createdAt: number;
+  /** The last status the user was alerted about. */
+  alerted?: TransferStatus;
+}
+
 interface PaydayStore {
   events: IncomeEvent[];
   alerts: PretendAlert[];
+  oneOffs: OneOffTransfer[];
+  /** A9: Forward mode reminders sent, per payday ("2026-11-25" -> 1 or 2). */
+  forwardReminders: Record<string, number>;
+  /** A10: the salary-switch kit is offered once. */
+  salaryKitOffered: boolean;
+  /** A10: "Is this your salary now?" is asked once, on the first payment from someone else. */
+  askedSalaryNow: boolean;
 }
 
+const emptyStore: PaydayStore = {
+  events: [],
+  alerts: [],
+  oneOffs: [],
+  forwardReminders: {},
+  salaryKitOffered: false,
+  askedSalaryNow: false,
+};
+
 export const usePaydays = create<PaydayStore>()(
-  persist((): PaydayStore => ({ events: [], alerts: [] }), {
+  persist((): PaydayStore => emptyStore, {
     name: 'spreadit-paydays-v1',
     storage: createJSONStorage(() => AsyncStorage),
   }),
@@ -118,6 +152,7 @@ export async function handlePaymentNotice(notice: {
     event.reviewEndsAt = null;
   }
   usePaydays.setState((s) => ({ events: [...s.events, event] }));
+  askIfSalaryNow(payment.sender, payment.amountKobo);
 
   const amount = formatNaira(event.amountKobo);
   if (paused && event.stage === 'held') {
@@ -130,6 +165,28 @@ export async function handlePaymentNotice(notice: {
   else if (app.automation.reviewWindowMinutes === 0) alert('Income received', `${amount} arrived. Your split is going out now.`, eventRoute(event));
   else alert('Income received', `${amount} arrived. Your split goes out in ${app.automation.reviewWindowMinutes} minutes.`, eventRoute(event));
   return 'event';
+}
+
+/** The user's own name, as on transfers (D15) and forwarded payments. */
+function fullName(): string {
+  const id = useApp.getState().identity;
+  return id ? `${id.firstName} ${id.lastName}` : 'SpreadIT user';
+}
+
+/**
+ * A10: in Forward mode, the first payment from a sender other than the user's
+ * own account asks "Is this your salary now?". Yes stops the reminders (S27).
+ */
+function askIfSalaryNow(sender: string, amountKobo: number): void {
+  const app = useApp.getState();
+  if (app.income?.arrival !== 'forward' || usePaydays.getState().askedSalaryNow) return;
+  if (sender.trim().toLowerCase() === fullName().toLowerCase()) return;
+  usePaydays.setState({ askedSalaryNow: true });
+  alert(
+    'Is this your salary now?',
+    `${formatNaira(amountKobo)} came from ${sender}, not your own account.`,
+    `/salary-switch-kit?salaryNow=1&sender=${encodeURIComponent(sender)}`,
+  );
 }
 
 // ---------- the user's choices ----------
@@ -203,14 +260,13 @@ export async function executeEvent(id: string): Promise<void> {
   update(id, (x) => ({ ...x, stage: 'sending', executedAt: bank.now(), reviewEndsAt: null, transfers }));
 
   const fallbackCode = app.fallback ? (await bank.createRecipient(app.fallback)).code : null;
-  const fullName = app.identity ? `${app.identity.firstName} ${app.identity.lastName}` : 'SpreadIT user';
   for (const t of transfers) {
     const recipient = await bank.createRecipient(t.destination);
     await bank.sendTransfer({
       reference: t.reference,
       recipientCode: recipient.code,
       amountKobo: t.amountKobo,
-      narration: narration(fullName, t.name),
+      narration: narration(fullName(), t.name),
       keepTrying: t.keepTrying,
       fallbackRecipientCode: fallbackCode,
     });
@@ -239,13 +295,12 @@ export async function sendAgain(eventId: string, reference: string): Promise<Sen
   const app = useApp.getState();
   const fallbackCode = app.fallback ? (await bank.createRecipient(app.fallback)).code : null;
   const recipient = await bank.createRecipient(tr.destination);
-  const fullName = app.identity ? `${app.identity.firstName} ${app.identity.lastName}` : 'SpreadIT user';
   const againRef = `${reference}-again`;
   const result = await bank.sendTransfer({
     reference: againRef,
     recipientCode: recipient.code,
     amountKobo: tr.amountKobo,
-    narration: narration(fullName, tr.name),
+    narration: narration(fullName(), tr.name),
     keepTrying: tr.keepTrying,
     fallbackRecipientCode: fallbackCode,
   });
@@ -253,6 +308,49 @@ export async function sendAgain(eventId: string, reference: string): Promise<Sen
   const again = { ...tr, reference: againRef, resendOf: reference, feeKobo: result.transfer.feeKobo };
   update(eventId, (x) => ({ ...x, stage: 'sending', transfers: [...x.transfers, again] }));
   return 'sent';
+}
+
+/** Money a one-off transfer can use: the SpreadIT balance minus paydays waiting to be split. */
+export function availableKobo(): number {
+  return unsplitKobo(bank.useBank.getState().bank.balanceKobo, usePaydays.getState().events);
+}
+
+export type OneOffResult = { result: 'sent'; reference: string } | { result: 'insufficientFunds'; shortKobo: number };
+
+/**
+ * B14 "Send extra once" (to a rule's account) and D13 "Send to my account"
+ * (to the fallback account). The screen asks for the PIN first. The amount and
+ * its fee come from the SpreadIT balance, never from a payday still waiting.
+ * The plan is not changed. Allowed while paused: the user sends it themselves.
+ */
+export async function sendOneOff(input: Omit<OneOffTransfer, 'feeKobo' | 'reference' | 'createdAt' | 'alerted'>): Promise<OneOffResult> {
+  const fee = transferFee(input.amountKobo, feeSchedule);
+  const short = input.amountKobo + fee - availableKobo();
+  if (short > 0) return { result: 'insufficientFunds', shortKobo: short };
+
+  const app = useApp.getState();
+  const reference = newId(input.kind === 'extra' ? 'XT' : 'MY');
+  const recipient = await bank.createRecipient(input.destination);
+  // Money to the user's own account has nowhere else to go if it fails.
+  const fallbackCode = input.kind === 'extra' && app.fallback ? (await bank.createRecipient(app.fallback)).code : null;
+  const sent = await bank.sendTransfer({
+    reference,
+    recipientCode: recipient.code,
+    amountKobo: input.amountKobo,
+    narration: narration(fullName(), input.name),
+    fallbackRecipientCode: fallbackCode,
+  });
+  if (!sent.ok) return { result: 'insufficientFunds', shortKobo: Math.max(1, short) };
+  const oneOff: OneOffTransfer = { ...input, feeKobo: sent.transfer.feeKobo, reference, createdAt: bank.now() };
+  usePaydays.setState((s) => ({ oneOffs: [...s.oneOffs, oneOff] }));
+  return { result: 'sent', reference };
+}
+
+/** Paydays where every transfer was Successful (D2 window off, A10 kit offer). */
+export function successfulPaydays(events: readonly IncomeEvent[]): number {
+  return events.filter(
+    (e) => e.stage === 'done' && e.transfers.length > 0 && e.transfers.every((t) => bankTransfer(t.reference)?.status === 'Successful'),
+  ).length;
 }
 
 /** E4 demo: the "1st of the month, 10am" alert that opens the monthly summary. */
@@ -302,12 +400,7 @@ async function tickOnce(): Promise<void> {
     for (const tr of e.transfers) {
       const status = bankTransfer(tr.reference)?.status;
       if (!status || alerted[tr.reference] === status) continue;
-      const b = bankTransfer(tr.reference)!;
-      const amount = formatNaira(tr.amountKobo);
-      if (status === 'Retrying') alert(`${tr.name}: retrying`, `${amount} didn't go through yet. ${b.failureReason ?? ''} We'll keep trying.`, `/payday?event=${e.id}`);
-      if (status === 'Sent to fallback') alert(`${tr.name}: sent to your fallback account`, `${amount} couldn't reach ${tr.name}. ${b.failureReason ?? ''}`, `/payday?event=${e.id}`);
-      if (status === 'Failed') alert(`${tr.name}: failed`, `${amount} couldn't be sent. It's back in your SpreadIT account.`, `/payday?event=${e.id}`);
-      if (status === 'Reversed') alert(`${tr.name}: reversed`, `The bank reversed ${amount}. It's back in your SpreadIT account.`, `/payday?event=${e.id}`);
+      transferAlert(tr.name, tr.amountKobo, bankTransfer(tr.reference)!, `/payday?event=${e.id}`);
       alerted[tr.reference] = status;
       changed = true;
     }
@@ -326,6 +419,84 @@ async function tickOnce(): Promise<void> {
       update(e.id, (x) => ({ ...x, alerted }));
     }
   }
+
+  // One-off transfers (B14, D13): the same failure alerts (D7, D10).
+  const oneOffs = usePaydays.getState().oneOffs;
+  if (oneOffs.some((o) => bankTransfer(o.reference)?.status !== o.alerted)) {
+    usePaydays.setState({
+      oneOffs: oneOffs.map((o) => {
+        const b = bankTransfer(o.reference);
+        if (!b || b.status === o.alerted) return o;
+        transferAlert(o.name, o.amountKobo, b, `/transfer-receipt?ref=${o.reference}`);
+        return { ...o, alerted: b.status };
+      }),
+    });
+  }
+
+  forwardReminder(t);
+  offerSalaryKit();
+}
+
+/** D7, D10: a pretend push and SMS when a transfer fails, falls back or is reversed. */
+function transferAlert(name: string, amountKobo: number, b: Transfer, route: string): void {
+  const amount = formatNaira(amountKobo);
+  if (b.status === 'Retrying') alert(`${name}: retrying`, `${amount} didn't go through yet. ${b.failureReason ?? ''} We'll keep trying.`, route);
+  if (b.status === 'Sent to fallback') alert(`${name}: sent to your fallback account`, `${amount} couldn't reach ${name}. ${b.failureReason ?? ''}`, route);
+  if (b.status === 'Failed') alert(`${name}: failed`, `${amount} couldn't be sent. It's back in your SpreadIT account.`, route);
+  if (b.status === 'Reversed') alert(`${name}: reversed`, `The bank reversed ${amount}. It's back in your SpreadIT account.`, route);
+}
+
+const dayKey = (t: number) => {
+  const d = new Date(t);
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+};
+const sameDay = (a: number, b: number) => dayKey(a) === dayKey(b);
+
+/**
+ * A9 Forward mode reminders, on the expected pay date: 9am with the SpreadIT
+ * account details; 6pm again if no qualifying payment has arrived; none after.
+ */
+export function forwardRemindersDue(input: {
+  t: number;
+  isPayday: boolean;
+  sent: number;
+  arrivedToday: boolean;
+}): 'morning' | 'evening' | null {
+  if (!input.isPayday) return null;
+  const hour = new Date(input.t).getHours();
+  if (input.sent === 0 && hour >= 9 && hour < 18) return 'morning';
+  if (input.sent <= 1 && hour >= 18 && !input.arrivedToday) return 'evening';
+  return null;
+}
+
+function forwardReminder(t: number): void {
+  const app = useApp.getState();
+  const { income, spreaditAccount: account } = app;
+  if (!income || income.arrival !== 'forward' || !account || !app.automation.on || isPaused(app)) return;
+  const dates = payDates(income, new Date(t));
+  const isPayday = dates.next !== null && sameDay(dates.last.getTime(), t);
+  const key = dayKey(t);
+  const store = usePaydays.getState();
+  const sent = store.forwardReminders[key] ?? 0;
+  const arrivedToday = store.events.some((e) => sameDay(e.receivedAt, t) && e.amountKobo >= income.qualifyingMinimumKobo);
+  const due = forwardRemindersDue({ t, isPayday, sent, arrivedToday });
+  if (!due) return;
+  const details = `${account.bankName} ${account.accountNumber}, ${account.accountName}`;
+  if (due === 'morning') {
+    alert('Payday: forward your salary', `Send it to your SpreadIT account in one transfer: ${details}. Tap to copy.`, '/forward-mode-setup');
+  } else {
+    alert("Your salary hasn't arrived yet", `Forward it to your SpreadIT account to split it today: ${details}. Tap to copy.`, '/forward-mode-setup');
+  }
+  usePaydays.setState((s) => ({ forwardReminders: { ...s.forwardReminders, [key]: 2 - (due === 'morning' ? 1 : 0) } }));
+}
+
+/** A10: after 2 successful live paydays in Forward mode, offer the kit once. */
+function offerSalaryKit(): void {
+  const store = usePaydays.getState();
+  if (store.salaryKitOffered || useApp.getState().income?.arrival !== 'forward') return;
+  if (successfulPaydays(store.events) < 2) return;
+  usePaydays.setState({ salaryKitOffered: true });
+  alert('Ready to move your salary?', '2 paydays split. Get a letter for HR so your salary comes straight to SpreadIT.', '/salary-switch-kit');
 }
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -350,5 +521,5 @@ function pauseReminder(t: number): void {
 
 /** Demo controls: clear every payday and alert. */
 export function resetPaydays(): void {
-  usePaydays.setState({ events: [], alerts: [] });
+  usePaydays.setState(emptyStore);
 }
