@@ -2,7 +2,7 @@
 // and, on payday, sends the salary to their SpreadIT account in one transfer.
 // - Reminders on the expected pay date: 9am with the account details and Copy,
 //   6pm if no qualifying payment has arrived, none after (A9). The times are
-//   fixed as the PRD sets them.
+//   fixed; users can't change them (founder decision, 24 Nov 2026).
 // - Standing-order steps for the user's bank (10 largest Nigerian banks).
 // "Use Forward mode" -> S14 when going live (flow 4), otherwise back.
 // Also opened from the payday reminders and from Settings.
