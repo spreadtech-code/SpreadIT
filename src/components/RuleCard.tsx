@@ -54,8 +54,8 @@ export function RuleCard({
   const skipped = funding === 'Skipped';
   const amount = formatNaira(skipped ? 0 : amountKobo);
   const where = bankName && accountNumber ? ` · ${bankName} ${maskAccount(accountNumber)}` : ' · No account yet';
-  const meta = `${ruleType} · Priority ${priority}${where}`;
-  const spoken = [name, meta, amount, note, funding ? `Status: ${badgeWords[funding]}` : null].filter(Boolean).join(', ');
+  const meta = `${ruleType} · #${priority}${where}`;
+  const spoken = [name, `${ruleType}, priority ${priority}${where}`, amount, note, funding ? `Status: ${badgeWords[funding]}` : null].filter(Boolean).join(', ');
 
   return (
     <Pressable

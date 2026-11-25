@@ -42,8 +42,8 @@ export default function SetPinScreen() {
 
   return (
     <Screen
-      step={`Sign up · Step ${step} of 3`}
-      title={step === 1 ? 'Create a 6-digit PIN' : step === 2 ? 'Enter your PIN again' : 'Unlock with your face or fingerprint?'}
+      step={`Step ${step} of 3`}
+      title={step === 1 ? 'Create your PIN' : step === 2 ? 'Enter it again' : 'Unlock with face or fingerprint?'}
       subtitle={
         step === 3
           ? 'You can still use your PIN at any time.'
@@ -65,7 +65,7 @@ export default function SetPinScreen() {
       {step === 2 ? <PinField key="second" label="Same PIN again" value={second} onChange={onSecond} /> : null}
       {step === 3 ? (
         <Toggle
-          label="Face or fingerprint unlock"
+          label="Unlock with face or fingerprint"
           description="Open SpreadIT with your phone's face or fingerprint unlock."
           value={biometric}
           onValueChange={setBiometric}

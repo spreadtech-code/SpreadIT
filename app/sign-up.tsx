@@ -51,17 +51,17 @@ export default function SignUpScreen() {
     setStep(step + 1);
   };
 
-  const titles = ['Your phone number', 'Your email', 'Choose a password', 'Your date of birth'];
+  const titles = ['What’s your number?', 'What’s your email?', 'Choose a password', 'When were you born?'];
   const subtitles = [
-    "We'll send a 6-digit code to check it's yours.",
-    "We'll send a link to confirm it.",
+    'We’ll text you a 6-digit code to check it’s you.',
+    'We’ll send a link to confirm it.',
     `At least 8 characters.`,
     'You must be 18 or over to use SpreadIT.',
   ];
 
   return (
     <Screen
-      step={`Sign up · Step ${step} of ${STEPS}`}
+      step={`Step ${step} of ${STEPS}`}
       title={titles[step - 1]}
       subtitle={subtitles[step - 1]}
       onBack={back}

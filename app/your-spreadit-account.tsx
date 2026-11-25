@@ -7,7 +7,7 @@ import { Share, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { CircleCheck } from 'lucide-react-native';
-import { Button, Screen } from '../src/components';
+import { Button, Notice, Screen } from '../src/components';
 import { accountDetailsText } from '../src/fakebank';
 import { useApp } from '../src/state/appStore';
 import { colors, radius, shadow, size, space, type } from '../src/theme/tokens';
@@ -16,6 +16,8 @@ export default function YourSpreaditAccountScreen() {
   const router = useRouter();
   const account = useApp((s) => s.spreaditAccount);
   const arrival = useApp((s) => s.income?.arrival);
+  const firstName = useApp((s) => s.identity?.firstName);
+  const automationOn = useApp((s) => s.automation.on);
   const [copied, setCopied] = useState(false);
 
   if (!account) {
@@ -32,23 +34,34 @@ export default function YourSpreaditAccountScreen() {
     setCopied(true);
   };
   const share = () => Share.share({ message: text });
-  const next = () => router.push(arrival === 'forward' ? '/forward-mode-setup' : '/switch-on-automation');
+  // Once Autopilot is on (opened from Profile), this is just the details: Done goes back.
+  const next = () => (automationOn ? router.back() : router.push(arrival === 'forward' ? '/forward-mode-setup' : '/switch-on-automation'));
 
   return (
     <Screen
-      title="Your SpreadIT account"
-      subtitle="Your income goes here. It's in your name."
-      footer={<Button label="Continue" variant="primary" onPress={next} />}
+      title={automationOn ? 'Your SpreadIT account' : firstName ? `You’re all set, ${firstName}` : 'You’re all set'}
+      subtitle="This is your SpreadIT account. Your pay lands here."
+      footer={<Button label={automationOn ? 'Done' : 'Continue'} variant="primary" onPress={next} />}
     >
-      <View style={styles.card}>
-        <Detail label="Bank" value={account.bankName} />
-        <Detail label="Account number" value={account.accountNumber} large />
-        <Detail label="Account name" value={account.accountName} />
+      <View
+        style={styles.card}
+        accessible
+        accessibilityLabel={`${account.bankName}. Account number ${account.accountNumber.split('').join(' ')}. ${account.accountName}.`}
+      >
+        <Text style={styles.small}>{account.bankName}</Text>
+        <Text style={styles.number} selectable>
+          {account.accountNumber.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3')}
+        </Text>
+        <Text style={styles.small}>{account.accountName}</Text>
       </View>
 
       <View style={styles.actions}>
-        <Button label="Copy details" variant="secondary" onPress={copy} accessibilityHint="Copies bank, account number and name" />
-        <Button label="Share" variant="secondary" onPress={share} />
+        <View style={styles.flex}>
+          <Button label="Copy details" variant="secondary" onPress={copy} accessibilityHint="Copies bank, account number and name" />
+        </View>
+        <View style={styles.flex}>
+          <Button label="Share" variant="secondary" onPress={share} />
+        </View>
       </View>
       {copied ? (
         <View style={styles.copied} accessibilityLiveRegion="polite" accessible accessibilityLabel="Copied">
@@ -56,32 +69,25 @@ export default function YourSpreaditAccountScreen() {
           <Text style={styles.copiedText}>Copied</Text>
         </View>
       ) : null}
-      <Text style={styles.muted}>
-        {arrival === 'forward'
-          ? 'Next: set up Forward mode, so you can send your salary here on payday.'
-          : 'Give these details to whoever pays you, or forward your income here.'}
-      </Text>
+      {automationOn ? null : (
+        <Notice
+          text={
+            arrival === 'forward'
+              ? 'Next: set up how your pay reaches this account.'
+              : 'Give these details to whoever pays you, or forward your pay here.'
+          }
+        />
+      )}
     </Screen>
   );
 }
 
-function Detail({ label, value, large = false }: { label: string; value: string; large?: boolean }) {
-  return (
-    <View style={styles.detail} accessible accessibilityLabel={`${label}: ${large ? value.split('').join(' ') : value}`}>
-      <Text style={styles.muted}>{label}</Text>
-      <Text style={large ? styles.number : styles.value} selectable>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: space[6], gap: space[4], ...shadow.card },
-  detail: { gap: space[1] },
-  value: { ...type.headline, color: colors.ink },
-  number: { ...type.amountLg, color: colors.ink, fontVariant: ['tabular-nums'] },
-  actions: { gap: space[2] },
+  card: { backgroundColor: colors.brand, borderRadius: radius.lg, padding: space[5], gap: space[2] },
+  small: { ...type.labelStrong, color: colors.onBrand },
+  number: { ...type.amountXl, color: colors.onBrand, fontVariant: ['tabular-nums'] },
+  actions: { flexDirection: 'row', gap: space[2] },
+  flex: { flex: 1 },
   copied: { flexDirection: 'row', alignItems: 'center', gap: space[2], alignSelf: 'center' },
   copiedText: { ...type.bodyStrong, color: colors.success },
   body: { ...type.body, color: colors.ink },

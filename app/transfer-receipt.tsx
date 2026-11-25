@@ -73,13 +73,20 @@ export default function TransferReceiptScreen() {
             {formatNaira(tr.amountKobo)}
           </Text>
           <Text style={styles.muted}>sent to {tr.name}</Text>
-          <StatusBadge state={status} />
+          <View style={styles.badge}>
+            <StatusBadge state={status} />
+          </View>
         </View>
         <View style={styles.hairline} />
         {rows.map(([label, value]) => (
           <View key={label} style={styles.row} accessible accessibilityLabel={`${label}: ${value}`}>
             <Text style={styles.label}>{label}</Text>
-            <Text style={styles.value} selectable>
+            <Text
+              style={styles.value}
+              selectable
+              numberOfLines={label === 'Session ID' || label === 'Reference' ? 1 : undefined}
+              ellipsizeMode="middle"
+            >
               {value}
             </Text>
           </View>
@@ -105,6 +112,7 @@ const styles = StyleSheet.create({
   circleBad: { backgroundColor: colors.criticalSoft },
   circleWarn: { backgroundColor: colors.warningSoft },
   amount: { ...type.amountXl, color: colors.ink },
+  badge: { alignSelf: 'center' },
   hairline: { height: StyleSheet.hairlineWidth, backgroundColor: colors.line },
   row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: space[4] },
   label: { ...type.label, color: colors.inkMuted, flexShrink: 0 },

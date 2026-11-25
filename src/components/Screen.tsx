@@ -20,6 +20,8 @@ export interface ScreenProps {
   footer?: ReactNode;
   /** Overrides Back (for steps inside one screen). Pass null to hide Back. */
   onBack?: (() => void) | null;
+  /** Shown above the title, e.g. a round icon badge (S11). */
+  top?: ReactNode;
 }
 
 export function BackButton({ onPress }: { onPress: () => void }) {
@@ -35,7 +37,7 @@ function parseStep(step?: string): { at: number; of: number } | null {
   return m ? { at: Number(m[1]), of: Number(m[2]) } : null;
 }
 
-export function Screen({ title, step, subtitle, children, footer, onBack }: ScreenProps) {
+export function Screen({ title, step, subtitle, children, footer, onBack, top }: ScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const back = onBack === null ? null : (onBack ?? (router.canGoBack() ? () => router.back() : null));
@@ -62,6 +64,7 @@ export function Screen({ title, step, subtitle, children, footer, onBack }: Scre
             ) : null}
           </View>
         ) : null}
+        {top}
         <View style={styles.head}>
           <Text style={styles.title} accessibilityRole="header">
             {title}

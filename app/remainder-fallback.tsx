@@ -5,13 +5,13 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Button, FieldError, OptionList, Screen, TextField } from '../src/components';
+import { AccountCard as SharedAccountCard, Button, FieldError, OptionList, Screen, TextField } from '../src/components';
 import { maskAccount } from '../src/engine/format';
 import type { Destination } from '../src/engine/types';
 import { now } from '../src/fakebank/bankStore';
 import { isLive, useApp } from '../src/state/appStore';
 import { cooldownText } from '../src/state/sensitiveChanges';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, space, type } from '../src/theme/tokens';
 
 const presetNames = ['Everyday spending', 'Savings', 'Primary account'] as const;
 type Choice = (typeof presetNames)[number] | 'custom';
@@ -61,13 +61,13 @@ export default function RemainderFallbackScreen() {
 
   return (
     <Screen
-      title="Remainder and fallback"
-      subtitle={live ? 'Changes apply from your next payday. Saving needs a one-time code.' : 'Changes apply from your next payday.'}
+      title="Leftovers & backup"
+      subtitle={live ? 'Where spare money goes, and where money lands if a transfer can’t go through. Saving needs a 6-digit code.' : 'Where spare money goes, and where money lands if a transfer can’t go through.'}
       footer={<Button label="Save" variant="primary" onPress={onSave} />}
     >
-      <Text style={styles.section}>Where leftover money goes</Text>
+      <Text style={styles.section}>Leftovers go to</Text>
       <OptionList
-        accessibilityLabel="Leftover money goes to"
+        accessibilityLabel="Leftovers go to"
         options={[
           ...presetNames.map((n) => ({ value: n, label: n })),
           { value: 'custom' as const, label: 'Something else' },
@@ -79,7 +79,7 @@ export default function RemainderFallbackScreen() {
         <TextField label="Name" value={customName} onChangeText={setCustomName} maxLength={30} autoCapitalize="words" autoFocus />
       ) : null}
       <AccountCard
-        title="Account for leftover money"
+        title="Account for leftovers"
         destination={remainder}
         onChange={() => router.push('/add-destination?for=remainder')}
         note={
@@ -91,13 +91,13 @@ export default function RemainderFallbackScreen() {
         }
       />
 
-      <Text style={styles.section}>Fallback account</Text>
+      <Text style={styles.section}>Backup account</Text>
       <Text style={styles.body}>
-        Your own account. If a transfer fails for good, or you move unsplit money out, it goes here. Needed before you switch on automation.
+        Your own account. If a transfer fails for good, or you move unsplit money out, it goes here. Needed before Autopilot can start.
       </Text>
-      <AccountCard title="Fallback account" destination={fallback ?? undefined} onChange={() => router.push('/add-destination?for=fallback')} />
+      <AccountCard title="Backup account" destination={fallback ?? undefined} onChange={() => router.push('/add-destination?for=fallback')} />
       {!fallback && remainder ? (
-        <Button label="Use my leftover account" variant="quiet" onPress={() => setFallback(remainder)} />
+        <Button label="Use my leftovers account" variant="quiet" onPress={() => setFallback(remainder)} />
       ) : null}
 
       {errors.map((e) => (
@@ -119,28 +119,26 @@ function AccountCard({
   note?: string | null;
 }) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.muted}>{title}</Text>
+    <View style={styles.card} accessibilityLabel={title}>
       {destination ? (
-        <View accessible accessibilityLabel={`${title}: ${destination.accountName}, ${destination.bankName} ${maskAccount(destination.accountNumber)}`}>
-          <Text style={styles.name}>{destination.accountName}</Text>
-          <Text style={styles.muted}>
-            {destination.bankName} {maskAccount(destination.accountNumber)}
-          </Text>
-        </View>
+        <SharedAccountCard
+          accountName={destination.accountName}
+          bankName={destination.bankName}
+          accountNumber={destination.accountNumber}
+          onChange={onChange}
+        />
       ) : (
-        <Text style={styles.muted}>Not added yet.</Text>
+        <Button label={`Add the ${title.toLowerCase()}`} variant="secondary" onPress={onChange} />
       )}
       {note ? <Text style={styles.note}>{note}</Text> : null}
-      <Button label={destination ? 'Change account' : 'Add account'} variant={destination ? 'quiet' : 'secondary'} onPress={onChange} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: { ...type.titleSm, color: colors.ink },
-  body: { ...type.body, color: colors.inkMuted },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[2], ...shadow.card },
+  section: { ...type.labelStrong, color: colors.inkMuted },
+  body: { ...type.label, color: colors.inkMuted },
+  card: { gap: space[2] },
   muted: { ...type.label, color: colors.inkMuted },
   name: { ...type.headline, color: colors.ink },
   note: { ...type.label, color: colors.ink },

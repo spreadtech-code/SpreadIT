@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Bell, Clock } from 'lucide-react-native';
 import { Button, OptionList, Screen } from '../src/components';
 import { partner } from '../src/data/partner';
 import { standingOrderBanks, standingOrderSteps } from '../src/data/standingOrders';
@@ -16,7 +17,7 @@ import { useBank } from '../src/fakebank/bankStore';
 import { dayMonth, payDates } from '../src/lib/payDates';
 import { ForwardDetails } from '../src/payday/oneOffParts';
 import { useApp } from '../src/state/appStore';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, radius, shadow, size, space, type } from '../src/theme/tokens';
 
 export default function ForwardModeSetupScreen() {
   const router = useRouter();
@@ -38,8 +39,8 @@ export default function ForwardModeSetupScreen() {
 
   return (
     <Screen
-      title="Forward mode"
-      subtitle="Keep getting paid at your bank. On payday, send your salary here in one transfer. We split it from there."
+      title="Forward your pay"
+      subtitle="Keep getting paid at your bank. On payday, send it here in one transfer. We’ll do the rest."
       footer={
         <>
           <Button label={inForwardMode ? (automationOn ? 'Done' : 'Continue') : 'Use Forward mode'} variant="primary" onPress={use} />
@@ -48,23 +49,23 @@ export default function ForwardModeSetupScreen() {
       }
     >
       <View style={styles.card}>
-        <Text style={styles.heading}>Payday reminders</Text>
-        <Text style={styles.body}>• 9am on payday: a reminder with your account details, ready to copy.</Text>
-        <Text style={styles.body}>• 6pm: one more, only if your salary hasn't arrived.</Text>
+        <Text style={styles.heading}>Payday nudges</Text>
+        <Nudge Icon={Bell} title="9am on payday" text="A reminder with your account details, ready to copy." />
+        <Nudge Icon={Clock} title="6pm" text="One more, only if it hasn’t arrived yet." />
         <Text style={styles.muted}>
-          {next ? `Your next payday: ${dayMonth(next)}.` : 'Your income varies, so there is no set payday to remind you on.'}
+          {next ? `Your next payday: ${dayMonth(next)}.` : 'Your pay varies, so there’s no set payday to remind you on.'}
         </Text>
       </View>
 
       {account ? (
-        <ForwardDetails text="Send your salary to:" />
+        <ForwardDetails text="Send your pay to:" />
       ) : (
         <Text style={styles.body}>Your SpreadIT account details show here once your identity check passes.</Text>
       )}
 
       <View style={styles.card}>
-        <Text style={styles.heading}>Or set up a standing order</Text>
-        <Text style={styles.body}>Your bank can send it for you every payday. Pick your bank to see how.</Text>
+        <Text style={styles.heading}>Or make it automatic</Text>
+        <Text style={styles.muted}>Set a standing order at your bank. Pick yours for the steps.</Text>
         <OptionList accessibilityLabel="Your bank" options={standingOrderBanks.map((b) => ({ value: b, label: b }))} value={bank} onChange={setBank} />
         {bank && account ? (
           <View style={styles.steps} accessible accessibilityLabel={`Steps for ${bank}`}>
@@ -81,9 +82,34 @@ export default function ForwardModeSetupScreen() {
   );
 }
 
+function Nudge({ Icon, title, text }: { Icon: typeof Bell; title: string; text: string }) {
+  return (
+    <View style={styles.nudge} accessible accessibilityLabel={`${title}. ${text}`}>
+      <View style={styles.bubble}>
+        <Icon size={size.iconSm} color={colors.primary} strokeWidth={1.75} />
+      </View>
+      <View style={styles.nudgeText}>
+        <Text style={styles.bodyStrong}>{title}</Text>
+        <Text style={styles.muted}>{text}</Text>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[3], ...shadow.card },
-  heading: { ...type.titleSm, color: colors.ink },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[4], gap: space[3], ...shadow.card },
+  heading: { ...type.headline, color: colors.ink },
+  bodyStrong: { ...type.bodyStrong, color: colors.ink },
+  nudge: { flexDirection: 'row', alignItems: 'flex-start', gap: space[3] },
+  nudgeText: { flex: 1, gap: 2 },
+  bubble: {
+    width: size.bubbleSm,
+    height: size.bubbleSm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brandSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   body: { ...type.body, color: colors.ink },
   muted: { ...type.label, color: colors.inkMuted },
   steps: { gap: space[2] },

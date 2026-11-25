@@ -110,17 +110,17 @@ export default function IncomeSetupScreen() {
 
   const titles: Record<StepId, string> = {
     type: 'How are you paid?',
-    expected: type === 'varies' ? 'How much is a typical payment?' : 'How much do you expect each payday?',
+    expected: type === 'varies' ? 'How much is a typical payment?' : 'How much lands each payday?',
     frequency: type === 'varies' ? 'Roughly how often are you paid?' : 'How often are you paid?',
     payDate: frequency === 'monthly' ? 'Which day of the month?' : 'Which day of the week?',
-    minimum: 'Smallest payment to split automatically',
-    arrival: 'How will your income reach SpreadIT?',
+    minimum: 'Smallest payment to split by itself',
+    arrival: 'How will your pay reach SpreadIT?',
     batching: 'Split once a week?',
   };
 
   return (
     <Screen
-      step={`Income setup · Step ${index + 1} of ${steps.length}`}
+      step={`Step ${index + 1} of ${steps.length}`}
       title={titles[step]}
       onBack={back}
       footer={<Button label={last ? 'Save' : 'Next'} variant="primary" onPress={next} />}
@@ -130,10 +130,10 @@ export default function IncomeSetupScreen() {
       ) : null}
       {step === 'expected' ? (
         <AmountField
-          label="Amount after tax"
+          label="After tax"
           valueKobo={expected}
           onChangeKobo={setExpected}
-          helper="We use this to check your plan and to spot a short payday."
+          helper="Roughly is fine. We use it to check your plan and spot a short payday."
         />
       ) : null}
       {step === 'frequency' ? (
@@ -156,13 +156,13 @@ export default function IncomeSetupScreen() {
       ) : null}
       {step === 'minimum' ? (
         <AmountField
-          label="Qualifying minimum"
+          label="Your minimum"
           valueKobo={minimum}
           onChangeKobo={(k) => {
             setMinimum(k);
             setMinimumTouched(true);
           }}
-          helper={`Payments below this ask you "Is this income?" first. Suggested: ${formatNaira(
+          helper={`Payments below this ask you “Is this pay?” first. Suggested: ${formatNaira(
             defaultMinimum(type ?? 'regular', expected ?? 0),
           )}.`}
         />

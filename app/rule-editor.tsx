@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import {
+  AccountCard,
   AmountField,
   Button,
   FieldError,
@@ -28,7 +29,7 @@ import { newRuleId, upsertRule } from '../src/state/planEdits';
 import { isLive, useApp } from '../src/state/appStore';
 import { now } from '../src/fakebank/bankStore';
 import { cooldownText } from '../src/state/sensitiveChanges';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, space, type } from '../src/theme/tokens';
 
 /** "10" -> 1000, "10.5" -> 1050; null if not a number with at most one decimal place. */
 function parsePercent(text: string): number | null {
@@ -138,9 +139,9 @@ export default function RuleEditorScreen() {
 
   return (
     <Screen
-      title={existing ? `Edit ${existing.name}` : category ? category.name : 'New category'}
-      subtitle={live ? 'Changes apply from your next payday. Saving needs a one-time code.' : 'Changes apply from your next payday.'}
-      footer={<Button label="Save rule" variant="primary" onPress={save} />}
+      title={existing ? existing.name : category ? category.name : 'New category'}
+      subtitle={live ? 'Changes start from your next payday. Saving needs a 6-digit code.' : 'Changes start from your next payday.'}
+      footer={<Button label="Save" variant="primary" onPress={save} />}
     >
       <TextField label="Name" value={name} onChangeText={setName} maxLength={30} autoCapitalize="words" helper="Up to 30 characters, e.g. Mum or School fees." />
 
@@ -148,7 +149,7 @@ export default function RuleEditorScreen() {
         accessibilityLabel="Rule type"
         options={[
           { value: 'fixed', label: 'Fixed amount' },
-          { value: 'percent', label: '% of income' },
+          { value: 'percent', label: '% of pay' },
         ]}
         value={kind}
         onChange={setKind}
@@ -160,28 +161,28 @@ export default function RuleEditorScreen() {
           <OptionList
             accessibilityLabel="How often"
             options={[
-              { value: 'oncePerMonth', label: 'Once per month', description: 'Pays on the first payday of each month only.' },
-              { value: 'everyIncome', label: 'Every income', description: 'Pays each time qualifying income arrives.' },
+              { value: 'oncePerMonth', label: 'Once a month', description: 'On your first payday each month' },
+              { value: 'everyIncome', label: 'Every payday', description: 'Each time pay lands' },
             ]}
             value={frequency}
             onChange={setFrequency}
           />
         </>
       ) : (
-        <TextField label="Percentage of income" value={percent} onChangeText={setPercent} keyboardType="decimal-pad" suffix="%" placeholder="10" helper={percentHelper} maxLength={5} />
+        <TextField label="Percentage of pay" value={percent} onChangeText={setPercent} keyboardType="decimal-pad" suffix="%" placeholder="10" helper={percentHelper} maxLength={5} />
       )}
 
       <View style={styles.card}>
-        <Text style={styles.cardLabel}>Destination account</Text>
+        <Text style={styles.cardLabel}>Sending to</Text>
         {destination ? (
-          <View accessible accessibilityLabel={`${destination.accountName}, ${destination.bankName} ${maskAccount(destination.accountNumber)}`}>
-            <Text style={styles.cardName}>{destination.accountName}</Text>
-            <Text style={styles.cardLabel}>
-              {destination.bankName} {maskAccount(destination.accountNumber)}
-            </Text>
-          </View>
+          <AccountCard
+            accountName={destination.accountName}
+            bankName={destination.bankName}
+            accountNumber={destination.accountNumber}
+            onChange={() => router.push('/add-destination?for=rule')}
+          />
         ) : (
-          <Text style={styles.cardLabel}>Not added yet.</Text>
+          <Button label="Add the account" variant="secondary" onPress={() => router.push('/add-destination?for=rule')} />
         )}
         {existing && sameDestination && cooldownText(existing, now()) ? (
           <Text style={styles.cardNote}>{cooldownText(existing, now())}</Text>
@@ -189,16 +190,11 @@ export default function RuleEditorScreen() {
         {live && !sameDestination ? (
           <Text style={styles.cardNote}>A new account starts getting paid 24 hours after you save.</Text>
         ) : null}
-        <Button
-          label={destination ? 'Change account' : 'Add destination account'}
-          variant={destination ? 'quiet' : 'secondary'}
-          onPress={() => router.push('/add-destination?for=rule')}
-        />
       </View>
 
       <Toggle
         label="Keep trying if it fails"
-        description="If a transfer fails for a short time, keep retrying for up to 72 hours before it goes to your fallback account."
+        description="Retries for up to 72 hours before it goes to your backup account."
         value={keepTrying}
         onValueChange={setKeepTrying}
       />
@@ -215,7 +211,7 @@ export default function RuleEditorScreen() {
             <Button label="Skip next payday" variant="secondary" onPress={() => router.push(`/confirm-pin?action=skipNext&ruleId=${existing.id}`)} />
           )}
           <Button label="Send extra once" variant="secondary" onPress={() => router.push(`/send-extra-once?ruleId=${existing.id}`)} />
-          <Button label="Delete rule" variant="critical" onPress={remove} />
+          <Button label="Delete" variant="critical" onPress={remove} />
         </View>
       ) : null}
     </Screen>
@@ -223,8 +219,8 @@ export default function RuleEditorScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[2], ...shadow.card },
-  cardLabel: { ...type.label, color: colors.inkMuted },
+  card: { gap: space[2] },
+  cardLabel: { ...type.labelStrong, color: colors.inkMuted },
   cardName: { ...type.headline, color: colors.ink },
   cardNote: { ...type.label, color: colors.ink },
   more: { gap: space[2], marginTop: space[4] },

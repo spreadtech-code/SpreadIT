@@ -24,8 +24,8 @@ export default function SignInScreen() {
   };
 
   return (
-    <Screen title="Sign in" footer={<Button label="Sign in" variant="primary" onPress={submit} />}>
-      <TextField label="Phone number or email" value={id} onChangeText={setId} keyboardType="email-address" autoComplete="username" textContentType="username" autoFocus />
+    <Screen title="Welcome back" subtitle="Log in with your phone or email." footer={<Button label="Log in" variant="primary" onPress={submit} />}>
+      <TextField label="Phone or email" value={id} onChangeText={setId} keyboardType="email-address" autoComplete="username" textContentType="username" autoFocus />
       <TextField label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" textContentType="password" onSubmitEditing={submit} />
       {error ? <FieldError message={error} /> : null}
     </Screen>

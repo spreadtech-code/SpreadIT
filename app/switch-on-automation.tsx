@@ -12,7 +12,7 @@ import { pricing } from '../src/data/pricing';
 import { costTips, monthlyCost } from '../src/engine/monthlyCost';
 import { checkPlan } from '../src/engine/planChecks';
 import { goLiveRoute, useApp, type ReviewWindowMinutes } from '../src/state/appStore';
-import { colors, radius, shadow, size, space, type } from '../src/theme/tokens';
+import { colors, radius, size, space, type } from '../src/theme/tokens';
 
 const windows = [
   { value: '5', label: '5 minutes' },
@@ -46,21 +46,31 @@ export default function SwitchOnAutomationScreen() {
 
   return (
     <Screen
-      title="Switch on automation"
-      subtitle="Your next payday will be split by your plan."
+      title="Turn on Autopilot"
+      subtitle="From your next payday, SpreadIT splits it for you."
       footer={
         <>
-          <Button label="Switch on" variant="primary" disabled={errors.length > 0} onPress={switchOn} />
-          {errors.length > 0 ? <Text style={styles.muted}>Fix the problems above to switch on.</Text> : null}
+          <Button
+            label="Turn on Autopilot"
+            variant="primary"
+            disabled={errors.length > 0}
+            accessibilityHint={errors.length > 0 ? 'Fix the problems above first.' : undefined}
+            onPress={switchOn}
+          />
+          {errors.length > 0 ? <Text style={styles.muted}>Fix the problems above to turn it on.</Text> : null}
         </>
       }
     >
       <View style={styles.section}>
-        <Text style={styles.heading}>Plan check</Text>
         {errors.length === 0 ? (
-          <View style={styles.okRow} accessible accessibilityLabel={`Plan check passed. ${plan.rules.length} rules ready.`}>
-            <BadgeCheck size={size.icon} color={colors.success} strokeWidth={1.75} />
-            <Text style={styles.okText}>Your plan is ready: {plan.rules.length} rules, leftover to {plan.remainder?.name}.</Text>
+          <View style={styles.ready} accessible accessibilityLabel={`Plan ready. ${plan.rules.length} rules, leftovers to ${plan.remainder?.name}.`}>
+            <View style={styles.okRow}>
+              <BadgeCheck size={size.iconSm} color={colors.success} strokeWidth={1.75} />
+              <Text style={styles.okWord}>Plan ready</Text>
+            </View>
+            <Text style={styles.okText}>
+              {plan.rules.length} rules · leftovers to {plan.remainder?.name}
+            </Text>
           </View>
         ) : (
           <>
@@ -78,15 +88,12 @@ export default function SwitchOnAutomationScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.heading}>Review window</Text>
-        <Text style={styles.muted}>
-          When income arrives, you get this long to execute, pause or cancel before money goes out.
-        </Text>
-        <OptionList accessibilityLabel="Review window" options={windows} value={minutes} onChange={setMinutes} />
+        <Text style={styles.heading}>Time to check each payday</Text>
+        <Text style={styles.muted}>You can send early, hold or stop before anything moves.</Text>
+        <OptionList accessibilityLabel="Time to check each payday" options={windows} value={minutes} onChange={setMinutes} />
       </View>
 
       <View style={[styles.section, styles.card]}>
-        <Text style={styles.heading}>Price</Text>
         <Text style={styles.price}>{pricing.name}</Text>
         <Text style={styles.muted}>No payment needed. Bank fees still apply to each payday.</Text>
         {cost ? <CostEstimate text={cost.text} overLimit={cost.overLimit} tips={costTips(feeSchedule)} /> : null}
@@ -97,10 +104,12 @@ export default function SwitchOnAutomationScreen() {
 
 const styles = StyleSheet.create({
   section: { gap: space[2] },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], ...shadow.card },
-  heading: { ...type.titleSm, color: colors.ink },
+  card: { backgroundColor: colors.surfaceSunken, borderRadius: radius.lg, padding: space[4] },
+  ready: { backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: space[4], gap: space[2] },
+  heading: { ...type.headline, color: colors.ink },
   price: { ...type.headline, color: colors.ink },
-  okRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  okText: { ...type.body, color: colors.ink, flex: 1 },
+  okRow: { flexDirection: 'row', alignItems: 'center', gap: space[1] },
+  okWord: { ...type.labelStrong, color: colors.success },
+  okText: { ...type.bodyStrong, color: colors.onBrand },
   muted: { ...type.label, color: colors.inkMuted },
 });

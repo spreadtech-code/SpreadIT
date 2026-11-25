@@ -16,6 +16,7 @@ export default function UnlockScreen() {
   const router = useRouter();
   const enterPin = useApp((s) => s.enterPin);
   const lockedUntil = useApp((s) => s.pin.lockedUntil);
+  const firstName = useApp((s) => s.identity?.firstName);
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(
     lockedUntil && Date.now() < lockedUntil ? lockedText(lockedUntil) : null,
@@ -43,10 +44,10 @@ export default function UnlockScreen() {
 
   return (
     <Screen
-      title="Enter your PIN"
-      subtitle="Unlock SpreadIT to continue."
+      title={firstName ? `Hi again, ${firstName}` : 'Welcome back'}
+      subtitle="Enter your PIN to open SpreadIT."
       onBack={null}
-      footer={<Button label="Sign in with your password instead" variant="quiet" onPress={() => router.push('/sign-in')} />}
+      footer={<Button label="Log in with password" variant="quiet" onPress={() => router.push('/sign-in')} />}
     >
       <Stack.Screen options={{ gestureEnabled: false }} />
       <PinField label="6-digit PIN" value={pin} onChange={onChange} />
@@ -56,5 +57,5 @@ export default function UnlockScreen() {
 }
 
 function lockedText(until: number): string {
-  return `Too many wrong PINs. Try again at ${timeText(until)}. We've sent an SMS alert to your phone.`;
+  return `Too many wrong PINs. Try again at ${timeText(until)}. We’ve sent an SMS alert to your phone.`;
 }

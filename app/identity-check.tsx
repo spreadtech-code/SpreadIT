@@ -72,13 +72,13 @@ export default function IdentityCheckScreen() {
   if (failure) {
     return (
       <Screen
-        title="We couldn't confirm your identity"
+        title="We couldn’t confirm it’s you"
         footer={<Button label="Try again" variant="primary" onPress={tryAgain} />}
       >
-        <View style={[styles.card, styles.failCard]} accessible accessibilityRole="alert" accessibilityLabel={`Failed. ${failure}`}>
+        <View style={[styles.card, styles.failCard]} accessible accessibilityRole="alert" accessibilityLabel={`Didn’t match. ${failure}`}>
           <View style={styles.failRow}>
             <CircleX size={size.icon} color={colors.critical} strokeWidth={1.75} />
-            <Text style={styles.failWord}>Failed</Text>
+            <Text style={styles.failWord}>Didn’t match</Text>
           </View>
           <Text style={styles.body}>{failure}</Text>
         </View>
@@ -93,11 +93,11 @@ export default function IdentityCheckScreen() {
 
   return (
     <Screen
-      title="Identity check"
-      subtitle={`${partner.name} checks your BVN to open your account. SpreadIT keeps only the result, never your BVN.`}
+      title="Verify it’s you"
+      subtitle="Your bank checks your BVN. We only keep the result, never the number."
       footer={
         <Button
-          label={checking ? 'Checking…' : 'Submit'}
+          label={checking ? 'Checking…' : 'Verify'}
           variant="primary"
           disabled={checking}
           onPress={submit}
@@ -112,7 +112,7 @@ export default function IdentityCheckScreen() {
         onChangeText={(t) => setBvn(t.replace(/\D/g, '').slice(0, 11))}
         keyboardType="number-pad"
         maxLength={11}
-        helper="11 digits. Dial *565*0# to find it."
+        helper="11 digits. Dial *565*0# to find yours."
         error={fieldError}
       />
       {checking ? <Text style={styles.muted}>Checking with {partner.name}. This can take up to 2 minutes.</Text> : null}

@@ -45,10 +45,10 @@ export default function VerifyPhoneEmailScreen() {
 
   return (
     <Screen
-      step="Sign up · Check it's you"
-      title="Verify phone and email"
+      step="Check it’s you"
+      title="Check your messages"
       onBack={null}
-      footer={<Button label="Submit code" variant="primary" onPress={submit} />}
+      footer={<Button label="Verify" variant="primary" onPress={submit} />}
     >
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Phone {account.phone}</Text>
@@ -61,7 +61,7 @@ export default function VerifyPhoneEmailScreen() {
             ) : null}
             <PinField label="6-digit code" value={code} onChange={setCode} masked={false} error={error} />
             <Button
-              label="Resend code"
+              label="Send it again"
               variant="quiet"
               onPress={() => {
                 sendSmsCode();

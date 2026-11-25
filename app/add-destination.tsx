@@ -5,12 +5,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { CircleCheck } from 'lucide-react-native';
 import { Button, FieldError, OptionList, Screen, TextField } from '../src/components';
 import { banks } from '../src/data/banks';
 import { maskAccount } from '../src/engine/format';
 import { resolveAccountName, type ResolveResult } from '../src/fakebank';
 import { useApp, type DestinationFor } from '../src/state/appStore';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, radius, size, space, type } from '../src/theme/tokens';
 
 export default function AddDestinationScreen() {
   const router = useRouter();
@@ -81,13 +82,16 @@ export default function AddDestinationScreen() {
   return (
     <Screen
       step="Step 2 of 2"
-      title="Enter the account number"
-      subtitle={`${bank?.name ?? ''} · 10 digits`}
+      title="Which account?"
+      subtitle={`${bank?.name ?? ''} · 10-digit account number`}
       onBack={() => setStep(1)}
       footer={
-        result?.ok ? (
-          <Button label={`Confirm this is ${result.accountName}`} variant="primary" onPress={confirm} />
-        ) : undefined
+        <>
+          {result?.ok ? (
+            <Button label={`Yes, that’s ${result.accountName.split(' ')[0]}`} variant="primary" onPress={confirm} />
+          ) : null}
+          <Button label="Pick another bank" variant="quiet" onPress={() => setStep(1)} />
+        </>
       }
     >
       <TextField
@@ -102,13 +106,16 @@ export default function AddDestinationScreen() {
       />
       {checking ? (
         <View style={styles.row} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={colors.ink} />
+          <ActivityIndicator color={colors.primary} />
           <Text style={styles.muted}>Checking the account name…</Text>
         </View>
       ) : null}
       {result?.ok ? (
-        <View style={styles.card} accessible accessibilityLabel={`Account name: ${result.accountName}`} accessibilityLiveRegion="polite">
-          <Text style={styles.muted}>Account name</Text>
+        <View style={styles.card} accessible accessibilityLabel={`Account found: ${result.accountName}`} accessibilityLiveRegion="polite">
+          <View style={styles.found}>
+            <CircleCheck size={size.iconSm} color={colors.success} strokeWidth={1.75} />
+            <Text style={styles.foundText}>Account found</Text>
+          </View>
           <Text style={styles.name}>{result.accountName}</Text>
           <Text style={styles.muted}>
             {result.bankName} {maskAccount(result.accountNumber)}
@@ -125,6 +132,8 @@ export default function AddDestinationScreen() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
   muted: { ...type.label, color: colors.inkMuted },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[1], ...shadow.card },
-  name: { ...type.titleSm, color: colors.ink },
+  card: { backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: space[4], gap: space[1] },
+  found: { flexDirection: 'row', alignItems: 'center', gap: space[1] },
+  foundText: { ...type.labelStrong, color: colors.success },
+  name: { ...type.titleSm, color: colors.onBrand },
 });
