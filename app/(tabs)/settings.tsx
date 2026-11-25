@@ -191,7 +191,7 @@ export default function SettingsScreen() {
 
       <SettingsGroup>
         {automation.on && paused ? (
-          <SettingsRow label="Resume Autopilot" Icon={CirclePlay} accessibilityHint="Needs your PIN and a one-time code." onPress={() => router.push('/verify-change?resume=1')} />
+          <SettingsRow label="Resume Autopilot" Icon={CirclePlay} accessibilityHint="Needs your PIN and a 6-digit code." onPress={() => router.push('/verify-change?resume=1')} />
         ) : automation.on ? (
           <SettingsRow
             label="Pause everything"
@@ -208,7 +208,7 @@ export default function SettingsScreen() {
 
       <Sheet visible={sheet === 'review'} title="Review time" onClose={() => setSheet(null)} closeLabel="Done">
         <Text style={styles.body}>
-          Time to check a payday before the money goes out.{live ? ' Changing it needs a one-time code.' : ''}
+          Time to check a payday before the money goes out.{live ? ' Changing it needs a 6-digit code.' : ''}
         </Text>
         <SegmentedControl<WindowOption>
           accessibilityLabel="Review time"

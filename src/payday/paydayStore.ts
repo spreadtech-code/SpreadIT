@@ -129,7 +129,7 @@ export async function handlePaymentNotice(notice: {
 
   const app = useApp.getState();
   if (!app.automation.on || !app.income) {
-    alert('Money received', `${formatNaira(payment.amountKobo)} arrived. Automation is off, so it wasn't split.`, '/home');
+    alert('Money landed', `${formatNaira(payment.amountKobo)} landed. Autopilot is off, so it wasn’t split.`, '/home');
     return 'automationOff';
   }
 
@@ -156,14 +156,14 @@ export async function handlePaymentNotice(notice: {
 
   const amount = formatNaira(event.amountKobo);
   if (paused && event.stage === 'held') {
-    alert('Income received', `${amount} arrived. Automation is paused, so it stays in your SpreadIT account until you resume.`, eventRoute(event));
+    alert('Pay landed', `${amount} landed. Autopilot is paused, so it stays in your SpreadIT account until you resume.`, eventRoute(event));
     return 'event';
   }
-  if (event.stage === 'askIncome') alert('Is this income?', `${amount} arrived. Should SpreadIT split it?`, eventRoute(event));
-  else if (event.stage === 'needsApproval') alert('Short payday', `${amount} arrived, less than half of what you expect. Nothing is sent until you say so.`, eventRoute(event));
-  else if (event.stage === 'tooSmall') alert('Money received', `${amount} arrived. This payment is too small to split.`, '/home');
-  else if (app.automation.reviewWindowMinutes === 0) alert('Income received', `${amount} arrived. Your split is going out now.`, eventRoute(event));
-  else alert('Income received', `${amount} arrived. Your split goes out in ${app.automation.reviewWindowMinutes} minutes.`, eventRoute(event));
+  if (event.stage === 'askIncome') alert('Is this pay?', `${amount} landed. Should SpreadIT split it?`, eventRoute(event));
+  else if (event.stage === 'needsApproval') alert('Short payday', `${amount} landed, less than half your usual. Nothing goes out until you choose.`, eventRoute(event));
+  else if (event.stage === 'tooSmall') alert('Money landed', `${amount} landed. This is too small to split.`, '/home');
+  else if (app.automation.reviewWindowMinutes === 0) alert('Pay landed', `${amount} landed. Your split is going out now.`, eventRoute(event));
+  else alert('Pay landed', `${amount} landed. Your split goes out in ${app.automation.reviewWindowMinutes} minutes.`, eventRoute(event));
   return 'event';
 }
 
@@ -413,7 +413,7 @@ async function tickOnce(): Promise<void> {
       const notOk = e.transfers.length - ok;
       // G2: the SMS copy can be switched off; the push always comes.
       const sms = useApp.getState().notifications.paydaySummarySms ? ' Also sent by SMS.' : '';
-      alert('Payday split', `${ok} successful${notOk ? `, ${notOk} not successful` : ''}. Tap to see where your money went.${sms}`, '/home');
+      alert('Payday’s done', `${ok} sent${notOk ? `, ${notOk} didn’t go` : ''}. Tap to see where your money went.${sms}`, '/home');
       update(e.id, (x) => ({ ...x, stage: 'done', doneAt: t, alerted }));
     } else if (changed) {
       update(e.id, (x) => ({ ...x, alerted }));
@@ -440,10 +440,10 @@ async function tickOnce(): Promise<void> {
 /** D7, D10: a pretend push and SMS when a transfer fails, falls back or is reversed. */
 function transferAlert(name: string, amountKobo: number, b: Transfer, route: string): void {
   const amount = formatNaira(amountKobo);
-  if (b.status === 'Retrying') alert(`${name}: retrying`, `${amount} didn't go through yet. ${b.failureReason ?? ''} We'll keep trying.`, route);
-  if (b.status === 'Sent to fallback') alert(`${name}: sent to your fallback account`, `${amount} couldn't reach ${name}. ${b.failureReason ?? ''}`, route);
-  if (b.status === 'Failed') alert(`${name}: failed`, `${amount} couldn't be sent. It's back in your SpreadIT account.`, route);
-  if (b.status === 'Reversed') alert(`${name}: reversed`, `The bank reversed ${amount}. It's back in your SpreadIT account.`, route);
+  if (b.status === 'Retrying') alert(`${name}: trying again`, `${amount} didn’t go through yet. ${b.failureReason ?? ''} We’ll keep trying.`, route);
+  if (b.status === 'Sent to fallback') alert(`${name}: sent to your backup account`, `${amount} couldn’t reach ${name}. ${b.failureReason ?? ''}`, route);
+  if (b.status === 'Failed') alert(`${name}: didn’t go`, `${amount} couldn’t be sent. It’s back in your SpreadIT account.`, route);
+  if (b.status === 'Reversed') alert(`${name}: returned`, `The bank returned ${amount}. It’s back in your SpreadIT account.`, route);
 }
 
 const dayKey = (t: number) => {
@@ -483,9 +483,9 @@ function forwardReminder(t: number): void {
   if (!due) return;
   const details = `${account.bankName} ${account.accountNumber}, ${account.accountName}`;
   if (due === 'morning') {
-    alert('Payday: forward your salary', `Send it to your SpreadIT account in one transfer: ${details}. Tap to copy.`, '/forward-mode-setup');
+    alert('Payday: forward your pay', `Send it to your SpreadIT account in one transfer: ${details}. Tap to copy.`, '/forward-mode-setup');
   } else {
-    alert("Your salary hasn't arrived yet", `Forward it to your SpreadIT account to split it today: ${details}. Tap to copy.`, '/forward-mode-setup');
+    alert('Your pay hasn’t arrived yet', `Forward it to your SpreadIT account to split it today: ${details}. Tap to copy.`, '/forward-mode-setup');
   }
   usePaydays.setState((s) => ({ forwardReminders: { ...s.forwardReminders, [key]: 2 - (due === 'morning' ? 1 : 0) } }));
 }
@@ -512,8 +512,8 @@ function pauseReminder(t: number): void {
   if (!pauseReminderDue(app.automation.pausedAt, app.automation.pauseReminders ?? 0, t)) return;
   const next = app.income ? payDates(app.income, new Date(t)).next : null;
   alert(
-    'Your plan is paused',
-    next ? `Your plan is paused. Resume before your next payday on ${dayMonth(next)}?` : 'Your plan is paused. Resume before your next payday?',
+    'Autopilot is paused',
+    next ? `Autopilot is paused. Resume before your next payday on ${dayMonth(next)}?` : 'Autopilot is paused. Resume before your next payday?',
     '/verify-change?resume=1',
   );
   app.notePauseReminder();

@@ -13,15 +13,15 @@ export function transferItems(event: IncomeEvent, t: number, onPress?: (referenc
     const b = bankTransfer(tr.reference);
     const status = b?.status ?? 'Pending';
     const account = `${tr.destination.bankName} ${maskAccount(tr.destination.accountNumber)}`;
-    let meta = tr.toFallback ? `${account} (fallback)` : account;
+    let meta = tr.toFallback ? `${account} (backup)` : account;
     if (tr.resendOf) meta = `${meta} · sent again`;
     if (status === 'Retrying' && b?.nextAttemptAt) {
       const mins = Math.max(0, Math.ceil((b.nextAttemptAt - t) / 60_000));
       meta = `Next try ${timeText(b.nextAttemptAt)}${mins <= 1 ? '' : ` (in ${mins} min)`}`;
     }
-    if (status === 'Sent to fallback') meta = `${b?.failureReason ?? 'Failed'}. Sent to your fallback account.`;
-    if (status === 'Failed') meta = `${b?.failureReason ?? 'Failed'}. Back in your SpreadIT account.`;
-    if (status === 'Reversed') meta = 'Reversed by the bank. Back in your SpreadIT account.';
+    if (status === 'Sent to fallback') meta = `${b?.failureReason ?? 'Didn’t go'}. Sent to your backup account.`;
+    if (status === 'Failed') meta = `${b?.failureReason ?? 'Didn’t go'}. Back in your SpreadIT account.`;
+    if (status === 'Reversed') meta = 'Returned by the bank. Back in your SpreadIT account.';
     return {
       id: tr.reference,
       name: tr.name,

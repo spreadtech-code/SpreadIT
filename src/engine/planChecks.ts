@@ -18,7 +18,7 @@ export interface PlanCheck {
 export function checkPlan(plan: Plan, expectedKobo: number, schedule: FeeSchedule): PlanCheck {
   const structural = planErrors(plan);
   const errors = [...structural];
-  if (!plan.remainder) errors.push('Choose where leftover money goes'); // B8 wording
+  if (!plan.remainder) errors.push('Choose where leftovers go'); // B8 (PRD: "Choose where leftover money goes")
   if (structural.length > 0) {
     return { errors, warnings: [], shortRules: [], canSwitchOn: false };
   }
@@ -28,7 +28,7 @@ export function checkPlan(plan: Plan, expectedKobo: number, schedule: FeeSchedul
   const shortRules = atExpected.lines.filter((l) => l.funding !== 'Fully funded');
   if (shortRules.length > 0) {
     const shortfall = shortRules.reduce((sum, l) => sum + l.shortfallKobo, 0);
-    const names = shortRules.map((l) => `${l.name} (${l.funding})`).join(', ');
+    const names = shortRules.map((l) => `${l.name} (${l.funding === 'Partly funded' ? 'Part paid' : l.funding})`).join(', ');
     warnings.push(
       `At ${formatNaira(expectedKobo)} your rules are ${formatNaira(shortfall)} short: ${names}.`,
     );

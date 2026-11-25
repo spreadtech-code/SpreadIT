@@ -30,7 +30,7 @@ export default function SwitchOnAutomationScreen() {
   const check = checkPlan(plan, expected, feeSchedule);
   const errors = [...check.errors];
   if (plan.rules.length === 0) errors.push('Add at least one rule to your plan.');
-  if (!fallback) errors.push('Add a fallback account before you switch on automation.');
+  if (!fallback) errors.push('Add a backup account before you turn on Autopilot.');
   const notReady = goLiveRoute(state) !== '/switch-on-automation';
   if (notReady) errors.push('Finish the identity check first.');
 

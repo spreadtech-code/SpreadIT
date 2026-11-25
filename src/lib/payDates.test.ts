@@ -64,9 +64,9 @@ describe('Words', () => {
 
   it('writes the callout', () => {
     const today = day(2026, 11, 25);
-    expect(automationText(day(2026, 12, 25), today)).toBe('Automation on · next payday in 30 days');
-    expect(automationText(day(2026, 11, 26), today)).toBe('Automation on · next payday tomorrow');
-    expect(automationText(today, today)).toBe('Automation on · payday today');
-    expect(automationText(null, today)).toBe('Automation on');
+    expect(automationText(day(2026, 12, 25), today)).toBe('Autopilot on · next payday 25 December');
+    expect(automationText(day(2026, 11, 26), today)).toBe('Autopilot on · next payday tomorrow');
+    expect(automationText(today, today)).toBe('Autopilot on · payday today');
+    expect(automationText(null, today)).toBe('Autopilot on');
   });
 });

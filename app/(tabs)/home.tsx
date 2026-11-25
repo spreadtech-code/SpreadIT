@@ -122,7 +122,7 @@ export default function HomeDashboardScreen() {
         <View style={styles.card} accessibilityRole="summary">
           <Text style={styles.cardTitle}>Autopilot paused</Text>
           <Text style={styles.body}>Your pay will stay in your SpreadIT account until you resume.</Text>
-          <Button label="Resume" variant="primary" accessibilityHint="Needs your PIN and a one-time code." onPress={() => router.push('/verify-change?resume=1')} />
+          <Button label="Resume" variant="primary" accessibilityHint="Needs your PIN and a 6-digit code." onPress={() => router.push('/verify-change?resume=1')} />
         </View>
       ) : null}
 

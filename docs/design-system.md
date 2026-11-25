@@ -1,208 +1,144 @@
-# SpreadIT design system (v3)
+# SpreadIT design system (v4 "teal")
 
-> Values here match `src/theme/tokens.ts`. Visual reference: `docs/references/home.jpg` (founder decision, 25 November 2026). Look, don't copy: no other brand's logo, name or content.
+> Values here match `src/theme/tokens.ts`. The visual source is the Figma file "SpreadIT — App designs" (https://www.figma.com/design/RDclWHQYxigUF1xz6zQFuk): page "v4 Screens" for every screen, page "v4 Design system" for the components, variable collection "SpreadIT v4", mode "Teal". Approved by the founder on 25 Nov 2026; it replaces v3 (black hero, black nav, Source Sans 3).
 
-SpreadIT splits a user's income across their commitments the moment it arrives. The interface should feel calm, exact and a little premium: a white page, one black glossy card at the top of Home with the amount in white, light grey rounded rows below, and a black floating nav.
+SpreadIT splits a user's pay across their commitments the moment it lands. The app should feel calm, friendly and exact: a white page, white cards lifted by a soft teal shadow, deep-teal actions, aqua as the brand colour, and Host Grotesk set light.
 
-Version 3 replaces v2's mist background, white cards and aqua buttons with the look of the "home" reference. It keeps **light mode only**, the **Source Sans 3** typeface (lighter weights now) and **Lucide** icons. Aqua stays as a small accent only.
+**Light mode only.** Wording follows `docs/copy.md` (app words for PRD terms).
 
 ## Principles
 
-1. **White page, grey rows.** Every screen is `canvas` (white). Content sits in light grey `surface` cards and rows with rounded corners and no shadow.
-2. **Black is the action colour.** The Home hero, the floating nav and the primary button are `inverse` (near-black) with white text. At most one primary button on screen at a time.
-3. **The amount leads.** On Home it is white on the black hero, large, SemiBold, centred, with kobo smaller on the baseline.
-4. **Aqua is an accent, never a button.** `brand` appears only as small touches: the status dot on the hero, the selected row tint, insight cards. Never text, never a fill for a button or the nav.
-5. **State in words.** Every status is a word plus an icon; colour supports it.
+1. **White page, white cards.** Every screen is `canvas` (white). Content sits on white `surface` cards with `radius.lg` (24) and `shadow.card`. Grey wells (`surfaceSunken`) hold inputs and read-only facts.
+2. **Deep teal is the action colour.** The primary button, active nav icon, toggles, slider and icons are `primary` (#0A6E73). At most one primary button on screen at a time.
+3. **Aqua is the brand.** `brand` (#6EE2E6) fills big moments: the Welcome page tint, the accent button ("Send extra"), avatars, the simulator's "If this lands" card, the account-number card and the monthly recap. Text on aqua is `onBrand` (#08393C), never white.
+4. **The amount leads.** Big numbers are Host Grotesk Regular, large, with kobo faint on the baseline.
+5. **The split is a donut.** Where money went is a donut plus a legend of coloured dots with exact naira; the chart is decorative, the legend carries the numbers.
+6. **State in words.** Every status is a word plus an icon; colour only backs it up.
 
 ## Content fundamentals
 
-- Plain Nigerian English, sentence case, 20 words or fewer per sentence.
-- "You" for the user; "we" only in errors ("We couldn't reach GTBank. We'll try again at 9:46am.").
-- Naira: `₦850,000`, never `N850,000` or `NGN`. Kobo only when non-zero, or on the hero.
+- Plain Nigerian English, sentence case, short sentences, app-style words (see `docs/copy.md`): "Send it now", "Pause everything", "Is this pay?", "Sent", "Autopilot".
+- "You" for the user; "we" for SpreadIT ("We’ll keep trying.").
+- Naira: `₦850,000`, never `N850,000` or `NGN`. Kobo only when non-zero, or faint on the Home balance.
 - People and banks as the user names them: "Mum", "GTBank ••4821". Last 4 digits only.
-- The PRD's exact words for system terms: "Is this income?", "Execute now", "Send to my account", "Fully funded".
-- No judgement about family support, tithe or spending. No exclamation marks, no emoji.
+- No judgement about family support, tithe or spending. No exclamation marks, no emoji. Curly apostrophes.
 
 ## Colour (light only)
 
-| Role | Token | Use |
-| --- | --- | --- |
-| Page | `canvas` | White, behind every screen |
-| Cards and rows | `surface` | Light grey cards, list rows, rule cards |
-| Raised | `raised` | White: sheets, alerts, the selected segment, icon circles on grey, secondary buttons |
-| Wells | `surfaceSunken` | Inputs, PIN boxes, segmented track, neutral badges |
-| Text | `ink`, `inkMuted` | Primary and secondary text; quiet buttons are `ink` |
-| Black | `inverse`, `inverseRaised`, `inverseLine` | Home hero, nav, primary button; pills and edges on black |
-| Text on black | `onInverse`, `onInverseMuted` | White and light grey text and icons on black |
-| Accent | `brand`, `brandMid`, `brandSoft`, `brandStrong` | Hero status dot, selected rows, insight cards, Processing badges |
-| States | `success`, `warning`, `critical` + `-soft` | Badges, money in, hints, failures |
+| Role | Token | Value | Use |
+| --- | --- | --- | --- |
+| Page | `canvas` | #FFFFFF | Behind every screen |
+| Cards | `surface` | #FFFFFF | Cards and panels, with `shadow.card` |
+| Raised | `raised` | #FFFFFF | Sheets, alerts, the selected segment |
+| Wells | `surfaceSunken` | #F2F6F6 | Inputs, code boxes, info panels, segmented track, back button |
+| Lines | `line` | #E2E9EA | Hairlines, secondary button borders, unselected option rows |
+| Text | `ink` / `inkMuted` | #101819 / #5C6A6C | Main and secondary text |
+| Faint | `inkFaint` | #97A3A5 | Kobo, placeholders, inactive nav icons, chevrons. Never body text |
+| Brand | `brand` | #6EE2E6 | Aqua fills (see principle 3) |
+| Brand tints | `brandMid` / `brandSoft` | #B8EEF0 / #E3F8F9 | Chart, slider track on aqua / icon bubbles, chips, notices, selected option |
+| On aqua | `onBrand` | #08393C | Text and icons on `brand` and `brandSoft` |
+| Primary | `primary` / `primaryDeep` | #0A6E73 / #064A4E | Primary button, icons, active nav, toggles / darkest chart slice |
+| On primary | `onPrimary` | #FFFFFF | Text on `primary` |
+| States | `success`, `warning`, `critical` + `-soft` | | Tags, money in, notices, Pause everything |
 
-Gradients (`gradients.hero`, `gradients.pill`) give the black hero and its pills a soft top-to-bottom sheen, using `expo-linear-gradient` (approved 25 November 2026). Every text pair here passes 4.5:1.
+**Chart scale** (`chartColors`, in priority order): #064A4E, #0A6E73, #2A9CA2, #6EE2E6, #B8EEF0 for rules; #CED6D8 (`leftoverColour`) for leftovers; #8E9A9C (`feeColour`) for bank fees. Every text pair passes 4.5:1.
 
-## Type: Source Sans 3
+## Type: Host Grotesk
 
-Free under the SIL Open Font License, loaded with `useFonts`. v3 uses lighter weights to match the reference's clean look: SemiBold (600) for amounts, headings, buttons and row names; Bold (700) for screen titles and the wordmark; Regular (400) for text. ExtraBold is no longer used.
+From `@expo-google-fonts/host-grotesk` (Regular 400, Medium 500, SemiBold 600), loaded with `useFonts` before the first screen.
 
-- Amounts: `amountXl` 48px, `amountLg` 32px, `amountMd` 17px, tabular figures.
-- Headings: `title` 28px, `titleSm` 20px, `headline` 17px.
-- Text: `body` and `bodyStrong` 16px (the floor for anything a user must read); `label` 14px; `caption` 13px for badges, nav labels and times only.
+| Style | Size / line | Weight | Use |
+| --- | --- | --- | --- |
+| `display` | 40 / 46 | Regular | Welcome headline |
+| `amountXl` | 40 / 48 | Regular | Home balance, payday amount, receipt amount |
+| `amountLg` | 28 / 34 | Regular | Plan summary, card amounts, countdown |
+| `amountMd` | 16 / 22 | Medium | Row amounts (tabular figures) |
+| `title` | 28 / 34 | Medium | Screen titles |
+| `titleSm` | 20 / 26 | Medium | Greeting, wordmark |
+| `headline` | 17 / 24 | Medium | Card and section titles |
+| `body` / `bodyStrong` | 16 / 24 | Regular / Medium | Text (16 is the floor for anything to read) / names, buttons |
+| `label` / `labelStrong` | 14 / 20 | Regular / Medium | Meta lines, field labels, group titles |
+| `caption` | 12 / 16 | Medium | Status tags only |
 
 ## Space, shape and depth
 
-- 4px base, `space[1]` to `space[12]`. Screen margin and card padding `space[5]` (20px); the Home hero sits 8px from the screen edges.
-- Corners: `radius.sm` 12 (PIN boxes), `radius.md` 16 (inputs), `radius.lg` 20 (cards, rows, alerts), `radius.xl` 32 (the hero, sheets); `radius.pill` for buttons, badges, the status pill and the nav.
-- No shadow on cards. `shadow.float` only for the nav, sheets, alerts and a rule card being dragged.
+- 4px base, `space[1]` to `space[12]`. Screen side margin `layout.screenPadding` = 16. Card padding 16 (20 on aqua cards). Gaps between sections 20 to 24.
+- Corners: `radius.sm` 12, `radius.md` 16 (inputs, option rows, notices, account cards), `radius.lg` 24 (cards, wells, aqua cards), `radius.xl` 32 (sheets), `radius.pill` (buttons, chips, tags, bubbles).
+- `shadow.card` (teal-tinted, soft) on white cards and the nav bar; `shadow.float` for sheets and a dragged rule card. Wells and aqua cards have no shadow.
 
 ## Layout patterns
 
-- **Home (S15):** the black BalanceHero, then waiting paydays, "Where it went" as grey rows, facts, links and Emergency pause. FloatingNav over the bottom.
-- **Plan (S6):** `title`, then RuleCards in priority order, `space[3]` apart.
-- **Payday (S16):** full-screen PaydayCountdown, centred, no nav.
-- **Lists (history, settings):** ActivityList rows.
-- **Forms:** one question per screen; the primary button pinned at the bottom.
+- **Home (S15):** greeting + bell, the balance with faint kobo, the Autopilot chip, actions (Simulate / Send extra / round "+"), waiting payday cards, "Where it went" donut card, Unsplit money + Next payday card, Recent activity, Pause everything. NavBar at the bottom.
+- **Flows (Screen component):** round Back button and a segmented step bar, title + subtitle, content, footer buttons pinned at the bottom.
+- **Profile (S22):** profile card, then SettingsGroups of SettingsRows; choices open in a Sheet.
+- **Payday (S16):** full screen, no nav: arrow bubble, amount, pale-aqua countdown, split bar, dot list, three buttons.
+- **Lists:** ActivityList rows on white (no box), grouped by month on Activity with chips to filter.
 
 ## Iconography
 
-Lucide (`lucide-react-native`), 1.75 stroke, round caps. `ink` on light, white on black. Icon circles are white on grey rows. No filled, coloured or 3D icons; no emoji. No logo yet: the wordmark is "SpreadIT" in Source Sans 3 Bold.
+Lucide (`lucide-react-native`), `strokeWidth={1.75}`, round caps. Icons are `primary` inside pale-aqua bubbles (`brandSoft`), `onBrand` on aqua, `critical` in red rows. The wordmark is three stacked bars plus "SpreadIT" in Host Grotesk Medium, `onBrand`. No filled or coloured icons, no emoji.
 
 ## Accessibility (PRD 4.1)
 
-Body text 16px minimum; layouts hold at 200% text size; touch targets 44 × 44 or larger; text contrast 4.5:1; every status in words; icon-only buttons labelled (the hero's "+" and Settings buttons); focus is a 2px `ink` ring.
-
-## Token values
-
-| Colour token | Hex | Use |
-| --- | --- | --- |
-| `canvas` | #FFFFFF | The page. |
-| `surface` | #F4F4F5 | Cards and list rows. |
-| `raised` | #FFFFFF | Sheets, alerts, selected segment, icon circles on grey, secondary buttons. |
-| `surfaceSunken` | #E8E8EB | Inputs, PIN boxes, segmented track, neutral badges. |
-| `line` | #DFDFE3 | Secondary button border, hairlines, empty slider track. |
-| `ink` | #111113 | Primary text and amounts; quiet buttons. |
-| `inkMuted` | #5E5F66 | Labels and meta. 5.3:1 or more on every light surface. |
-| `inverse` | #0D0D0F | Hero (bottom of its sheen), nav, primary button, toggles and slider. |
-| `inverseRaised` | #1C1C20 | Avatar, Settings button and status pill on the hero. |
-| `inverseLine` | rgba(255,255,255,0.16) | The thin glossy edge on things on black. |
-| `onInverse` | #FFFFFF | Text and icons on black. |
-| `onInverseMuted` | #A9A9B2 | Muted text on black: the hero label, kobo, inactive nav items. |
-| `brand` | #6EE2E6 | Aqua accent: the hero's "on" dot, the split bar. Never text, never a button. |
-| `brandMid` | #B8EEF0 | Split bar segment. |
-| `brandSoft` | #E3F8F9 | Insight cards, the selected option row, Processing badges. |
-| `brandStrong` | #0A6E73 | Text on `brandSoft` only (insight titles, Processing). |
-| `onBrand` | #111113 | Text on aqua. |
-| `success` / `successSoft` | #127A3E / #E8F6EE | Money in, Successful, Fully funded. |
-| `warning` / `warningSoft` | #8F5200 / #FFF4E0 | Retrying, Partly funded, Reversed, hints. |
-| `critical` / `criticalSoft` | #B4232B / #FDECEC | Failed, Paused, Emergency pause, destructive actions. |
-| `scrim` | rgba(13,13,15,0.45) | Behind sheets. |
-| `focusRing` | #111113 | Focused inputs and PIN boxes. |
-
-| Text style | Size / line | Weight |
-| --- | --- | --- |
-| `amountXl` | 48 / 56 | 600 |
-| `amountLg` | 32 / 38 | 600 |
-| `amountMd` | 17 / 24 | 600 |
-| `title` | 28 / 34 | 700 |
-| `titleSm` | 20 / 26 | 600 |
-| `headline` | 17 / 24 | 600 |
-| `body` | 16 / 24 | 400 |
-| `bodyStrong` | 16 / 24 | 600 |
-| `label` | 14 / 20 | 400 |
-| `caption` | 13 / 18 | 600 |
-
-Sizes: touch 44, button 56, round button 56, hero pill 44, nav 64, icon 22, large icon 28, icon circle 40.
+Body text 16 minimum; touch targets 44 × 44 or larger; text contrast 4.5:1; every status in words (screen readers hear the same word as the tag); icon-only buttons have labels ("Simulate a payday", "Notifications", "Change the amount"); decorative charts are hidden from screen readers and the legend reads every amount; focus is a 1.5px `primary` border.
 
 ## Component specs
 
-Each is a React Native component in `src/components/`, shown on the hidden Components screen (hold the Settings title for 1 second).
+All in `src/components/`, all on show in the hidden Components screen (hold the "Profile" title for 1 second).
 
 ### BalanceHero
+The top of Home on the white page (no card). Greeting (`titleSm`) with a status line and a round bell; label ("Last payday · 25 November"); amount `amountXl` with kobo in `inkFaint`; Autopilot chip (pale aqua, dot `primary` when on, red on `criticalSoft` when paused, grey when off); actions: primary button, accent button, round 56px pale-aqua "+". Holding the greeting for 1 second opens Demo controls (prototype only).
 
-The top of Home, from the reference: a black card (`radius.xl`) with the `gradients.hero` sheen, everything centred.
-
-- Top row: initials in a dark circle (left), the "SpreadIT" wordmark (centre; holding it opens Demo controls), a round Settings button (right).
-- A muted label ("Last payday · 25 November"), then the amount in `amountXl` white, kobo in `onInverseMuted` on the baseline.
-- Actions: two dark glossy pills (Simulate, Send extra) either side of a round "+" (Add rule).
-- The status pill at the bottom: a dot and "Automation on · next payday in 30 days". Dot aqua when on, `critical` with "Automation paused", grey when off.
-
-### RoundAction
-
-The round "+" in the hero: a 56px dark glossy circle (`gradients.pill`) with a thin `inverseLine` edge and a white icon. No visible caption, as in the reference; it has an accessibility label.
+### SplitDonut and SplitLegend
+`react-native-svg` ring, 168px, thickness 26% of the radius, small gaps between slices, rule slices from the chart scale in priority order, `leftoverColour` and `feeColour` for leftovers and fees. Centre: total (`headline`) and "split N ways" (only slices above ₦0 count). The legend: 10px dot, name, exact amount.
 
 ### Button
+56px pill, label `bodyStrong`, optional leading icon (20px). Variants: `primary` (deep teal, white), `accent` (aqua, `onBrand`), `secondary` (white with `line` border), `quiet` (teal text), `critical` (`criticalSoft`, red text), `quietCritical`. `compact` narrows the side padding for two or three in a row.
 
-Pills, 56px tall, sentence case, verb first.
-
-- **Primary:** `inverse` black fill, white text. At most one showing at a time.
-- **Secondary:** white (`raised`) fill, 1px `line` border, `ink` text. Shows on the white page and on grey cards.
-- **Quiet:** `ink` text, no fill.
-- **Critical:** `criticalSoft` fill, `critical` text. Emergency pause and destructive actions only.
-- **Quiet critical:** `critical` text, no fill (Emergency cancel).
-- Disabled: 45% opacity, and the screen says why.
-
-### FloatingNav
-
-A black (`inverse`) pill floating 16px above the safe-area bottom, 20px from each side, with `shadow.float`. Home, Plan, Activity, Profile: icon over a 13px label. The active tab is a white tile with `ink` icon and label; the rest are `onInverseMuted`. Labels stay (the reference has icons only) so every tab is named. Hidden on full-screen flows.
+### NavBar (FloatingNav)
+White bar at the bottom with rounded top corners and `shadow.card`. Icons only, each with a spoken label: Home, Plan, (raised 52px pale-aqua Simulate button in the centre, opens S10), Activity, Profile. Active icon `primary` with a 4px dot, others `inkFaint`.
 
 ### ActivityList
-
-A `titleSm` header, then each row as its own grey (`surface`) tile, `radius.lg`, `space[2]` apart, like the reference's portfolio list.
-
-- Row: a 40px white icon circle, a SemiBold name, a muted meta line, the amount on the right.
-- Money in: down-left arrow, `+₦` in `success`. Money out: up-right arrow, amount in `ink`, a status badge.
+Optional title (`headline`, or a muted month label with `small`), then rows: 44px pale-aqua bubble with a `primary` icon, name `bodyStrong`, meta `label`, amount on the right (`+₦` in `success` for money in) with a StatusTag for money out.
 
 ### RuleCard
+White card: pale-aqua bubble, name, meta ("Fixed · #1 · GTBank ••4821"), amount, optional funding tag and note, drag grip on the plan.
 
-One rule in the plan builder and simulator: grey tile, white icon circle, name, meta (rule type · priority · bank and last 4 digits), amount, funding badge (simulator and payday only), drag handle. Lifts with `shadow.float` while dragged.
+### StatusBadge (StatusTag)
+Small pill, icon 12px + `caption` word. Tones: success (Sent, Fully paid), brand (Sending), neutral (Queued, Skipped, Sent to backup, Paused), warning (Trying again, Part paid, Returned), critical (Didn’t go). Words come from `badgeWords`.
 
-### InsightCard
+### Notice
+Rounded `radius.md` box with an icon and a one-line message. Tones: info (pale aqua, teal), warning (amber), critical (red).
 
-A calm fact on a `brandSoft` card: title in `brandStrong`, one sentence in `ink`. Facts only, one at a time.
+### SectionHeader
+`headline` title with an optional quiet "See all" / "Details" link and chevron.
+
+### Chip
+36px pill: pale aqua with teal text, or deep teal with white text when selected.
+
+### InfoRow
+Muted label left, value right (`bodyStrong`, or `headline` when `strong`). Used in wells and receipts.
+
+### AccountCard
+White card: bank bubble, account name, "tag · Bank ••1234", optional "Change" link.
+
+### SettingsGroup and SettingsRow
+Optional muted group title, then a white card of 56px rows split by inset hairlines: 36px pale-aqua bubble, label, optional value, chevron when it opens something, or a switch (`switchValue`). `tone="critical"` for Pause everything and Log out.
 
 ### PaydayCountdown
+See Layout patterns: Payday (S16). Buttons: Send it now (primary, with icon), Hold for review (secondary), Stop this payday (critical).
 
-The review window (S16), full screen: amount received, the countdown in `amountLg`, the split bar (ink, ink-muted, aqua, light aqua; decorative), each transfer, fees. Buttons: Execute now (primary), Pause for review (secondary), Emergency cancel (quiet critical).
+### Fields: TextField, AmountField, PinField
+Label `labelStrong` in `inkMuted`; well `surfaceSunken`, `radius.md`, 1.5px `primary` border on focus, red on error. AmountField: faint ₦, large amount. PinField: six 48 × 56 code boxes with teal dots.
 
-### StatusBadge
+### Toggle, Slider, SegmentedControl, OptionList
+Toggle: deep-teal switch with label and description. Slider: deep teal on white, `tone="onBrand"` (dark teal with `brandMid` track) on aqua. SegmentedControl: grey track, white selected segment with teal text. OptionList: separate rounded rows with a radio circle; selected row pale aqua with a teal border and filled check.
 
-A pill with an icon and a word. Successful/Fully funded: success. Processing: `brandSoft` + `brandStrong`. Pending, Sent to fallback, Skipped: neutral (`surfaceSunken`). Retrying, Reversed, Partly funded: warning. Failed, Paused: critical.
-
-### SegmentedControl
-
-`surfaceSunken` track; the selected option is a white (`raised`) pill. Each option 44px or taller.
-
-### AmountField, TextField, PinField
-
-`surfaceSunken` wells (`radius.md`; PIN boxes `radius.sm`, 44 × 56). Focus: a 2px `ink` border with a `line` halo. Errors: `critical` border plus an icon and words. AmountField shows the real transfer cost; ₦10,000–₦10,999 shows the stamp-duty hint in warning style.
-
-### Toggle
-
-An on/off row: `headline` label, optional description, switch on the right. On is black (`inverse`); thumb white. Disabled at 45% with the reason.
-
-### OptionList
-
-A grey card of rows 56px or taller with hairlines. The selected row is `brandSoft` with an `ink` check.
-
-### Slider
-
-What-if slider (C5), `@react-native-community/slider`. Track and thumb black; empty track `line`. The value is always written out.
-
-### CostEstimate
-
-The monthly cost line (C6). Normal: receipt icon and the sentence in muted text. Above 1%: warning-hint style, then a quiet "Ways to lower your costs" that opens a Sheet.
-
-### Sheet
-
-A white (`raised`) panel with `radius.xl` top corners over the `scrim`, at most 85% of the screen tall.
-
-### AlertBanner
-
-The prototype's pretend push: a white (`raised`) card, `radius.lg`, `shadow.float`, sliding down under the status bar. Icon circle, `headline` title, `label` line, close button. Tapping opens the screen it names.
+### InsightCard, CostEstimate, Sheet, AlertBanner
+InsightCard: pale-aqua card, `onBrand` text. CostEstimate: an info Notice, or a warning with "Ways to lower your costs" when above 1%. Sheet: white bottom sheet, `radius.xl` top, over a scrim. AlertBanner: white pop-down with a pale-aqua bell bubble.
 
 ## Building it in the Expo app
 
-1. `src/theme/tokens.ts` holds every value. Screens never type a colour, size or font name.
-2. `@expo-google-fonts/source-sans-3` loaded with `useFonts` before the first screen.
-3. `expo-linear-gradient` for the hero and pill sheen (runs in Expo Go).
-4. Light mode only: `"userInterfaceStyle": "light"`.
-5. FloatingNav is a custom `tabBar` for Expo Router's `Tabs`.
-6. Shadows: iOS takes the shadow values; Android uses `elevation` (0 for cards, 6 for float).
+- Every colour, size, radius, shadow and font comes from `src/theme/tokens.ts`. Never type a hex value, pixel size or font name in a screen.
+- Build screens from these components; ask before inventing a new one or a new colour.
+- When Figma and this file disagree on look, Figma wins and this file is updated. When the PRD and this file disagree, the PRD wins on behaviour; wording follows `docs/copy.md`.

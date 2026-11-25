@@ -109,7 +109,7 @@ export default function RuleEditorScreen() {
 
   const remove = () => {
     if (!existing) return;
-    Alert.alert(`Delete ${existing.name}?`, 'This takes the rule out of your plan. Changes apply from your next payday.', [
+    Alert.alert(`Delete ${existing.name}?`, 'This takes the rule out of your plan. Changes start from your next payday.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete rule',

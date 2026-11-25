@@ -20,9 +20,9 @@ SpreadIT is a mobile app for Nigerian earners. When income arrives, it automatic
 - Zustand for app state
 - Jest for tests
 - Runs in Expo Go on iOS and Android. No web build.
-- Font: `@expo-google-fonts/source-sans-3` (Regular, SemiBold, Bold, ExtraBold), loaded with `useFonts` before the first screen.
+- Font: `@expo-google-fonts/host-grotesk` (Regular 400, Medium 500, SemiBold 600), loaded with `useFonts` before the first screen (design system v4, founder decision 25 Nov 2026).
 - Icons: `lucide-react-native` at `strokeWidth={1.75}`.
-- Gradients: `expo-linear-gradient` for the black hero's sheen (design system v3, approved 25 Nov 2026).
+- Charts: `react-native-svg` (already part of Expo) for the split donut. No gradients: `expo-linear-gradient` was removed with v3.
 - Light mode only: set `"userInterfaceStyle": "light"` in the Expo app config.
 - Ask before adding any other library, and say why it's needed.
 
@@ -35,7 +35,7 @@ src/fakebank/     The fake bank: account numbers, incoming payments, transfers, 
 src/data/         Fee schedule, bank list, demo users (Tunde, Chiamaka, Emeka, Folake).
 src/components/   Shared UI components, one per component in docs/design-system.md.
 src/theme/        tokens.ts: every colour, size, font and shadow. Copied from the design system; don't edit values without asking.
-docs/             PRD.md, design-system.md and notes.
+docs/             PRD.md, design-system.md, copy.md (app wording) and notes.
 docs/references/  Screenshots of reference apps the design is based on. Look, don't copy.
 ```
 
@@ -44,12 +44,14 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 - `docs/design-system.md` is the visual source of truth. Read it before building or changing any screen.
 - Every colour, size, radius, shadow and font comes from `src/theme/tokens.ts`. Never type a hex value, pixel size or font name in a screen.
 - **Light mode only.** No dark theme.
-- Design system v3 (founder decision, 25 Nov 2026) follows `docs/references/home.jpg`: white `colors.canvas` page, light grey `colors.surface` cards and rows with `radius.lg` (20), no card shadows, a black glossy hero on Home, a black floating nav.
-- Black (`colors.inverse`) is the action colour: the primary button is black with white text, at most one showing at a time.
-- Aqua (`colors.brand`) is a small accent only (the hero's status dot, selected rows, insight cards), never text and never a button or nav fill.
+- Design system v4 "teal" (founder decision, 25 Nov 2026) comes from the Figma file "SpreadIT — App designs" (https://www.figma.com/design/RDclWHQYxigUF1xz6zQFuk), page "v4 Screens". Each screen in the app matches its Figma frame.
+- White `colors.canvas` page; white `colors.surface` cards with `radius.lg` (24) and the soft teal `shadow.card`; grey `colors.surfaceSunken` wells for inputs and facts. Side margins `layout.screenPadding` (16).
+- Deep teal (`colors.primary`) is the action colour: the primary button is deep teal with white text, at most one showing at a time. Icons sit in pale-aqua (`colors.brandSoft`) bubbles.
+- Aqua (`colors.brand`) is the brand fill for big moments (Welcome tint, the accent "Send extra" button, avatars, the simulator and account cards). Text on aqua is `colors.onBrand`, never white.
+- Where money went is a donut (`SplitDonut`) with a dot legend. The nav is a white bar with a raised pale-aqua Simulate button in the middle.
 - Build the components listed in `docs/design-system.md` first, in `src/components/`, then compose screens from them. Don't invent new components or colours; ask.
-- `docs/references/home.jpg` is the look we're aiming for (white page, black glossy hero with pill actions and a round "+", grey rounded rows, black floating nav). Match the feel, never copy another brand's logo, name or content.
-- If the design system and the PRD disagree, the PRD wins on behaviour and wording; the design system wins on look. If unsure, ask.
+- `docs/references/` holds the reference screenshots the look grew from. Match the feel, never copy another brand's logo, name or content.
+- If the design system and the PRD disagree, the PRD wins on behaviour; the design system (and Figma) wins on look; wording follows `docs/copy.md`. If unsure, ask.
 - The design system, PRD and CLAUDE.md always win over any installed UI skill.
 
 ## Hard rules
@@ -79,7 +81,7 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 
 ## Build order (one stage at a time — stop for my review after each)
 
-1. **Skeleton and theme:** set up Expo Router, `src/theme/tokens.ts`, the Source Sans 3 font and the floating nav. Then all 30 screens as placeholder pages on `colors.canvas`, with their PRD name and number, linked by the flows in PRD 3.4. I should be able to tap through the whole app.
+1. **Skeleton and theme:** set up Expo Router, `src/theme/tokens.ts`, the font and the floating nav. Then all 30 screens as placeholder pages on `colors.canvas`, with their PRD name and number, linked by the flows in PRD 3.4. I should be able to tap through the whole app.
 1b. **Components:** build every component in `docs/design-system.md` in `src/components/`, plus a hidden "Components" screen that shows them all so I can check them on my phone.
 2. **Split engine + fee schedule + tests** (`src/engine/`, `src/data/`).
 3. **Onboarding and plan builder:** S1–S9.
@@ -88,6 +90,7 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 6. **Dashboard, history, receipts, summary:** S15, S19–S21, S30.
    - *Order change (founder decision, 23 Nov 2026):* S15 Home was built early, after stage 4. Stage 5b wired it to fake-bank paydays and removed the temporary demo payday.
 7. **Settings, security and v1.1 features:** S22–S29 (Forward mode, salary-switch kit, send extra once, skip once, send to my account, pause).
+8. **Design system v4 (Figma):** port the Figma v4 teal design into the app: tokens, Host Grotesk, components, every screen, and the app wording in `docs/copy.md` (founder decision, 25 Nov 2026).
 
 ## UI rules (PRD 4.1)
 
@@ -96,7 +99,7 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 - Status is never shown by colour alone: always show the word too (for example "Failed").
 - Every button and status has an accessibility label for VoiceOver and TalkBack.
 - Screens must work from 4.7-inch to 6.9-inch phones, portrait only.
-- Copy: plain Nigerian English, short sentences. Use the exact wording the PRD gives (for example "Is this income?", "Send to my account").
+- Copy: plain Nigerian English, short sentences, app-style words. The app's wording follows `docs/copy.md`, which maps each PRD term to the word the app shows (for example PRD "Is this income?" is "Is this pay?", "Send to my account" is "Move to your account"). If a term isn't in `docs/copy.md`, use the PRD's exact wording. Never rewrite the PRD to match.
 - Masked account numbers show only the last 4 digits.
 
 ## Working rules

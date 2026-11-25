@@ -67,7 +67,7 @@ describe('A normal payday (D2, D6)', () => {
   it('counts down, then sends every transfer, which all end Successful', async () => {
     expect(await pay(850_000)).toBe('event');
     expect(latest().stage).toBe('review');
-    expect(usePaydays.getState().alerts.map((a) => a.title)).toContain('Income received');
+    expect(usePaydays.getState().alerts.map((a) => a.title)).toContain('Pay landed');
 
     await after(14 * 60_000);
     expect(latest().stage).toBe('review'); // window still open
@@ -78,7 +78,7 @@ describe('A normal payday (D2, D6)', () => {
     await after(5_000);
     expect(statuses().every((s) => s === 'Successful')).toBe(true);
     expect(latest().stage).toBe('done');
-    expect(usePaydays.getState().alerts.map((a) => a.title)).toContain('Payday split');
+    expect(usePaydays.getState().alerts.map((a) => a.title)).toContain('Payday’s done');
     // Only kobo that would cost more to send stay behind.
     expect(bank.balanceKobo()).toBe(latest().split.unsplitKobo);
   });
@@ -210,7 +210,7 @@ describe('Failures and reversals (D7, D10)', () => {
     await executeEvent(latest().id);
     await after(5_000);
     expect(statuses()[0]).toBe('Retrying');
-    expect(usePaydays.getState().alerts.some((a) => a.title === 'Mum: retrying')).toBe(true);
+    expect(usePaydays.getState().alerts.some((a) => a.title === 'Mum: trying again')).toBe(true);
     expect(latest().stage).toBe('sending'); // not finished while retrying
     await after(6 * 60 * 60_000);
     expect(statuses()[0]).toBe('Sent to fallback');
@@ -227,7 +227,7 @@ describe('Failures and reversals (D7, D10)', () => {
     expect(reversed).not.toBeNull();
     expect(bankTransfer(reversed!)?.status).toBe('Reversed');
     expect(bank.balanceKobo()).toBeGreaterThan(before);
-    expect(usePaydays.getState().alerts.some((a) => a.title.endsWith('reversed'))).toBe(true);
+    expect(usePaydays.getState().alerts.some((a) => a.title.endsWith('returned'))).toBe(true);
   });
 });
 

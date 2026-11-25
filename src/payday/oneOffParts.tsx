@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
-import { Button, FieldError, PinField, PIN_LENGTH, Screen, Sheet, StatusBadge } from '../components';
+import { Button, FieldError, PinField, PIN_LENGTH, Screen, Sheet, StatusBadge, badgeWords } from '../components';
 import { formatNaira } from '../engine/format';
 import { accountDetailsText } from '../fakebank';
 import { useBank } from '../fakebank/bankStore';
@@ -82,7 +82,7 @@ export function SentView({ reference, title }: { reference: string; title: strin
         </>
       }
     >
-      <View style={styles.hero} accessible accessibilityLabel={`${oneOff?.name ?? ''}, ${formatNaira(oneOff?.amountKobo ?? 0)}, status ${status}`}>
+      <View style={styles.hero} accessible accessibilityLabel={`${oneOff?.name ?? ''}, ${formatNaira(oneOff?.amountKobo ?? 0)}, status ${badgeWords[status]}`}>
         <Text style={styles.muted}>{oneOff?.name}</Text>
         <Text style={styles.amount}>{formatNaira(oneOff?.amountKobo ?? 0)}</Text>
         <StatusBadge state={status} />

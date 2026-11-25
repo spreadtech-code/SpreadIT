@@ -24,7 +24,7 @@ describe("Tunde's plan, paid monthly (PRD 2.2, C6)", () => {
   });
 
   it('uses the exact C6 wording', () => {
-    expect(c.text).toBe('This plan costs about ₦875 a month (0.10% of your income)');
+    expect(c.text).toBe('This plan costs about ₦875 a month (0.10% of your pay)');
   });
 });
 

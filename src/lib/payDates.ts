@@ -60,11 +60,11 @@ export function payDates(income: Pick<Income, 'frequency' | 'payDayOfMonth' | 'p
   return { last: t, next: null };
 }
 
-/** The callout on Home: "Automation on · next payday in 30 days". */
+/** The chip on Home: "Autopilot on · next payday 25 December" (PRD "Automation On"). */
 export function automationText(next: Date | null, today: Date): string {
-  if (!next) return 'Automation on';
+  if (!next) return 'Autopilot on';
   const days = daysBetween(today, next);
-  if (days <= 0) return 'Automation on · payday today';
-  if (days === 1) return 'Automation on · next payday tomorrow';
-  return `Automation on · next payday in ${days} days`;
+  if (days <= 0) return 'Autopilot on · payday today';
+  if (days === 1) return 'Autopilot on · next payday tomorrow';
+  return `Autopilot on · next payday ${dayMonth(next)}`;
 }

@@ -126,7 +126,7 @@ export default function IncomeSetupScreen() {
       footer={<Button label={last ? 'Save' : 'Next'} variant="primary" onPress={next} />}
     >
       {step === 'type' ? (
-        <OptionList accessibilityLabel="Income type" options={typeOptions} value={type} onChange={(v) => { setType(v); setError(null); }} />
+        <OptionList accessibilityLabel="How you’re paid" options={typeOptions} value={type} onChange={(v) => { setType(v); setError(null); }} />
       ) : null}
       {step === 'expected' ? (
         <AmountField
@@ -168,7 +168,7 @@ export default function IncomeSetupScreen() {
         />
       ) : null}
       {step === 'arrival' ? (
-        <OptionList accessibilityLabel="How income arrives" options={arrivalOptions} value={arrival} onChange={setArrival} />
+        <OptionList accessibilityLabel="How your pay reaches SpreadIT" options={arrivalOptions} value={arrival} onChange={setArrival} />
       ) : null}
       {step === 'batching' ? (
         <Toggle

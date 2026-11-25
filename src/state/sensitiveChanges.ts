@@ -32,7 +32,7 @@ export type SensitiveChange =
 export const sameAccount = (a?: Destination | null, b?: Destination | null): boolean =>
   (a?.bankName ?? null) === (b?.bankName ?? null) && (a?.accountNumber ?? null) === (b?.accountNumber ?? null);
 
-export const accountText = (d?: Destination | null): string => (d ? `${d.bankName} ${maskAccount(d.accountNumber)}` : 'your fallback account');
+export const accountText = (d?: Destination | null): string => (d ? `${d.bankName} ${maskAccount(d.accountNumber)}` : 'your backup account');
 
 /** F3: the account a payday pays at this moment. */
 export function activeDestination(x: DestinationCooldown, now: number): Destination | undefined {
@@ -84,17 +84,17 @@ export function changeTitle(change: SensitiveChange, plan: Plan): string {
       return `Take ${names.join(', ') || 'this rule'} out of your plan`;
     }
     case 'remainderFallback':
-      return 'Save leftover money and fallback account';
+      return 'Save leftovers and backup account';
     case 'reviewWindow':
-      return `Set your review window to ${windowText(change.minutes)}`;
+      return `Set your review time to ${windowText(change.minutes)}`;
     case 'resume':
-      return 'Resume automation';
+      return 'Resume Autopilot';
   }
 }
 
 export const windowText = (minutes: number): string => (minutes === 0 ? 'off' : `${minutes} minutes`);
 
-const ruleAmountText = (r: Rule): string => (r.kind === 'fixed' ? formatNaira(r.amountKobo) : `${percentText(r.basisPoints)} of income`);
+const ruleAmountText = (r: Rule): string => (r.kind === 'fixed' ? formatNaira(r.amountKobo) : `${percentText(r.basisPoints)} of pay`);
 
 export interface ChangeAlert {
   title: string;
@@ -111,7 +111,7 @@ export function changeAlerts(
   now: number,
 ): ChangeAlert[] {
   const title = 'Email and SMS: your plan changed';
-  const wasnt = "Wasn't you? Tap to pause automation.";
+  const wasnt = 'Wasn’t you? Tap to pause everything.';
   const active = `New account active on ${dayMonth(new Date(now + COOLDOWN_MS))}, ${timeText(now + COOLDOWN_MS)}.`;
   switch (change.kind) {
     case 'saveRule': {
@@ -131,14 +131,14 @@ export function changeAlerts(
       const out: ChangeAlert[] = [];
       const oldRemainder = before.plan.remainder;
       if (!sameAccount(oldRemainder?.destination, change.remainder)) {
-        out.push({ title, body: `Leftover money: account changed from ${accountText(oldRemainder?.destination)} to ${accountText(change.remainder)}. ${active} ${wasnt}` });
+        out.push({ title, body: `Leftovers: account changed from ${accountText(oldRemainder?.destination)} to ${accountText(change.remainder)}. ${active} ${wasnt}` });
       } else if (oldRemainder?.name !== change.remainderName) {
-        out.push({ title, body: `Leftover money is now called ${change.remainderName}. ${wasnt}` });
+        out.push({ title, body: `Leftovers are now called ${change.remainderName}. ${wasnt}` });
       }
       if (!sameAccount(before.fallback, change.fallback)) {
         out.push({
-          title: 'Email and SMS: fallback account changed',
-          body: `Fallback account changed from ${before.fallback ? accountText(before.fallback) : 'none'} to ${change.fallback ? accountText(change.fallback) : 'none'}. ${wasnt}`,
+          title: 'Email and SMS: backup account changed',
+          body: `Backup account changed from ${before.fallback ? accountText(before.fallback) : 'none'} to ${change.fallback ? accountText(change.fallback) : 'none'}. ${wasnt}`,
         });
       }
       return out;
@@ -146,8 +146,8 @@ export function changeAlerts(
     case 'reviewWindow':
       return [
         {
-          title: 'Email and SMS: review window changed',
-          body: `Your review window changed from ${windowText(before.reviewWindowMinutes)} to ${windowText(change.minutes)}. ${wasnt}`,
+          title: 'Email and SMS: review time changed',
+          body: `Your review time changed from ${windowText(before.reviewWindowMinutes)} to ${windowText(change.minutes)}. ${wasnt}`,
         },
       ];
     case 'resume':

@@ -62,7 +62,7 @@ export default function EmergencyPauseScreen() {
         }
       >
         <WhatHappens />
-        <Text style={styles.body}>Then check your plan. Resuming needs your PIN and a one-time code.</Text>
+        <Text style={styles.body}>Then check your plan. Resuming needs your PIN and a 6-digit code.</Text>
       </Screen>
     );
   }

@@ -39,7 +39,7 @@ export default function DemoControlsScreen() {
     const result = await handlePaymentNotice({ reference: lastReference, amountKobo, sender: from });
     setMessage(
       result === 'automationOff'
-        ? `${label}: ${formatNaira(amountKobo)} arrived. Automation is off, so it wasn't split.`
+        ? `${label}: ${formatNaira(amountKobo)} arrived. Autopilot is off, so it wasn’t split.`
         : `${label}: ${formatNaira(amountKobo)} sent to your SpreadIT account. Watch for the alert.`,
     );
   };
@@ -61,7 +61,7 @@ export default function DemoControlsScreen() {
     const t = now();
     let day: Date | null = new Date(t);
     if (!today) day = income ? payDates(income, new Date(t)).next : null;
-    if (!day) return setMessage('Your income varies, so there is no set payday.');
+    if (!day) return setMessage('Your pay varies, so there’s no set payday.');
     const target = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, 0, 0).getTime();
     if (target <= t) return setMessage("It's already past that time.");
     skipAhead(target - t);
@@ -76,7 +76,7 @@ export default function DemoControlsScreen() {
   return (
     <Screen title="Demo controls" subtitle="Pretend bank events for trying the payday flows. Not part of the real app.">
       <View style={styles.card} accessible>
-        <Text style={styles.line}>Automation: {!automationOn ? 'Off' : paused ? 'Paused' : 'On'}</Text>
+        <Text style={styles.line}>Autopilot: {!automationOn ? 'Off' : paused ? 'Paused' : 'On'}</Text>
         <Text style={styles.line}>SpreadIT account balance: {formatNaira(balance)}</Text>
         <Text style={styles.line}>Demo clock: {offset === 0 ? 'real time' : `${days ? `${days}d ` : ''}${hours}h ${mins}m ahead`}</Text>
         {nextFailure ? <Text style={styles.line}>Next transfer will fail: {nextFailure}</Text> : null}
@@ -110,21 +110,21 @@ export default function DemoControlsScreen() {
         </Text>
         {minimum >= expected / 2 ? (
           <Text style={styles.note}>
-            Your qualifying minimum is {formatNaira(minimum)}, so a short payday asks "Is this income?" first. Tap Yes to reach the short payday review.
+            Your minimum is {formatNaira(minimum)}, so a short payday asks “Is this pay?” first. Tap “Yes, split it” to reach the short payday review.
           </Text>
         ) : null}
       </Section>
 
       <Section title="Transfers">
-        <Button label="Next transfer fails (temporary)" variant="secondary" onPress={() => { failNextTransfer('temporary'); setMessage('The next transfer sent will fail and retry.'); }} />
-        <Button label="Next transfer fails (permanent)" variant="secondary" onPress={() => { failNextTransfer('permanent'); setMessage('The next transfer sent will go to your fallback account.'); }} />
+        <Button label="Next transfer fails (temporary)" variant="secondary" onPress={() => { failNextTransfer('temporary'); setMessage('The next transfer will fail, then try again.'); }} />
+        <Button label="Next transfer fails (permanent)" variant="secondary" onPress={() => { failNextTransfer('permanent'); setMessage('The next transfer will go to your backup account.'); }} />
         <Button
-          label="Reverse the last successful transfer"
+          label="Return the last sent transfer"
           variant="secondary"
           onPress={async () => {
             const ref = reverseLastSuccessful();
             await tick();
-            setMessage(ref ? 'The bank reversed the last successful transfer.' : 'No successful transfer to reverse yet.');
+            setMessage(ref ? 'The bank returned the last sent transfer.' : 'Nothing sent yet to return.');
           }}
         />
       </Section>
@@ -153,7 +153,7 @@ export default function DemoControlsScreen() {
       <Section title="Forward mode reminders">
         <Button label="Skip to next payday, 9am" variant="secondary" onPress={() => skipTo(9)} />
         <Button label="Skip to 6pm today" variant="secondary" onPress={() => skipTo(18, true)} />
-        <Text style={styles.note}>Reminders only come in Forward mode with automation on (A9).</Text>
+        <Text style={styles.note}>Reminders only come in Forward mode with Autopilot on (A9).</Text>
       </Section>
 
       <Section title="Security">

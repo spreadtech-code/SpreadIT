@@ -155,27 +155,27 @@ describe('Forward mode reminders (A9)', () => {
 
   it('on payday: one 9am push with the account details', async () => {
     await toNextPayday(9);
-    expect(titles()).toContain('Payday: forward your salary');
-    const morning = store().alerts.find((a) => a.title === 'Payday: forward your salary')!;
+    expect(titles()).toContain('Payday: forward your pay');
+    const morning = store().alerts.find((a) => a.title === 'Payday: forward your pay')!;
     expect(morning.body).toContain(app().spreaditAccount!.accountNumber);
     expect(morning.route).toBe('/forward-mode-setup');
     await after(60 * 60_000);
-    expect(titles().filter((x) => x === 'Payday: forward your salary')).toHaveLength(1);
+    expect(titles().filter((x) => x === 'Payday: forward your pay')).toHaveLength(1);
   });
 
   it('no 6pm push when the salary was forwarded', async () => {
     await toNextPayday(9);
     await pay(850_000);
     await after(9 * 60 * 60_000); // 6pm
-    expect(titles()).not.toContain("Your salary hasn't arrived yet");
+    expect(titles()).not.toContain('Your pay hasn’t arrived yet');
   });
 
   it('6pm push when nothing came, and none after', async () => {
     await toNextPayday(9);
     await after(9 * 60 * 60_000); // 6pm
-    expect(titles()).toContain("Your salary hasn't arrived yet");
+    expect(titles()).toContain('Your pay hasn’t arrived yet');
     await after(3 * 60 * 60_000);
-    expect(titles().filter((x) => x === "Your salary hasn't arrived yet")).toHaveLength(1);
+    expect(titles().filter((x) => x === 'Your pay hasn’t arrived yet')).toHaveLength(1);
   });
 
   it('no reminders when income is paid in directly', async () => {

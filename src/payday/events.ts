@@ -185,15 +185,16 @@ export function unsplitKobo(balanceKobo: number, events: readonly IncomeEvent[])
   return Math.max(0, balanceKobo - waiting);
 }
 
-/** Each payday's state in words, for history and detail screens (status never by colour alone). */
+/** Each payday's state in words, for history and detail screens (status never by colour alone).
+ *  App words follow docs/copy.md. */
 export const stageText: Record<EventStage, string> = {
-  askIncome: 'Is this income?',
+  askIncome: 'Is this pay?',
   needsApproval: 'Needs your OK',
   review: 'Waiting to send',
-  held: 'Held, not split yet',
+  held: 'On hold, not split yet',
   sending: 'Sending',
-  done: 'Split',
-  notIncome: 'Not income, not split',
-  cancelled: 'Cancelled, not split',
+  done: 'Done',
+  notIncome: 'Not pay, not split',
+  cancelled: 'Stopped, not split',
   tooSmall: 'Too small to split',
 };

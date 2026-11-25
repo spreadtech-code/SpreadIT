@@ -13,7 +13,7 @@ import { Notice } from './Notice';
 import { Sheet } from './Sheet';
 
 export interface CostEstimateProps {
-  /** "This plan costs about ₦875 a month (0.10% of your income)". */
+  /** "This plan costs about ₦875 a month (0.10% of your pay)". */
   text: string;
   overLimit: boolean;
   /** Shown in the "Ways to lower your costs" sheet. */
@@ -29,7 +29,7 @@ export function CostEstimate({ text, overLimit, tips }: CostEstimateProps) {
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.warning} accessible accessibilityRole="alert" accessibilityLabel={`Warning. ${text}. That is more than 1% of your income.`}>
+      <View style={styles.warning} accessible accessibilityRole="alert" accessibilityLabel={`Warning. ${text}. That’s more than 1% of your pay.`}>
         <TriangleExclamationPoint size={size.icon} color={colors.warning} strokeWidth={1.75} />
         <Text style={styles.warningText}>{text}</Text>
       </View>

@@ -83,7 +83,7 @@ describe('Emergency pause (F1)', () => {
     pauseAutomation(bank.now());
     await pay(850_000);
     expect(latest().stage).toBe('held');
-    expect(alerts().at(-1)!.body).toContain('Automation is paused');
+    expect(alerts().at(-1)!.body).toContain('Autopilot is paused');
     runInPriorityOrder(latest().id); // still held while paused
     expect(latest().stage).toBe('held');
   });
@@ -112,12 +112,12 @@ describe('Emergency pause (F1)', () => {
 describe('Pause reminders (G3)', () => {
   it('1 push at day 7, 1 at day 14, none after', async () => {
     pauseAutomation(bank.now());
-    const count = () => alerts().filter((a) => a.title === 'Your plan is paused').length;
+    const count = () => alerts().filter((a) => a.title === 'Autopilot is paused').length;
     await after(6 * DAY);
     expect(count()).toBe(0);
     await after(DAY);
     expect(count()).toBe(1);
-    expect(alerts().at(-1)!.body).toMatch(/^Your plan is paused\. Resume before your next payday on \d+ \w+\?$/);
+    expect(alerts().at(-1)!.body).toMatch(/^Autopilot is paused\. Resume before your next payday on \d+ \w+\?$/);
     expect(alerts().at(-1)!.route).toBe('/verify-change?resume=1');
     await after(7 * DAY);
     expect(count()).toBe(2);
@@ -234,7 +234,7 @@ describe('Change alerts (F4)', () => {
     expect(a.body).toContain('Access Bank ••4567');
     expect(a.body).not.toContain(newMumAccount.accountNumber);
     expect(a.body).not.toContain(oldDigits);
-    expect(a.body).toContain("Wasn't you?");
+    expect(a.body).toContain('Wasn’t you?');
   });
 
   it('tapping the alert opens "This wasn\'t me", which pauses', () => {
@@ -253,13 +253,13 @@ describe('Settings', () => {
     await pay(850_000);
     await executeEvent(latest().id);
     await after(5_000);
-    expect(alerts().find((a) => a.title === 'Payday split')!.body).toContain('Also sent by SMS.');
+    expect(alerts().find((a) => a.title === 'Payday’s done')!.body).toContain('Also sent by SMS.');
 
     app().setPaydaySummarySms(false);
     await pay(850_000);
     await executeEvent(latest().id);
     await after(5_000);
-    expect(alerts().filter((a) => a.title === 'Payday split').at(-1)!.body).not.toContain('SMS');
+    expect(alerts().filter((a) => a.title === 'Payday’s done').at(-1)!.body).not.toContain('SMS');
   });
 
   it('sign out ends the session; the next start asks for the password (A3)', () => {

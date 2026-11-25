@@ -80,7 +80,7 @@ describe('Plan checks before "Switch on" (B8, B10)', () => {
   it('blocks a plan with no remainder destination', () => {
     const c = checkPlan({ ...tunde.plan, remainder: null }, tunde.expectedKobo, schedule);
     expect(c.canSwitchOn).toBe(false);
-    expect(c.errors).toContain('Choose where leftover money goes');
+    expect(c.errors).toContain('Choose where leftovers go');
   });
 
   it('rejects two categories with the same name (B2)', () => {
@@ -93,7 +93,7 @@ describe('Plan checks before "Switch on" (B8, B10)', () => {
     const c = checkPlan(plan, naira(400_000), schedule);
     expect(c.canSwitchOn).toBe(true);
     expect(c.shortRules.map((l) => [l.name, l.funding])).toEqual([['Car', 'Partly funded']]);
-    expect(c.warnings[0]).toMatch(/^At ₦400,000 your rules are ₦100,500 short: Car \(Partly funded\)\.$/);
+    expect(c.warnings[0]).toMatch(/^At ₦400,000 your rules are ₦100,500 short: Car \(Part paid\)\.$/);
   });
 
   it('warns when nothing is left for day-to-day spending', () => {

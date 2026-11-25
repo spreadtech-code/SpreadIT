@@ -131,9 +131,9 @@ export function summaryShareText(s: MonthlySummary, showAmounts: boolean): strin
   const amount = (k: number) => (showAmounts ? formatNaira(k) : '₦•••••');
   return [
     `My SpreadIT summary for ${s.label}`,
-    `Received: ${amount(s.receivedKobo)} (${s.paymentsCount} ${s.paymentsCount === 1 ? 'payment' : 'payments'})`,
+    `Received: ${amount(s.receivedKobo)} (${s.paymentsCount} ${s.paymentsCount === 1 ? 'payday' : 'paydays'})`,
     ...s.sentByCategory.map((l) => `${l.name}: ${amount(l.kobo)}`),
-    `Family payments delivered on payday: ${s.familyPaymentsDelivered}`,
+    `Family paid on payday: ${s.familyPaymentsDelivered}`,
     `Bank fees: ${amount(s.feesKobo)}`,
   ].join('\n');
 }

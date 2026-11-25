@@ -168,7 +168,7 @@ export default function ComponentsScreen() {
           <Button label="Pause everything" icon={CirclePause} variant="critical" onPress={noop} />
           <Button label="Stop this payday" variant="quietCritical" onPress={noop} />
           <Button label="Turn on Autopilot" variant="primary" disabled onPress={noop} />
-          <Text style={styles.note}>The last button is disabled: add a remainder destination first.</Text>
+          <Text style={styles.note}>The last button is disabled: add a leftovers account first.</Text>
         </View>
       </Section>
 
@@ -185,7 +185,7 @@ export default function ComponentsScreen() {
           accessibilityLabel="Rule type"
           options={[
             { value: 'fixed', label: 'Fixed amount' },
-            { value: 'percent', label: '% of income' },
+            { value: 'percent', label: '% of pay' },
           ]}
           value={ruleType}
           onChange={setRuleType}
@@ -213,8 +213,8 @@ export default function ComponentsScreen() {
       </Section>
       <Section title="RuleCard, simulator">
         <View style={styles.rules}>
-          <RuleCard name="Tithe" Icon={Church} ruleType="10% of income" priority={3} bankName="Zenith" accountNumber="2210337765" amountKobo={8_500_000} funding="Fully funded" />
-          <RuleCard name="Savings" Icon={PiggyBank} ruleType="15% of income" priority={4} bankName="Kuda" accountNumber="2004118832" amountKobo={4_000_000} funding="Partly funded" />
+          <RuleCard name="Tithe" Icon={Church} ruleType="10% of pay" priority={3} bankName="Zenith" accountNumber="2210337765" amountKobo={8_500_000} funding="Fully funded" />
+          <RuleCard name="Savings" Icon={PiggyBank} ruleType="15% of pay" priority={4} bankName="Kuda" accountNumber="2004118832" amountKobo={4_000_000} funding="Partly funded" />
           <RuleCard name="Investment" Icon={TrendingUp} ruleType="Fixed" priority={5} bankName="Opay" accountNumber="8061234410" amountKobo={5_000_000} funding="Skipped" />
         </View>
       </Section>
@@ -236,7 +236,7 @@ export default function ComponentsScreen() {
           title="Settings"
           items={[
             { id: 's1', Icon: ShieldCheck, name: 'Security', meta: 'PIN, biometric, devices', onPress: noop },
-            { id: 's2', Icon: Settings, name: 'Review window', meta: '15 minutes', onPress: noop },
+            { id: 's2', Icon: Settings, name: 'Review time', meta: '15 minutes', onPress: noop },
           ]}
         />
       </Section>
@@ -273,8 +273,8 @@ export default function ComponentsScreen() {
             minText="10%"
             maxText="150%"
           />
-          <CostEstimate text="This plan costs about ₦875 a month (0.10% of your income)" overLimit={false} tips={[]} />
-          <CostEstimate text="This plan costs about ₦315 a month (1.58% of your income)" overLimit tips={costTips(feeSchedule)} />
+          <CostEstimate text="This plan costs about ₦875 a month (0.10% of your pay)" overLimit={false} tips={[]} />
+          <CostEstimate text="This plan costs about ₦315 a month (1.58% of your pay)" overLimit tips={costTips(feeSchedule)} />
         </View>
       </Section>
 

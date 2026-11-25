@@ -36,7 +36,7 @@ export interface MonthlyCost {
   percentText: string;
   /** True when the cost is above 1% of income: show the warning style. */
   overLimit: boolean;
-  /** "This plan costs about ₦875 a month (0.10% of your income)" (C6 wording). */
+  /** "This plan costs about ₦875 a month (0.10% of your pay)" (C6; PRD says "income"). */
   text: string;
 }
 
@@ -82,7 +82,7 @@ export function monthlyCost(input: {
     monthlyIncomeKobo,
     percentText,
     overLimit,
-    text: `This plan costs about ${formatNaira(monthlyKobo)} a month (${percentText} of your income)`,
+    text: `This plan costs about ${formatNaira(monthlyKobo)} a month (${percentText} of your pay)`,
   };
 }
 
@@ -93,6 +93,6 @@ export function costTips(schedule: FeeSchedule): string[] {
   return [
     `Combine small rules into one. Every transfer costs at least ${formatNaira(smallest.feeKobo)}.`,
     `Keep a transfer under ${formatNaira(dutyFrom)} if you can. From ${formatNaira(dutyFrom)}, each one pays ${formatNaira(schedule.stampDuty.feeKobo)} stamp duty.`,
-    'If you are paid more than once a month, set fixed rules to "Once per month" so they are not sent, and charged, on every payday.',
+    'If you’re paid more than once a month, set fixed rules to “Once a month” so they aren’t sent, and charged, on every payday.',
   ];
 }
