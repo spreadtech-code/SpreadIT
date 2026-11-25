@@ -1,4 +1,4 @@
-// S18 Is this income? (D1): a payment below the qualifying minimum.
+// S18 Is this income? (D1), shown as "Is this pay?": a payment below the qualifying minimum.
 // - No: nothing is split; the money stays in the SpreadIT account.
 // - Yes: an income event is created. Below 50% of expected it goes to S17
 //   (D4); otherwise the review window starts (S16).
@@ -9,7 +9,7 @@ import { formatNaira } from '../src/engine/format';
 import { dayMonth } from '../src/lib/payDates';
 import { answerIsThisIncome, eventRoute, getEvent, latestEvent, usePaydays } from '../src/payday/paydayStore';
 import { useApp } from '../src/state/appStore';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, radius, space, type } from '../src/theme/tokens';
 
 export default function IsThisIncomeScreen() {
   const router = useRouter();
@@ -28,11 +28,12 @@ export default function IsThisIncomeScreen() {
 
   return (
     <Screen
-      title="Is this income?"
+      title="Is this pay?"
+      subtitle="Something landed that’s smaller than usual."
       footer={
         <>
           <Button
-            label="Yes"
+            label="Yes, split it"
             variant="primary"
             accessibilityHint="Split it by your plan"
             onPress={() => {
@@ -43,7 +44,7 @@ export default function IsThisIncomeScreen() {
             }}
           />
           <Button
-            label="No"
+            label="No, keep it"
             variant="secondary"
             accessibilityHint="Keep it in your SpreadIT account without splitting"
             onPress={() => {
@@ -54,22 +55,27 @@ export default function IsThisIncomeScreen() {
         </>
       }
     >
-      <View style={styles.card} accessible>
-        <Text style={styles.muted}>Received {dayMonth(new Date(event.receivedAt))}</Text>
-        <Text style={styles.amount}>{formatNaira(event.amountKobo)}</Text>
-        <Text style={styles.muted}>From {event.sender}</Text>
+      <View
+        style={styles.card}
+        accessible
+        accessibilityLabel={`Landed ${dayMonth(new Date(event.receivedAt))}. ${formatNaira(event.amountKobo)}. From ${event.sender}.`}
+      >
+        <Text style={styles.small}>Landed {dayMonth(new Date(event.receivedAt))}</Text>
+        <Text style={styles.amount} adjustsFontSizeToFit numberOfLines={1}>
+          {formatNaira(event.amountKobo)}
+        </Text>
+        <Text style={styles.small}>From {event.sender}</Text>
       </View>
       <Text style={styles.body}>
-        This is less than your qualifying minimum of {formatNaira(minimum)}, so SpreadIT didn't split it.
+        It’s under your {formatNaira(minimum)} minimum, so we haven’t split it. Tell us what it is.
       </Text>
-      <Text style={styles.body}>Yes: split it by your plan. No: keep it in your SpreadIT account.</Text>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: space[6], gap: space[1], alignItems: 'center', ...shadow.card },
-  amount: { ...type.amountXl, color: colors.ink },
-  body: { ...type.body, color: colors.ink },
-  muted: { ...type.label, color: colors.inkMuted },
+  card: { backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: space[6], gap: space[1], alignItems: 'center' },
+  amount: { ...type.amountXl, color: colors.onBrand },
+  small: { ...type.label, color: colors.onBrand },
+  body: { ...type.body, color: colors.inkMuted },
 });

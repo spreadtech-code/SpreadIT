@@ -7,7 +7,8 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AmountField, Button, FieldError, OptionList, Screen } from '../src/components';
+import { Send } from 'lucide-react-native';
+import { AccountCard, AmountField, Button, FieldError, OptionList, Screen } from '../src/components';
 import { feeSchedule } from '../src/data/feeSchedule';
 import { maxSendable, transferFee } from '../src/engine/fees';
 import { formatNaira, maskAccount } from '../src/engine/format';
@@ -15,7 +16,7 @@ import { now, useBank } from '../src/fakebank/bankStore';
 import { availableKobo, sendOneOff, usePaydays } from '../src/payday/paydayStore';
 import { activeDestination } from '../src/state/sensitiveChanges';
 import { useApp } from '../src/state/appStore';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, radius, space, type } from '../src/theme/tokens';
 import { ForwardDetails, PinSheet, SentView } from '../src/payday/oneOffParts';
 
 /** B14 [ASSUMPTION in the PRD]: the smallest extra is ₦1,000. */
@@ -63,23 +64,22 @@ export default function SendExtraOnceScreen() {
 
   return (
     <Screen
-      title="Send extra once"
-      subtitle="A one-off amount from your SpreadIT balance. Your plan stays the same."
-      footer={<Button label="Send with PIN" variant="primary" onPress={review} />}
+      title={params.ruleId && rule ? `Send extra to ${rule.name}` : 'Send extra'}
+      subtitle="A one-off top-up. Your plan stays the same."
+      footer={
+        <>
+          <Button label="Send with PIN" icon={Send} variant="primary" onPress={review} />
+          <Button label="Not now" variant="quiet" onPress={() => router.back()} />
+        </>
+      }
     >
-      <View style={styles.card} accessible accessibilityLabel={`Your SpreadIT balance: ${formatNaira(available)}`}>
-        <Text style={styles.muted}>Your SpreadIT balance</Text>
+      <View style={styles.card} accessible accessibilityLabel={`Available in SpreadIT: ${formatNaira(available)}`}>
+        <Text style={styles.small}>Available in SpreadIT</Text>
         <Text style={styles.amount}>{formatNaira(available)}</Text>
-        <Text style={styles.muted}>Money from a payday still waiting to be split isn't included.</Text>
+        <Text style={styles.small}>Pay still waiting to be split isn’t included.</Text>
       </View>
 
-      {params.ruleId && rule ? (
-        <View style={styles.card}>
-          <Text style={styles.muted}>To</Text>
-          <Text style={styles.name}>{rule.name}</Text>
-          <Text style={styles.muted}>{accountLine(activeDestination(rule, t)!)}</Text>
-        </View>
-      ) : sendable.length > 0 ? (
+      {params.ruleId && rule ? null : sendable.length > 0 ? (
         <OptionList
           accessibilityLabel="Send it to"
           options={sendable.map((r) => ({ value: r.id, label: r.name, description: accountLine(activeDestination(r, t)!) }))}
@@ -91,7 +91,7 @@ export default function SendExtraOnceScreen() {
       )}
 
       <AmountField
-        label="Amount"
+        label="How much"
         valueKobo={amount}
         onChangeKobo={setAmount}
         helper={
@@ -101,6 +101,18 @@ export default function SendExtraOnceScreen() {
         }
       />
       {error ? <FieldError message={error} /> : null}
+
+      {rule ? (
+        <View style={styles.group}>
+          <Text style={styles.label}>Sending to</Text>
+          <AccountCard
+            accountName={activeDestination(rule, t)!.accountName}
+            bankName={activeDestination(rule, t)!.bankName}
+            accountNumber={activeDestination(rule, t)!.accountNumber}
+            tag={rule.name}
+          />
+        </View>
+      ) : null}
 
       {shortKobo > 0 || available < MIN_EXTRA_KOBO ? (
         <ForwardDetails
@@ -119,7 +131,6 @@ export default function SendExtraOnceScreen() {
         onCancel={() => setPinOpen(false)}
         onPinOk={send}
       />
-      <Button label="Cancel" variant="quiet" onPress={() => router.back()} />
     </Screen>
   );
 }
@@ -127,9 +138,10 @@ export default function SendExtraOnceScreen() {
 const accountLine = (d: { bankName: string; accountNumber: string }) => `${d.bankName} ${maskAccount(d.accountNumber)}`;
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[1], ...shadow.card },
-  amount: { ...type.amountLg, color: colors.ink },
-  name: { ...type.headline, color: colors.ink },
+  card: { backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: space[4], gap: space[1] },
+  small: { ...type.label, color: colors.onBrand },
+  amount: { ...type.amountLg, color: colors.onBrand },
+  group: { gap: space[2] },
+  label: { ...type.labelStrong, color: colors.inkMuted },
   body: { ...type.body, color: colors.ink },
-  muted: { ...type.label, color: colors.inkMuted },
 });

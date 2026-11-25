@@ -10,11 +10,13 @@ export interface AccountCardProps {
   accountName: string;
   bankName: string;
   accountNumber: string;
+  /** Shown before the bank, e.g. "Mum" or "Backup". */
+  tag?: string;
   onChange?: () => void;
 }
 
-export function AccountCard({ accountName, bankName, accountNumber, onChange }: AccountCardProps) {
-  const masked = `${bankName} ${maskAccount(accountNumber)}`;
+export function AccountCard({ accountName, bankName, accountNumber, tag, onChange }: AccountCardProps) {
+  const masked = `${tag ? `${tag} · ` : ''}${bankName} ${maskAccount(accountNumber)}`;
   return (
     <View style={styles.card}>
       <View style={styles.bubble}>

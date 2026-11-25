@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, type LucideIcon } from 'lucide-react-native';
 import { colors, radius, size, space, type } from '../theme/tokens';
 import { formatNaira } from '../engine/format';
-import { StatusBadge, type BadgeState } from './StatusBadge';
+import { StatusBadge, badgeWords, type BadgeState } from './StatusBadge';
 
 export interface ActivityItem {
   id: string;
@@ -24,11 +24,12 @@ export interface ActivityItem {
   onPress?: () => void;
 }
 
-export function ActivityList({ title, items }: { title?: string; items: ActivityItem[] }) {
+/** small: the title is a muted month label (Activity) rather than a section heading. */
+export function ActivityList({ title, items, small = false }: { title?: string; items: ActivityItem[]; small?: boolean }) {
   return (
     <View style={styles.card}>
       {title ? (
-        <Text style={styles.title} accessibilityRole="header">
+        <Text style={small ? styles.titleSmall : styles.title} accessibilityRole="header">
           {title}
         </Text>
       ) : null}
@@ -48,7 +49,7 @@ function Row({ item }: { item: ActivityItem }) {
     item.name,
     item.meta,
     amount ? `${isIn ? 'Money in' : 'Money out'} ${amount}` : null,
-    !isIn && item.status ? `Status: ${item.status}` : null,
+    !isIn && item.status ? `Status: ${badgeWords[item.status]}` : null,
   ]
     .filter(Boolean)
     .join(', ');
@@ -97,6 +98,7 @@ function Row({ item }: { item: ActivityItem }) {
 const styles = StyleSheet.create({
   card: { gap: space[1] },
   title: { ...type.headline, color: colors.ink, marginBottom: space[1] },
+  titleSmall: { ...type.labelStrong, color: colors.inkMuted },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

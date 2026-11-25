@@ -1,5 +1,6 @@
-// S29 Send to my account (D13): moves money that was not split (a refund, a
-// friend's repayment, a held payment) to the user's fallback account.
+// S29 Send to my account (D13), shown as "Move to your account": moves money that
+// was not split (a refund, a friend's repayment, a held payment) to the user's
+// fallback account ("backup account" in the app).
 // Shows the unsplit balance, then the chosen amount (₦1 up to the balance) and
 // its transfer fee before the user confirms with the PIN. -> S15.
 // The fee comes out of the balance too, so "Send all" sends the most that
@@ -7,7 +8,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AmountField, Button, FieldError, Screen } from '../src/components';
+import { AccountCard, AmountField, Button, FieldError, Screen } from '../src/components';
 import { feeSchedule } from '../src/data/feeSchedule';
 import { maxSendable, transferFee } from '../src/engine/fees';
 import { formatNaira, maskAccount } from '../src/engine/format';
@@ -15,7 +16,7 @@ import { useBank } from '../src/fakebank/bankStore';
 import { PinSheet, SentView } from '../src/payday/oneOffParts';
 import { availableKobo, sendOneOff, usePaydays } from '../src/payday/paydayStore';
 import { useApp } from '../src/state/appStore';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, radius, space, type } from '../src/theme/tokens';
 
 export default function SendToMyAccountScreen() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function SendToMyAccountScreen() {
   const [pinOpen, setPinOpen] = useState(false);
   const [sentRef, setSentRef] = useState<string | null>(null);
 
-  if (sentRef) return <SentView reference={sentRef} title="Sent to your account" />;
+  if (sentRef) return <SentView reference={sentRef} title="Moved to your account" />;
 
   const unsplit = availableKobo();
   const most = maxSendable(unsplit, feeSchedule);
@@ -35,8 +36,8 @@ export default function SendToMyAccountScreen() {
 
   if (!fallback) {
     return (
-      <Screen title="Send to my account" footer={<Button label="Open plan" variant="primary" onPress={() => router.navigate('/plan-builder')} />}>
-        <Text style={styles.body}>Add your fallback account first. That's your own account, where this money goes.</Text>
+      <Screen title="Move to your account" footer={<Button label="Open plan" variant="primary" onPress={() => router.navigate('/plan-builder')} />}>
+        <Text style={styles.body}>Add your backup account first. That’s your own account, where this money goes.</Text>
       </Screen>
     );
   }
@@ -45,7 +46,7 @@ export default function SendToMyAccountScreen() {
     setError(null);
     if (!amount || amount < 100) return setError('Enter an amount of ₦1 or more.');
     if (amount + fee > unsplit) {
-      return setError(`That's more than you can send. With the ${formatNaira(fee)} fee, the most is ${formatNaira(most)}.`);
+      return setError(`That’s more than you can move. With the ${formatNaira(fee)} fee, the most is ${formatNaira(most)}.`);
     }
     setPinOpen(true);
   };
@@ -62,50 +63,56 @@ export default function SendToMyAccountScreen() {
 
   return (
     <Screen
-      title="Send to my account"
-      subtitle="Move money that wasn't split to your own account."
+      title="Move to your account"
+      subtitle="Money that wasn’t split goes to your backup account."
       footer={
         <>
-          <Button label="Send with PIN" variant="primary" disabled={most === 0} onPress={review} />
-          <Button label="Cancel" variant="quiet" onPress={() => router.back()} />
+          <Button
+            label="Move with PIN"
+            variant="primary"
+            disabled={most === 0}
+            accessibilityHint={most === 0 ? 'Nothing to move right now.' : undefined}
+            onPress={review}
+          />
+          <Button label="Not now" variant="quiet" onPress={() => router.back()} />
         </>
       }
     >
-      <View style={styles.card} accessible accessibilityLabel={`Unsplit money: ${formatNaira(unsplit)}`}>
-        <Text style={styles.muted}>Unsplit money</Text>
+      <View style={styles.card} accessible accessibilityLabel={`Not split yet: ${formatNaira(unsplit)}`}>
+        <Text style={styles.small}>Not split yet</Text>
         <Text style={styles.amount}>{formatNaira(unsplit)}</Text>
-        <Text style={styles.muted}>In your SpreadIT account, not part of any split.</Text>
-      </View>
-
-      <View style={styles.card} accessible accessibilityLabel={`To ${to}`}>
-        <Text style={styles.muted}>To your fallback account</Text>
-        <Text style={styles.name}>{to}</Text>
+        <Text style={styles.small}>In your SpreadIT account, not in any split.</Text>
       </View>
 
       {most === 0 ? (
         <Text style={styles.body}>
-          {unsplit === 0 ? 'Nothing to send. Every naira was split.' : `${formatNaira(unsplit)} is less than the fee to send it.`}
+          {unsplit === 0 ? 'Nothing to move. Every naira was split.' : `${formatNaira(unsplit)} is less than the fee to send it.`}
         </Text>
       ) : (
         <>
           <AmountField
-            label="Amount"
+            label="How much"
             valueKobo={amount}
             onChangeKobo={setAmount}
             helper={
               amount && amount > 0
-                ? `Fee: ${formatNaira(fee)}. ${formatNaira(amount + fee)} comes out of your balance.`
+                ? `Costs ${formatNaira(fee)} to send. ${formatNaira(amount + fee)} comes out of your balance.`
                 : `₦1 up to ${formatNaira(most)}. The fee comes out of your balance too.`
             }
           />
-          <Button label={`Send all (${formatNaira(most)})`} variant="quiet" onPress={() => setAmount(most)} />
+          <Button label={`Move all (${formatNaira(most)})`} variant="quiet" onPress={() => setAmount(most)} />
         </>
       )}
       {error ? <FieldError message={error} /> : null}
 
+      <View style={styles.group}>
+        <Text style={styles.label}>Going to</Text>
+        <AccountCard accountName={fallback.accountName} bankName={fallback.bankName} accountNumber={fallback.accountNumber} tag="Backup" />
+      </View>
+
       <PinSheet
         visible={pinOpen}
-        title="Enter your PIN to send"
+        title="Enter your PIN to move it"
         summary={amount ? `${formatNaira(amount)} to ${to}. Fee ${formatNaira(fee)}.` : ''}
         onCancel={() => setPinOpen(false)}
         onPinOk={send}
@@ -115,9 +122,10 @@ export default function SendToMyAccountScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[1], ...shadow.card },
-  amount: { ...type.amountLg, color: colors.ink },
-  name: { ...type.headline, color: colors.ink },
+  card: { backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: space[4], gap: space[1] },
+  small: { ...type.label, color: colors.onBrand },
+  amount: { ...type.amountLg, color: colors.onBrand },
+  group: { gap: space[2] },
+  label: { ...type.labelStrong, color: colors.inkMuted },
   body: { ...type.body, color: colors.ink },
-  muted: { ...type.label, color: colors.inkMuted },
 });

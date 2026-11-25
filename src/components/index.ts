@@ -9,7 +9,7 @@ export { InsightCard } from './InsightCard';
 export { PaydayCountdown, type PaydayAllocation } from './PaydayCountdown';
 export { RuleCard, type FundingState } from './RuleCard';
 export { SegmentedControl } from './SegmentedControl';
-export { StatusBadge, badgeStates, type BadgeState } from './StatusBadge';
+export { StatusBadge, badgeStates, badgeWords, type BadgeState } from './StatusBadge';
 export { OptionList, type Option } from './OptionList';
 export { PinField, PIN_LENGTH } from './PinField';
 export { Screen } from './Screen';

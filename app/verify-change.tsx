@@ -43,8 +43,8 @@ export default function VerifyChangeScreen() {
   if (resumeNeedsPin) {
     if (!paused) {
       return (
-        <Screen title="Automation is on" footer={<Button label="Back" variant="secondary" onPress={leave} />}>
-          <Text style={styles.body}>Automation isn't paused, so there is nothing to resume.</Text>
+        <Screen title="Autopilot is on" footer={<Button label="Back" variant="secondary" onPress={leave} />}>
+          <Text style={styles.body}>Autopilot isn’t paused, so there’s nothing to resume.</Text>
         </Screen>
       );
     }
@@ -59,7 +59,7 @@ export default function VerifyChangeScreen() {
       requestChange({ kind: 'resume' });
     };
     return (
-      <Screen title="Resume automation" subtitle="Enter your PIN. Then we'll send you a one-time code." footer={<Button label="Cancel" variant="quiet" onPress={leave} />}>
+      <Screen title="Resume Autopilot" subtitle="Enter your PIN. Then we’ll send you a 6-digit code." footer={<Button label="Cancel" variant="quiet" onPress={leave} />}>
         <PinField label="6-digit PIN" value={pin} onChange={onPin} />
         {error ? <FieldError message={error} /> : null}
       </Screen>
@@ -68,7 +68,7 @@ export default function VerifyChangeScreen() {
 
   if (!pending) {
     return (
-      <Screen title="Verify change" footer={<Button label="Back" variant="secondary" onPress={leave} />}>
+      <Screen title="Enter the code" footer={<Button label="Back" variant="secondary" onPress={leave} />}>
         <Text style={styles.body}>Nothing is waiting for a code.</Text>
       </Screen>
     );
@@ -78,8 +78,8 @@ export default function VerifyChangeScreen() {
     if (code.length < PIN_LENGTH) return setError('Enter all 6 digits.');
     const outcome = submitChangeCode(code, Date.now(), now());
     setCode('');
-    if (outcome.result === 'wrong') return setError(`That code isn't right. ${outcome.triesLeft} ${outcome.triesLeft === 1 ? 'try' : 'tries'} left.`);
-    if (outcome.result === 'expired') return setError('This code has expired. Tap "Resend code".');
+    if (outcome.result === 'wrong') return setError(`That code isn’t right. ${outcome.triesLeft} ${outcome.triesLeft === 1 ? 'try' : 'tries'} left.`);
+    if (outcome.result === 'expired') return setError('This code has expired. Tap “Send it again”.');
     if (outcome.result === 'cancelled') {
       Alert.alert('Change cancelled', '3 wrong codes. Nothing was changed.');
       return leave();
@@ -90,11 +90,11 @@ export default function VerifyChangeScreen() {
 
   return (
     <Screen
-      title="Enter your one-time code"
+      title="Enter the code"
       subtitle={changeTitle(pending.change, plan)}
       footer={
         <>
-          <Button label="Submit code" variant="primary" onPress={submit} />
+          <Button label="Confirm" variant="primary" onPress={submit} />
           <Button label="Cancel" variant="quiet" onPress={cancel} />
         </>
       }
@@ -105,7 +105,7 @@ export default function VerifyChangeScreen() {
       />
       <PinField label="6-digit code" value={code} onChange={setCode} masked={false} error={error} />
       <Button
-        label="Resend code"
+        label="Send it again"
         variant="quiet"
         onPress={() => {
           resendChangeCode();
@@ -115,8 +115,8 @@ export default function VerifyChangeScreen() {
       />
       <Text style={styles.muted}>
         {pending.change.kind === 'resume'
-          ? 'Once you resume, new income is split by your plan again.'
-          : "Nothing is saved until the code is right. We'll email and text you about the change."}
+          ? 'Once you resume, new pay is split by your plan again.'
+          : 'Nothing is saved until the code is right. We’ll email and text you about the change.'}
       </Text>
     </Screen>
   );

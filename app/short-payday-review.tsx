@@ -1,9 +1,9 @@
 // S17 Short payday review (D4): income below 50% of expected. The split is
 // paused and nothing is sent until the user chooses. Shows each rule's funding
 // label and shortfall.
-// - "Run in priority order": start the review window (S16).
+// - "Pay in order" (PRD "Run in priority order"): start the review window (S16).
 // - "Adjust this payday": skip rules for this payday only; the split updates.
-// - "Hold": keep it unsent; Home shows it as held.
+// - "Hold it for now" (PRD "Hold"): keep it unsent; Home shows it as on hold.
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -11,7 +11,7 @@ import { Button, RuleCard, Screen, Toggle, categoryIcon } from '../src/component
 import { formatNaira } from '../src/engine/format';
 import { lineNote, ruleTypeText } from '../src/lib/splitText';
 import { eventRoute, holdEvent, latestEvent, runInPriorityOrder, setSkipOnce, usePaydays } from '../src/payday/paydayStore';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, radius, space, type } from '../src/theme/tokens';
 
 export default function ShortPaydayReviewScreen() {
   const router = useRouter();
@@ -29,12 +29,12 @@ export default function ShortPaydayReviewScreen() {
 
   return (
     <Screen
-      title="Short payday"
-      subtitle={`${formatNaira(event.amountKobo)} arrived. That's less than half of your expected ${formatNaira(event.expectedKobo)}. Nothing is sent until you choose.`}
+      title="This payday is short"
+      subtitle={`${formatNaira(event.amountKobo)} landed. That’s less than half your usual ${formatNaira(event.expectedKobo)}, so nothing moves until you choose.`}
       footer={
         <>
           <Button
-            label="Run in priority order"
+            label="Pay in order"
             variant="primary"
             onPress={() => {
               runInPriorityOrder(event.id);
@@ -47,7 +47,7 @@ export default function ShortPaydayReviewScreen() {
             onPress={() => setAdjusting(!adjusting)}
           />
           <Button
-            label="Hold"
+            label="Hold it for now"
             variant="quiet"
             accessibilityHint="Keeps the money unsent until you split it from Home"
             onPress={() => {
@@ -61,8 +61,8 @@ export default function ShortPaydayReviewScreen() {
     >
       {adjusting ? (
         <View style={styles.card}>
-          <Text style={styles.heading}>Send on this payday</Text>
-          <Text style={styles.muted}>Switch a rule off to skip it this time only. Its money flows to the rules below it.</Text>
+          <Text style={styles.heading}>Pay on this payday</Text>
+          <Text style={styles.muted}>Turn a rule off to skip it this time only. Its money goes to the rules below it.</Text>
           {event.plan.rules.map((r) => (
             <Toggle key={r.id} label={r.name} value={!event.skipOnce.includes(r.id)} onValueChange={(on) => toggleRule(r.id, on)} />
           ))}
@@ -87,8 +87,8 @@ export default function ShortPaydayReviewScreen() {
         );
       })}
 
-      <View style={styles.card}>
-        <Row label={split.remainder ? `Leftover to ${split.remainder.name}` : 'Leftover'} value={formatNaira(split.remainder?.amountKobo ?? 0)} />
+      <View style={styles.well}>
+        <Row label={split.remainder ? split.remainder.name : 'Leftovers'} value={formatNaira(split.remainder?.amountKobo ?? 0)} />
         <Row label="Bank fees" value={formatNaira(split.totalFeesKobo)} />
       </View>
     </Screen>
@@ -105,10 +105,11 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[3], ...shadow.card },
+  card: { backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: space[4], gap: space[3] },
+  well: { backgroundColor: colors.surfaceSunken, borderRadius: radius.lg, padding: space[4], gap: space[3] },
   heading: { ...type.headline, color: colors.ink },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: space[3] },
-  body: { ...type.body, color: colors.ink, flex: 1 },
+  body: { ...type.label, color: colors.inkMuted, flex: 1 },
   value: { ...type.amountMd, color: colors.ink },
   muted: { ...type.label, color: colors.inkMuted },
 });

@@ -26,6 +26,7 @@ import {
   Slider,
   SplitDonut,
   StatusBadge,
+  badgeWords,
   feeColour,
   leftoverColour,
   sliceColour,
@@ -212,7 +213,7 @@ function Results({ result }: { result: SplitResult }) {
                 key={line.ruleId}
                 style={styles.row}
                 accessible
-                accessibilityLabel={[line.name, formatNaira(line.amountKobo), line.funding, note].filter(Boolean).join(', ')}
+                accessibilityLabel={[line.name, formatNaira(line.amountKobo), badgeWords[line.funding], note].filter(Boolean).join(', ')}
               >
                 <View style={[styles.dot, { backgroundColor: sliceColour(i) }]} />
                 <View style={styles.rowMain}>

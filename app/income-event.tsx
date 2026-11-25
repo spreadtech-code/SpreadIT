@@ -1,13 +1,16 @@
-// S20 Income event detail (E2, D8): the full split, fees, funding labels,
+// S20 Income event detail (E2, D8), shown as "Payday details": the full split, fees, funding labels,
 // transfer statuses, partner references and times.
 // - "Send again" on a Failed or Reversed transfer asks for the PIN, then sends
 //   the same amount to the same account from the SpreadIT balance (D8).
-// - "Open receipt" (tap a transfer) goes to S21. "Get help" goes to S25.
+// - Tap a transfer for its receipt (S21). "Something wrong? Get help" goes to S25.
+// - The split card (funding labels) shows when money ran short or nothing went out;
+//   otherwise "Where it went" already lists every transfer and its status.
 // Opened with ?event=<id>.
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityList, Button, FieldError, PinField, PIN_LENGTH, Screen, Sheet, StatusBadge } from '../src/components';
+import { LifeBuoy } from 'lucide-react-native';
+import { ActivityList, Button, FieldError, InfoRow, Notice, PinField, PIN_LENGTH, Screen, SectionHeader, Sheet, StatusBadge, badgeWords } from '../src/components';
 import { formatNaira } from '../src/engine/format';
 import { useBank } from '../src/fakebank/bankStore';
 import { dayMonth } from '../src/lib/payDates';
@@ -61,45 +64,52 @@ export default function IncomeEventScreen() {
     );
   };
 
+  const someShort = split.lines.some((l) => l.funding !== 'Fully funded');
+
   return (
     <Screen
-      title="Income event"
+      title="Payday details"
       subtitle={`${formatNaira(event.amountKobo)} from ${event.sender}`}
-      footer={<Button label="Get help" variant="quiet" onPress={() => router.push(`/get-help?event=${event.id}`)} />}
+      footer={
+        <Button label="Something wrong? Get help" icon={LifeBuoy} variant="quiet" onPress={() => router.push(`/get-help?event=${event.id}`)} />
+      }
     >
-      <View style={styles.card}>
-        <Row label="Received" value={`${dayMonth(new Date(event.receivedAt))}, ${timeText(event.receivedAt)}`} />
-        {event.executedAt ? <Row label="Sent" value={`${dayMonth(new Date(event.executedAt))}, ${timeText(event.executedAt)}`} /> : null}
-        <Row label="Status" value={stageText[event.stage]} />
-        {waiting ? <Button label="Open payday" variant="secondary" onPress={() => router.push(eventRoute(event) as never)} /> : null}
+      <View style={styles.well}>
+        <InfoRow label="Landed" value={`${dayMonth(new Date(event.receivedAt))}, ${timeText(event.receivedAt)}`} />
+        {event.executedAt ? <InfoRow label="Sent" value={`${dayMonth(new Date(event.executedAt))}, ${timeText(event.executedAt)}`} /> : null}
+        <InfoRow label="Status" value={stageText[event.stage]} />
+        <InfoRow label="Fee to receive" value={formatNaira(split.inflowFeeKobo)} />
+        <InfoRow label="Fees to send" value={formatNaira(event.transfers.length > 0 ? transferFees : split.totalFeesKobo - split.inflowFeeKobo)} />
+        {event.transfers.length === 0 && !waiting ? <Text style={styles.muted}>Nothing went out, so only the fee to receive applied.</Text> : null}
+        {waiting ? <Button label="Open payday" variant="primary" onPress={() => router.push(eventRoute(event) as never)} /> : null}
       </View>
 
       {message ? (
-        <Text style={styles.message} accessibilityLiveRegion="polite">
-          {message}
-        </Text>
+        <Notice text={message} />
       ) : null}
 
-      <View style={styles.card}>
-        <Text style={styles.heading}>The split</Text>
-        {split.lines.map((l) => (
-          <View key={l.ruleId} style={styles.line} accessible accessibilityLabel={`${l.priority}. ${l.name}, ${formatNaira(l.amountKobo)}, ${l.funding}`}>
-            <View style={styles.lineText}>
-              <Text style={styles.body}>
-                {l.priority}. {l.name}
-              </Text>
-              <StatusBadge state={l.funding} />
+      {someShort || event.transfers.length === 0 ? (
+        <View style={styles.card}>
+          <SectionHeader title="The split" />
+          {split.lines.map((l) => (
+            <View key={l.ruleId} style={styles.line} accessible accessibilityLabel={`${l.priority}. ${l.name}, ${formatNaira(l.amountKobo)}, ${badgeWords[l.funding]}`}>
+              <View style={styles.lineText}>
+                <Text style={styles.body}>
+                  {l.priority}. {l.name}
+                </Text>
+                <StatusBadge state={l.funding} />
+              </View>
+              <Text style={styles.value}>{formatNaira(l.amountKobo)}</Text>
             </View>
-            <Text style={styles.value}>{formatNaira(l.amountKobo)}</Text>
-          </View>
-        ))}
-        {split.remainder ? <Row label={`Leftover to ${split.remainder.name}`} value={formatNaira(split.remainder.amountKobo)} /> : null}
-      </View>
+          ))}
+          {split.remainder ? <InfoRow label={`Leftovers to ${split.remainder.name}`} value={formatNaira(split.remainder.amountKobo)} /> : null}
+        </View>
+      ) : null}
 
       {event.transfers.length > 0 ? (
         <>
           <ActivityList
-            title="Transfers"
+            title="Where it went"
             items={transferItems(event, t, (ref) => router.push(`/transfer-receipt?event=${event.id}&ref=${ref}`))}
           />
           {canResend.map((tr) => (
@@ -113,16 +123,16 @@ export default function IncomeEventScreen() {
               }}
             />
           ))}
-          <View style={styles.card}>
-            <Text style={styles.heading}>References</Text>
+          <View style={styles.well}>
+            <Text style={styles.heading}>Bank references</Text>
             {event.transfers.map((tr) => {
               const b = bankTransfer(tr.reference);
               return (
                 <View key={tr.reference} style={styles.ref} accessible>
-                  <Text style={styles.body}>{tr.name}</Text>
+                  <Text style={styles.bodyStrong}>{tr.name}</Text>
                   <Text style={styles.muted} selectable>
                     {b?.partnerReference ?? 'Not sent yet'}
-                    {b?.completedAt ? ` · ${timeText(b.completedAt)}` : b ? ` · instructed ${timeText(b.createdAt)}` : ''}
+                    {b?.completedAt ? ` · ${timeText(b.completedAt)}` : b ? ` · started ${timeText(b.createdAt)}` : ''}
                   </Text>
                 </View>
               );
@@ -130,13 +140,6 @@ export default function IncomeEventScreen() {
           </View>
         </>
       ) : null}
-
-      <View style={styles.card}>
-        <Text style={styles.heading}>Fees</Text>
-        <Row label="To receive" value={formatNaira(split.inflowFeeKobo)} />
-        <Row label="To send" value={formatNaira(event.transfers.length > 0 ? transferFees : split.totalFeesKobo - split.inflowFeeKobo)} />
-        {event.transfers.length === 0 && !waiting ? <Text style={styles.muted}>Nothing was sent, so only the fee to receive applied.</Text> : null}
-      </View>
 
       <Sheet visible={resend !== null} title="Enter your PIN to send again" closeLabel="Cancel" onClose={() => { setResend(null); setPin(''); setPinError(null); }}>
         <Text style={styles.body}>
@@ -149,25 +152,15 @@ export default function IncomeEventScreen() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row} accessible accessibilityLabel={`${label}: ${value}`}>
-      <Text style={styles.muted}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[3], ...shadow.card },
-  heading: { ...type.titleSm, color: colors.ink },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] },
-  rowValue: { ...type.bodyStrong, color: colors.ink, flexShrink: 1, textAlign: 'right' },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[4], gap: space[3], ...shadow.card },
+  well: { backgroundColor: colors.surfaceSunken, borderRadius: radius.lg, padding: space[4], gap: space[2] },
+  heading: { ...type.headline, color: colors.ink },
   line: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
-  lineText: { flex: 1, gap: space[1] },
+  lineText: { flex: 1, gap: space[1], alignItems: 'flex-start' },
   ref: { gap: space[1] },
   body: { ...type.body, color: colors.ink },
+  bodyStrong: { ...type.bodyStrong, color: colors.ink },
   value: { ...type.amountMd, color: colors.ink },
   muted: { ...type.label, color: colors.inkMuted },
-  message: { ...type.bodyStrong, color: colors.ink },
 });

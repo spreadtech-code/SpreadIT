@@ -9,7 +9,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GripVertical, type LucideIcon } from 'lucide-react-native';
 import { colors, radius, shadow, size, space, type } from '../theme/tokens';
 import { formatNaira, maskAccount } from '../engine/format';
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge, badgeWords } from './StatusBadge';
 
 export type FundingState = 'Fully funded' | 'Partly funded' | 'Skipped';
 
@@ -55,7 +55,7 @@ export function RuleCard({
   const amount = formatNaira(skipped ? 0 : amountKobo);
   const where = bankName && accountNumber ? ` · ${bankName} ${maskAccount(accountNumber)}` : ' · No account yet';
   const meta = `${ruleType} · Priority ${priority}${where}`;
-  const spoken = [name, meta, amount, note, funding ? `Status: ${funding}` : null].filter(Boolean).join(', ');
+  const spoken = [name, meta, amount, note, funding ? `Status: ${badgeWords[funding]}` : null].filter(Boolean).join(', ');
 
   return (
     <Pressable

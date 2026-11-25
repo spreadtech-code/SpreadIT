@@ -1,8 +1,9 @@
 // S16 Payday screen (D2, D3, D6, D7).
 // - In the review window: income received, every planned transfer with bank,
-//   last 4 digits and amount, fees, and the countdown. "Execute now", "Pause for
-//   review", "Emergency cancel". When the countdown ends, the transfers go out.
-// - Paused: the same, with no countdown; nothing is sent until "Execute now".
+//   last 4 digits and amount, fees, and the countdown. "Send it now", "Hold for
+//   review", "Stop this payday" (PRD: Execute now / Pause for review / Emergency
+//   cancel). When the countdown ends, the transfers go out.
+// - On hold: the same, with no countdown; nothing is sent until "Send it now".
 // - Sending or done: each transfer's live status (Pending, Processing, Successful,
 //   Retrying with the next try, Sent to fallback, Failed, Reversed).
 // - Not split (cancelled, not income, too small): the money stays in the account.
@@ -42,7 +43,7 @@ export default function PaydayScreen() {
   if (!event) {
     return (
       <Screen title="Payday" footer={<Button label="Back to Home" variant="secondary" onPress={home} />}>
-        <Text style={styles.body}>No payday right now. When income arrives, it shows here.</Text>
+        <Text style={styles.body}>No payday right now. When your pay lands, it shows here.</Text>
       </Screen>
     );
   }
@@ -58,7 +59,7 @@ export default function PaydayScreen() {
           id: l.ruleId,
           name: l.name,
           amountKobo: l.amountKobo,
-          meta: rule?.destination ? `${rule.destination.bankName} ${maskAccount(rule.destination.accountNumber)}` : 'To your fallback account',
+          meta: rule?.destination ? `${rule.destination.bankName} ${maskAccount(rule.destination.accountNumber)}` : 'To your backup account',
           funding: someShort ? l.funding : undefined,
         };
       }),
@@ -70,7 +71,8 @@ export default function PaydayScreen() {
               amountKobo: event.split.remainder.amountKobo,
               meta: event.plan.remainder?.destination
                 ? `${event.plan.remainder.destination.bankName} ${maskAccount(event.plan.remainder.destination.accountNumber)}`
-                : 'To your fallback account',
+                : 'To your backup account',
+              leftovers: true,
             },
           ]
         : []),
@@ -84,7 +86,7 @@ export default function PaydayScreen() {
         onExecute={async () => {
           // F1: nothing is sent while automation is paused.
           if (paused) {
-            Alert.alert('Automation is paused', 'Resume automation first. Then come back and tap "Execute now".', [
+            Alert.alert('Autopilot is paused', 'Resume Autopilot first. Then come back and tap “Send it now”.', [
               { text: 'Not now', style: 'cancel' },
               { text: 'Resume', onPress: () => router.push('/verify-change?resume=1') },
             ]);
@@ -94,10 +96,10 @@ export default function PaydayScreen() {
         }}
         onPause={event.stage === 'review' ? () => holdEvent(event.id) : undefined}
         onCancel={() =>
-          Alert.alert('Cancel this payday?', `Nothing will be sent. ${formatNaira(event.amountKobo)} stays in your SpreadIT account.`, [
+          Alert.alert('Stop this payday?', `Nothing goes out. ${formatNaira(event.amountKobo)} stays in your SpreadIT account.`, [
             { text: 'Keep it', style: 'cancel' },
             {
-              text: 'Emergency cancel',
+              text: 'Stop this payday',
               style: 'destructive',
               onPress: () => {
                 cancelEvent(event.id);
@@ -113,12 +115,12 @@ export default function PaydayScreen() {
   if (event.stage === 'sending' || event.stage === 'done') {
     return (
       <Screen
-        title={event.stage === 'done' ? 'Payday split' : 'Sending your split'}
-        subtitle={`${formatNaira(event.amountKobo)} received ${dayMonth(new Date(event.receivedAt))}`}
+        title={event.stage === 'done' ? 'Payday’s done' : 'Your payday is going out'}
+        subtitle={`${formatNaira(event.amountKobo)} landed ${dayMonth(new Date(event.receivedAt))}`}
         footer={<Button label="Back to Home" variant="secondary" onPress={home} />}
       >
-        <ActivityList title="Where it's going" items={transferItems(event, t, (ref) => router.push(`/transfer-receipt?event=${event.id}&ref=${ref}`))} />
-        <Button label="See full details" variant="quiet" onPress={() => router.push(`/income-event?event=${event.id}`)} />
+        <ActivityList title="Where it’s going" items={transferItems(event, t, (ref) => router.push(`/transfer-receipt?event=${event.id}&ref=${ref}`))} />
+        <Button label="See all the details" variant="quiet" onPress={() => router.push(`/income-event?event=${event.id}`)} />
         <Button label="Get help" variant="quiet" onPress={() => router.push(`/get-help?event=${event.id}`)} />
         <Text style={styles.muted}>Bank fees: {formatNaira(event.split.totalFeesKobo)}</Text>
       </Screen>
@@ -128,17 +130,17 @@ export default function PaydayScreen() {
   // cancelled, notIncome, tooSmall
   const why =
     event.stage === 'cancelled'
-      ? 'You cancelled this payday. Nothing was sent.'
+      ? 'You stopped this payday. Nothing went out.'
       : event.stage === 'notIncome'
-        ? 'You said this isn\'t income, so it wasn\'t split.'
-        : 'This payment is too small to split.';
+        ? 'You said this isn’t pay, so it wasn’t split.'
+        : 'This is too small to split.';
   return (
     <Screen
       title="Not split"
-      subtitle={`${formatNaira(event.amountKobo)} received ${dayMonth(new Date(event.receivedAt))}`}
+      subtitle={`${formatNaira(event.amountKobo)} landed ${dayMonth(new Date(event.receivedAt))}`}
       footer={
         <>
-          <Button label="Send to my account" variant="secondary" onPress={() => router.push('/send-to-my-account')} />
+          <Button label="Move to your account" variant="primary" onPress={() => router.push('/send-to-my-account')} />
           <Button label="Back to Home" variant="quiet" onPress={home} />
         </>
       }

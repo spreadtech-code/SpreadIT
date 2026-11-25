@@ -1,4 +1,4 @@
-// S27 Salary-switch kit (A10): a letter for HR with the user's full name, the
+// S27 Salary-switch kit (A10), shown as "Move your salary here": a letter for HR with the user's full name, the
 // account name exactly as the bank holds it, the account number, bank name and
 // an effective-from date. Shared as text for now (founder decision, 24 Nov 2026:
 // PDF later). -> S15.
@@ -8,7 +8,8 @@
 import { useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, OptionList, Screen } from '../src/components';
+import { Send } from 'lucide-react-native';
+import { Button, InfoRow, Notice, OptionList, Screen } from '../src/components';
 import { now } from '../src/fakebank/bankStore';
 import { hrLetter, longDate } from '../src/lib/hrLetter';
 import { payDates } from '../src/lib/payDates';
@@ -43,7 +44,7 @@ export default function SalarySwitchKitScreen() {
 
   if (!identity || !account) {
     return (
-      <Screen title="Salary-switch kit" footer={<Button label="Back to Home" variant="secondary" onPress={home} />}>
+      <Screen title="Move your salary here" footer={<Button label="Back to Home" variant="secondary" onPress={home} />}>
         <Text style={styles.body}>The letter needs your SpreadIT account. It opens once your identity check passes.</Text>
       </Screen>
     );
@@ -54,32 +55,28 @@ export default function SalarySwitchKitScreen() {
 
   return (
     <Screen
-      title="Salary-switch kit"
-      subtitle="Ask HR to pay your salary straight into SpreadIT. Then it splits with nothing for you to do."
+      title="Move your salary here"
+      subtitle="Ask HR to pay straight into SpreadIT. Then payday splits with nothing to do."
       footer={
         <>
           {letter ? (
-            <Button label="Share letter" variant="primary" onPress={() => Share.share({ message: letter })} />
+            <Button label="Share the letter" icon={Send} variant="primary" accessibilityHint="Shares it as text" onPress={() => Share.share({ message: letter })} />
           ) : (
-            <Button label="Create letter" variant="primary" onPress={create} />
+            <Button label="Create the letter" variant="primary" onPress={create} />
           )}
-          <Button label="Back to Home" variant="quiet" onPress={home} />
+          <Button label="Maybe later" variant="quiet" onPress={home} />
         </>
       }
     >
       {salaryNow && answered === null ? (
-        <View style={styles.card}>
+        <View style={styles.ask}>
           <Text style={styles.heading}>Is this your salary now?</Text>
           <Text style={styles.body}>A payment came from {sender || 'someone else'}, not your own account.</Text>
-          <Button label="Yes" variant="secondary" accessibilityHint="Stops Forward mode reminders" onPress={() => answer(true)} />
+          <Button label="Yes, it is" variant="primary" accessibilityHint="Stops Forward mode reminders" onPress={() => answer(true)} />
           <Button label="No" variant="quiet" onPress={() => answer(false)} />
         </View>
       ) : null}
-      {answered === 'yes' ? (
-        <Text style={styles.message} accessibilityLiveRegion="polite">
-          Great. Forward mode reminders are off: your salary now comes straight in.
-        </Text>
-      ) : null}
+      {answered === 'yes' ? <Notice text="Great. Forward mode reminders are off: your salary now comes straight in." /> : null}
 
       {letter ? (
         <View style={styles.card}>
@@ -91,19 +88,19 @@ export default function SalarySwitchKitScreen() {
         </View>
       ) : (
         <>
-          <View style={styles.card} accessible>
-            <Text style={styles.heading}>Your letter will show</Text>
-            <Text style={styles.body}>Full name: {fullName}</Text>
-            <Text style={styles.body}>Account name: {account.accountName}</Text>
-            <Text style={styles.body}>Account number: {account.accountNumber}</Text>
-            <Text style={styles.body}>Bank: {account.bankName}</Text>
+          <View style={styles.well}>
+            <Text style={styles.small}>Your letter to HR will show</Text>
+            <InfoRow label="Full name" value={fullName} />
+            <InfoRow label="Account name" value={account.accountName} />
+            <InfoRow label="Account number" value={account.accountNumber} />
+            <InfoRow label="Bank" value={account.bankName} />
           </View>
-          <Text style={styles.heading}>Pay into SpreadIT from</Text>
+          <Text style={styles.heading}>Start paying in from</Text>
           <OptionList
-            accessibilityLabel="Pay into SpreadIT from"
+            accessibilityLabel="Start paying in from"
             options={[
               { value: 'next', label: longDate(nextDate), description: next ? 'Your next payday' : 'The 1st of next month' },
-              { value: 'after', label: longDate(afterDate), description: 'Gives HR a full pay cycle' },
+              { value: 'after', label: longDate(afterDate), description: 'Gives HR a full month' },
             ]}
             value={when}
             onChange={setWhen}
@@ -115,10 +112,12 @@ export default function SalarySwitchKitScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[3], ...shadow.card },
-  heading: { ...type.titleSm, color: colors.ink },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[4], gap: space[3], ...shadow.card },
+  ask: { backgroundColor: colors.brandSoft, borderRadius: radius.lg, padding: space[4], gap: space[3] },
+  well: { backgroundColor: colors.surfaceSunken, borderRadius: radius.lg, padding: space[4], gap: space[1] },
+  heading: { ...type.headline, color: colors.ink },
+  small: { ...type.labelStrong, color: colors.inkMuted, marginBottom: space[1] },
   body: { ...type.body, color: colors.ink },
   letter: { ...type.body, color: colors.ink },
-  message: { ...type.bodyStrong, color: colors.ink },
   muted: { ...type.label, color: colors.inkMuted },
 });

@@ -3,8 +3,9 @@
 // group title above. Each row: a pale-aqua icon bubble, a label, an optional value
 // on the right ("On", "15 min") and a chevron when it opens something.
 // Tone "critical" is for Pause everything and Log out (red, no chevron).
+// With `switchValue` the row is an on/off switch instead (tap anywhere on it).
 import { Children, Fragment, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { ChevronRight, type LucideIcon } from 'lucide-react-native';
 import { colors, radius, shadow, size, space, type } from '../theme/tokens';
 
@@ -15,15 +16,21 @@ export interface SettingsRowProps {
   onPress?: () => void;
   tone?: 'default' | 'critical';
   accessibilityHint?: string;
+  /** Makes the row a switch. onPress is then ignored. */
+  switchValue?: boolean;
+  onSwitch?: (value: boolean) => void;
 }
 
-export function SettingsRow({ label, Icon, value, onPress, tone = 'default', accessibilityHint }: SettingsRowProps) {
+export function SettingsRow({ label, Icon, value, onPress, tone = 'default', accessibilityHint, switchValue, onSwitch }: SettingsRowProps) {
   const critical = tone === 'critical';
+  const isSwitch = switchValue !== undefined && onSwitch !== undefined;
+  const press = isSwitch ? () => onSwitch(!switchValue) : onPress;
   return (
     <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      accessibilityRole={onPress ? 'button' : undefined}
+      onPress={press}
+      disabled={!press}
+      accessibilityRole={isSwitch ? 'switch' : press ? 'button' : undefined}
+      accessibilityState={isSwitch ? { checked: switchValue } : undefined}
       accessibilityLabel={value ? `${label}, ${value}` : label}
       accessibilityHint={accessibilityHint}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
@@ -35,7 +42,19 @@ export function SettingsRow({ label, Icon, value, onPress, tone = 'default', acc
         {label}
       </Text>
       {value ? <Text style={styles.value}>{value}</Text> : null}
-      {onPress && !critical ? <ChevronRight size={size.iconSm} color={colors.inkFaint} strokeWidth={1.75} /> : null}
+      {isSwitch ? (
+        <Switch
+          value={switchValue}
+          onValueChange={onSwitch}
+          trackColor={{ false: colors.line, true: colors.primary }}
+          thumbColor={colors.raised}
+          ios_backgroundColor={colors.line}
+          importantForAccessibility="no"
+          accessibilityElementsHidden
+        />
+      ) : onPress && !critical ? (
+        <ChevronRight size={size.iconSm} color={colors.inkFaint} strokeWidth={1.75} />
+      ) : null}
     </Pressable>
   );
 }

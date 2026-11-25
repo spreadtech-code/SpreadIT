@@ -1,8 +1,9 @@
-// OptionList (added stage 3, founder-approved): pick one option. A grey card
-// of rows with hairlines; the selected row is brand-soft with an ink check.
+// OptionList (v4, Figma "OptionRow"): pick one option. Separate rounded rows
+// with a radio circle; the selected row is pale aqua with a deep-teal border
+// and a filled check.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check } from 'lucide-react-native';
-import { colors, radius, shadow, size, space, type } from '../theme/tokens';
+import { colors, radius, size, space, type } from '../theme/tokens';
 
 export interface Option<T extends string> {
   value: T;
@@ -20,8 +21,8 @@ export interface OptionListProps<T extends string> {
 
 export function OptionList<T extends string>({ options, value, onChange, accessibilityLabel }: OptionListProps<T>) {
   return (
-    <View style={styles.card} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
-      {options.map((o, i) => {
+    <View style={styles.list} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
+      {options.map((o) => {
         const selected = o.value === value;
         return (
           <Pressable
@@ -30,18 +31,15 @@ export function OptionList<T extends string>({ options, value, onChange, accessi
             accessibilityRole="radio"
             accessibilityState={{ selected, checked: selected }}
             accessibilityLabel={o.description ? `${o.label}. ${o.description}` : o.label}
-            style={({ pressed }) => [
-              styles.row,
-              i > 0 && styles.hairline,
-              selected && styles.selected,
-              pressed && styles.pressed,
-            ]}
+            style={({ pressed }) => [styles.row, selected && styles.selected, pressed && styles.pressed]}
           >
             <View style={styles.text}>
               <Text style={styles.label}>{o.label}</Text>
               {o.description ? <Text style={styles.description}>{o.description}</Text> : null}
             </View>
-            {selected ? <Check size={size.icon} color={colors.primary} strokeWidth={1.75} /> : null}
+            <View style={[styles.radio, selected && styles.radioOn]}>
+              {selected ? <Check size={size.iconSm - 4} color={colors.onPrimary} strokeWidth={2.5} /> : null}
+            </View>
           </Pressable>
         );
       })}
@@ -50,7 +48,7 @@ export function OptionList<T extends string>({ options, value, onChange, accessi
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, overflow: 'hidden', ...shadow.card },
+  list: { gap: space[2] },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -58,11 +56,24 @@ const styles = StyleSheet.create({
     minHeight: size.buttonHeight,
     paddingHorizontal: space[4],
     paddingVertical: space[3],
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
-  hairline: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line },
-  selected: { backgroundColor: colors.brandSoft },
+  selected: { backgroundColor: colors.brandSoft, borderColor: colors.primary },
   pressed: { opacity: 0.75 },
   text: { flex: 1, gap: space[1] },
   label: { ...type.bodyStrong, color: colors.ink },
   description: { ...type.label, color: colors.inkMuted },
+  radio: {
+    width: 24,
+    height: 24,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioOn: { backgroundColor: colors.primary, borderColor: colors.primary },
 });
