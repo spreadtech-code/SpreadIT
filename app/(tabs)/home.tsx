@@ -55,10 +55,11 @@ export default function HomeDashboardScreen() {
   const unsplit = unsplitKobo(balance, events);
   const next = income ? payDates(income, today).next : null;
 
+  // Design system v3: the middle action is the round "+" button.
   const heroActions = [
     { label: 'Simulate', Icon: Calculator, onPress: () => router.push('/payday-simulator') },
-    { label: 'Send extra', Icon: Send, onPress: () => router.push('/send-extra-once') },
     { label: 'Add rule', Icon: Plus, onPress: () => router.push('/rule-editor?custom=1') },
+    { label: 'Send extra', Icon: Send, onPress: () => router.push('/send-extra-once') },
   ];
 
   return (
@@ -66,20 +67,23 @@ export default function HomeDashboardScreen() {
       style={styles.page}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + space[4], paddingBottom: floatingNavInset(insets.bottom) }]}
     >
-      <BalanceHero
-        initials={initials}
-        label={lastSplit ? `Last payday · ${dayMonth(new Date(lastSplit.receivedAt))}` : 'No payday yet'}
-        amountKobo={lastSplit?.amountKobo ?? 0}
-        actions={heroActions}
-        automation={
-          !automationOn
-            ? { paused: false, off: true, text: 'Automation off' }
-            : paused
-              ? { paused: true }
-              : { paused: false, text: automationText(next, today) }
-        }
-        onWordmarkLongPress={() => router.push('/demo-controls')}
-      />
+      <View style={styles.heroBleed}>
+        <BalanceHero
+          initials={initials}
+          label={lastSplit ? `Last payday · ${dayMonth(new Date(lastSplit.receivedAt))}` : 'No payday yet'}
+          amountKobo={lastSplit?.amountKobo ?? 0}
+          actions={heroActions}
+          automation={
+            !automationOn
+              ? { paused: false, off: true, text: 'Automation off' }
+              : paused
+                ? { paused: true }
+                : { paused: false, text: automationText(next, today) }
+          }
+          onWordmarkLongPress={() => router.push('/demo-controls')}
+          onSettingsPress={() => router.navigate('/settings')}
+        />
+      </View>
 
       {!automationOn ? (
         <>
@@ -245,6 +249,8 @@ function Fact({ Icon, label, value, detail }: { Icon: typeof Wallet; label: stri
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.canvas },
+  // The black hero sits closer to the screen edges than the rest, as in the reference.
+  heroBleed: { marginHorizontal: -space[3] },
   content: { paddingHorizontal: space[5], gap: space[4] },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[3], ...shadow.card },
   cardTitle: { ...type.headline, color: colors.ink },
@@ -254,7 +260,7 @@ const styles = StyleSheet.create({
     width: size.iconCircle,
     height: size.iconCircle,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
+    backgroundColor: colors.raised,
     alignItems: 'center',
     justifyContent: 'center',
   },

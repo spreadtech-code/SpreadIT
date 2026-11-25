@@ -1,12 +1,12 @@
-// ActivityList (docs/design-system.md): rows grouped inside one white card with
-// a title-sm header and hairlines between rows. Used for activity, income history
-// and settings lists.
+// ActivityList (docs/design-system.md v3): a title-sm header, then each row as
+// its own light grey rounded tile, from the home reference's "Portfolio" list.
+// Used for activity, income history and settings lists.
 // Money in: down-left arrow, "+₦" in success, no badge.
 // Money out: up-right arrow, amount in ink, a status badge.
 // Settings rows: no amount; a chevron when the row opens something.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, type LucideIcon } from 'lucide-react-native';
-import { colors, radius, shadow, size, space, type } from '../theme/tokens';
+import { colors, radius, size, space, type } from '../theme/tokens';
 import { formatNaira } from '../engine/format';
 import { StatusBadge, type BadgeState } from './StatusBadge';
 
@@ -30,14 +30,14 @@ export function ActivityList({ title, items }: { title: string; items: ActivityI
       <Text style={styles.title} accessibilityRole="header">
         {title}
       </Text>
-      {items.map((item, i) => (
-        <Row key={item.id} item={item} first={i === 0} />
+      {items.map((item) => (
+        <Row key={item.id} item={item} />
       ))}
     </View>
   );
 }
 
-function Row({ item, first }: { item: ActivityItem; first: boolean }) {
+function Row({ item }: { item: ActivityItem }) {
   const Icon = item.Icon ?? (item.direction === 'in' ? ArrowDownLeft : ArrowUpRight);
   const isIn = item.direction === 'in';
   const amount =
@@ -56,8 +56,7 @@ function Row({ item, first }: { item: ActivityItem; first: boolean }) {
       <View style={styles.iconCircle}>
         <Icon size={size.icon} color={colors.ink} strokeWidth={1.75} />
       </View>
-      {/* The hairline starts after the icon, never across it. */}
-      <View style={[styles.rowMain, !first && styles.hairline]}>
+      <View style={styles.rowMain}>
         <View style={styles.text}>
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.meta}>{item.meta}</Text>
@@ -94,21 +93,22 @@ function Row({ item, first }: { item: ActivityItem; first: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  card: {
+  card: { gap: space[2] },
+  title: { ...type.titleSm, color: colors.ink, marginBottom: space[1] },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[3],
+    minHeight: size.touchMin,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    paddingHorizontal: space[5],
-    paddingTop: space[5],
-    paddingBottom: space[2],
-    ...shadow.card,
+    paddingHorizontal: space[4],
   },
-  title: { ...type.titleSm, color: colors.ink, marginBottom: space[2] },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: size.touchMin },
   iconCircle: {
     width: size.iconCircle,
     height: size.iconCircle,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
+    backgroundColor: colors.raised,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -119,7 +119,6 @@ const styles = StyleSheet.create({
     gap: space[3],
     paddingVertical: space[3],
   },
-  hairline: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line },
   text: { flex: 1 },
   name: { ...type.headline, color: colors.ink },
   meta: { ...type.label, color: colors.inkMuted },

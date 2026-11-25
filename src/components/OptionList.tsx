@@ -1,5 +1,5 @@
-// OptionList (added stage 3, founder-approved): pick one option. A white card
-// of rows with hairlines; the selected row is brand-soft with a deep-teal check.
+// OptionList (added stage 3, founder-approved): pick one option. A grey card
+// of rows with hairlines; the selected row is brand-soft with an ink check.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { colors, radius, shadow, size, space, type } from '../theme/tokens';
@@ -41,7 +41,7 @@ export function OptionList<T extends string>({ options, value, onChange, accessi
               <Text style={styles.label}>{o.label}</Text>
               {o.description ? <Text style={styles.description}>{o.description}</Text> : null}
             </View>
-            {selected ? <Check size={size.icon} color={colors.brandStrong} strokeWidth={1.75} /> : null}
+            {selected ? <Check size={size.icon} color={colors.ink} strokeWidth={1.75} /> : null}
           </Pressable>
         );
       })}

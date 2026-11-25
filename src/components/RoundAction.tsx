@@ -1,14 +1,17 @@
-// RoundAction (docs/design-system.md): a 56px sunken circle with an ink icon and
-// a 14px caption underneath. Never aqua: the hero stays calm so the amount leads.
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+// RoundAction (docs/design-system.md v3): the round button in the middle of the
+// black hero's action row ("+" Add rule), from the home reference. A 56px dark
+// glossy circle with a thin light edge and a white icon. No visible caption, as
+// in the reference; the label is read out by screen readers.
+import { Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { LucideIcon } from 'lucide-react-native';
-import { colors, radius, size, space, type } from '../theme/tokens';
+import { colors, gradients, radius, size } from '../theme/tokens';
 
 export interface RoundActionProps {
   label: string;
   Icon: LucideIcon;
   onPress: () => void;
-  /** Defaults to the caption. */
+  /** Defaults to the label. */
   accessibilityLabel?: string;
 }
 
@@ -18,28 +21,24 @@ export function RoundAction({ label, Icon, onPress, accessibilityLabel }: RoundA
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      style={({ pressed }) => [styles.wrap, pressed && styles.pressed]}
+      style={({ pressed }) => pressed && styles.pressed}
     >
-      <View style={styles.circle}>
-        <Icon size={size.icon} color={colors.ink} strokeWidth={1.75} />
-      </View>
-      <Text style={styles.caption} numberOfLines={2}>
-        {label}
-      </Text>
+      <LinearGradient colors={gradients.pill} style={styles.circle}>
+        <Icon size={size.iconLarge} color={colors.onInverse} strokeWidth={1.75} />
+      </LinearGradient>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', gap: space[2], minWidth: size.roundButton },
   circle: {
     width: size.roundButton,
     height: size.roundButton,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
+    borderWidth: 1,
+    borderColor: colors.inverseLine,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  caption: { ...type.label, color: colors.ink, textAlign: 'center' },
   pressed: { opacity: 0.75 },
 });

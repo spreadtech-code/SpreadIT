@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   dismiss: { flex: 1, minHeight: space[12] },
   sheet: {
     maxHeight: '85%',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.raised,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     paddingHorizontal: space[5],

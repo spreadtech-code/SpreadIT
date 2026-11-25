@@ -119,6 +119,6 @@ const styles = StyleSheet.create({
   heading: { ...type.titleSm, color: colors.ink },
   body: { ...type.body, color: colors.ink },
   letter: { ...type.body, color: colors.ink },
-  message: { ...type.bodyStrong, color: colors.brandStrong },
+  message: { ...type.bodyStrong, color: colors.ink },
   muted: { ...type.label, color: colors.inkMuted },
 });

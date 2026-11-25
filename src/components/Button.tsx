@@ -1,6 +1,7 @@
-// Button (docs/design-system.md): a 56px pill, sentence case, verb first.
-// primary: aqua fill, ink text; at most one per screen.
-// secondary: sunken fill, ink text. quiet: brand-strong text, no fill.
+// Button (docs/design-system.md v3): a 56px pill, sentence case, verb first.
+// primary: black fill, white text; at most one per screen.
+// secondary: white fill with a thin line border (shows on the white page and
+// on grey cards), ink text. quiet: ink text, no fill.
 // critical: critical-soft fill, critical text (Emergency pause, destructive actions).
 // quietCritical: no fill, critical text (Emergency cancel on the payday screen).
 import { Pressable, StyleSheet, Text } from 'react-native';
@@ -8,10 +9,10 @@ import { colors, component, radius, size, space, type } from '../theme/tokens';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'critical' | 'quietCritical';
 
-const variants: Record<ButtonVariant, { fill: string; text: string }> = {
-  primary: { fill: colors.brand, text: colors.onBrand },
-  secondary: { fill: colors.surfaceSunken, text: colors.ink },
-  quiet: { fill: 'transparent', text: colors.brandStrong },
+const variants: Record<ButtonVariant, { fill: string; text: string; border?: string }> = {
+  primary: { fill: colors.inverse, text: colors.onInverse },
+  secondary: { fill: colors.raised, text: colors.ink, border: colors.line },
+  quiet: { fill: 'transparent', text: colors.ink },
   critical: { fill: colors.criticalSoft, text: colors.critical },
   quietCritical: { fill: 'transparent', text: colors.critical },
 };
@@ -47,6 +48,7 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: v.fill },
+        v.border ? { borderWidth: 1, borderColor: v.border } : null,
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
       ]}

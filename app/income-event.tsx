@@ -169,5 +169,5 @@ const styles = StyleSheet.create({
   body: { ...type.body, color: colors.ink },
   value: { ...type.amountMd, color: colors.ink },
   muted: { ...type.label, color: colors.inkMuted },
-  message: { ...type.bodyStrong, color: colors.brandStrong },
+  message: { ...type.bodyStrong, color: colors.ink },
 });

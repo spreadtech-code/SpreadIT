@@ -191,7 +191,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[1], ...shadow.card },
   line: { ...type.body, color: colors.ink },
-  message: { ...type.bodyStrong, color: colors.brandStrong },
+  message: { ...type.bodyStrong, color: colors.ink },
   section: { gap: space[2] },
   heading: { ...type.titleSm, color: colors.ink },
   note: { ...type.label, color: colors.inkMuted },

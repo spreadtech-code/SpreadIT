@@ -226,6 +226,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[2], ...shadow.card },
   cardLabel: { ...type.label, color: colors.inkMuted },
   cardName: { ...type.headline, color: colors.ink },
-  cardNote: { ...type.label, color: colors.brandStrong },
+  cardNote: { ...type.label, color: colors.ink },
   more: { gap: space[2], marginTop: space[4] },
 });

@@ -143,5 +143,5 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[2], ...shadow.card },
   muted: { ...type.label, color: colors.inkMuted },
   name: { ...type.headline, color: colors.ink },
-  note: { ...type.label, color: colors.brandStrong },
+  note: { ...type.label, color: colors.ink },
 });

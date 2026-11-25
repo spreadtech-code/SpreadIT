@@ -1,7 +1,7 @@
 // Screen: the shared page layout for full-screen flows (onboarding, editors).
 // Not a visual component: it only places the existing pieces.
 // - Back row (when there is somewhere to go back to), optional step line, title.
-// - Scrolling content on the mist canvas.
+// - Scrolling content on the white canvas.
 // - Footer buttons pinned above the keyboard (design system "Forms").
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';

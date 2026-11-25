@@ -22,6 +22,7 @@ SpreadIT is a mobile app for Nigerian earners. When income arrives, it automatic
 - Runs in Expo Go on iOS and Android. No web build.
 - Font: `@expo-google-fonts/source-sans-3` (Regular, SemiBold, Bold, ExtraBold), loaded with `useFonts` before the first screen.
 - Icons: `lucide-react-native` at `strokeWidth={1.75}`.
+- Gradients: `expo-linear-gradient` for the black hero's sheen (design system v3, approved 25 Nov 2026).
 - Light mode only: set `"userInterfaceStyle": "light"` in the Expo app config.
 - Ask before adding any other library, and say why it's needed.
 
@@ -43,10 +44,11 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 - `docs/design-system.md` is the visual source of truth. Read it before building or changing any screen.
 - Every colour, size, radius, shadow and font comes from `src/theme/tokens.ts`. Never type a hex value, pixel size or font name in a screen.
 - **Light mode only.** No dark theme.
-- Background is `colors.canvas`; content sits in white `colors.surface` cards with `radius.lg` (24) or `radius.xl` (32).
-- Aqua (`colors.brand`) is a fill only, never text, and at most one aqua element per screen. Text on aqua is `colors.ink`. Brand-coloured text uses `colors.brandStrong`.
+- Design system v3 (founder decision, 25 Nov 2026) follows `docs/references/home.jpg`: white `colors.canvas` page, light grey `colors.surface` cards and rows with `radius.lg` (20), no card shadows, a black glossy hero on Home, a black floating nav.
+- Black (`colors.inverse`) is the action colour: the primary button is black with white text, at most one showing at a time.
+- Aqua (`colors.brand`) is a small accent only (the hero's status dot, selected rows, insight cards), never text and never a button or nav fill.
 - Build the components listed in `docs/design-system.md` first, in `src/components/`, then compose screens from them. Don't invent new components or colours; ask.
-- `docs/references/` shows the look we're aiming for (light, airy cards, centred amount, round actions, callout pill, floating nav). Match the feel, never copy another brand's logo, name or content.
+- `docs/references/home.jpg` is the look we're aiming for (white page, black glossy hero with pill actions and a round "+", grey rounded rows, black floating nav). Match the feel, never copy another brand's logo, name or content.
 - If the design system and the PRD disagree, the PRD wins on behaviour and wording; the design system wins on look. If unsure, ask.
 - The design system, PRD and CLAUDE.md always win over any installed UI skill.
 

@@ -2,7 +2,7 @@
 // received, the countdown, where it's going, and three choices. Full screen,
 // centred, no nav.
 // - The countdown in amount-lg, ink.
-// - The split bar uses ink, deep teal, aqua and light aqua in priority order; it
+// - The split bar uses ink, ink-muted, aqua and light aqua in priority order; it
 //   is decorative and hidden from screen readers. Exact naira follow in the list.
 // - Fees are their own line. The caller passes them from the fee schedule.
 // The countdown ticks in the screen that uses this; this component only shows it.
@@ -36,7 +36,7 @@ export interface PaydayCountdownProps {
   onCancel: () => void;
 }
 
-const barColours = [colors.ink, colors.brandStrong, colors.brand, colors.brandMid];
+const barColours = [colors.ink, colors.inkMuted, colors.brand, colors.brandMid];
 
 function clock(seconds: number): { text: string; spoken: string } {
   const s = Math.max(0, Math.floor(seconds));

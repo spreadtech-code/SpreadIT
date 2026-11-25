@@ -1,6 +1,6 @@
 // PinField (added stage 3, founder-approved): 6 sunken boxes over the phone's
 // number keyboard. Digits show as dots. The box being typed in gets the
-// brand-strong focus ring.
+// black (focusRing) focus border.
 import { useRef, useState, type ComponentRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CircleX } from 'lucide-react-native';
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  boxFocused: { borderColor: colors.brandStrong },
+  boxFocused: { borderColor: colors.focusRing },
   boxError: { borderColor: colors.critical },
   digit: { ...type.titleSm, color: colors.ink },
   dot: { width: space[3], height: space[3], borderRadius: radius.pill, backgroundColor: colors.ink },

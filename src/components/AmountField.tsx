@@ -47,7 +47,7 @@ export function AmountField({ label, valueKobo, onChangeKobo, helper, warning }:
             keyboardType="number-pad"
             placeholder="0"
             placeholderTextColor={colors.inkMuted}
-            selectionColor={colors.brandStrong}
+            selectionColor={colors.ink}
             accessibilityLabel={`${label}, in naira`}
             accessibilityHint={warning ?? helper}
             style={styles.input}
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     borderWidth: component.focusHaloWidth,
     borderColor: 'transparent',
   },
-  haloFocused: { borderColor: colors.brandSoft },
+  haloFocused: { borderColor: colors.line },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[4],
     minHeight: size.buttonHeight,
   },
-  fieldFocused: { borderColor: colors.brandStrong },
+  fieldFocused: { borderColor: colors.focusRing },
   currency: { ...type.amountLg, color: colors.inkMuted },
   input: { ...type.amountLg, color: colors.ink, flex: 1, paddingVertical: space[2] },
   helper: { ...type.label, color: colors.inkMuted },

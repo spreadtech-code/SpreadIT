@@ -37,8 +37,8 @@ import { costTips } from '../src/engine/monthlyCost';
 const noop = () => {};
 const heroActions = [
   { label: 'Simulate', Icon: Calculator, onPress: noop },
-  { label: 'Send extra', Icon: Send, onPress: noop },
   { label: 'Add rule', Icon: Plus, onPress: noop },
+  { label: 'Send extra', Icon: Send, onPress: noop },
 ];
 
 export default function ComponentsScreen() {
@@ -177,7 +177,7 @@ export default function ComponentsScreen() {
           <TextField label="Email" value={text} onChangeText={setText} placeholder="name@example.com" helper="Helper text sits here." />
           <TextField label="With an error" value="tunde@" onChangeText={noop} error="Enter an email address, like name@example.com." />
           <PinField label="6-digit PIN" value={pin} onChange={setPin} autoFocus={false} />
-          <Toggle label="Keep trying if it fails" description="On is deep teal, never aqua." value={toggle} onValueChange={setToggle} />
+          <Toggle label="Keep trying if it fails" description="On is black, never aqua." value={toggle} onValueChange={setToggle} />
           <Toggle label="Disabled switch" value={false} onValueChange={noop} disabled disabledReason="Shown greyed out with the reason." />
         </View>
         <OptionList

@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     width: size.iconCircle,
     height: size.iconCircle,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
+    backgroundColor: colors.raised,
     alignItems: 'center',
     justifyContent: 'center',
   },

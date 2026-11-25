@@ -1,8 +1,8 @@
 // SegmentedControl (docs/design-system.md): a two-way switch for rule type.
-// Sunken track; the selected option is a white pill with shadow-card.
+// Sunken track; the selected option is a white (raised) pill.
 // Each option is at least 44px tall and announces its selected state.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, shadow, size, space, type } from '../theme/tokens';
+import { colors, radius, size, space, type } from '../theme/tokens';
 
 export interface SegmentOption<T extends string> {
   value: T;
@@ -62,6 +62,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: space[3],
   },
-  selected: { backgroundColor: colors.surface, ...shadow.card },
+  selected: { backgroundColor: colors.raised },
   label: { ...type.bodyStrong, textAlign: 'center' },
 });

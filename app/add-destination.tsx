@@ -102,7 +102,7 @@ export default function AddDestinationScreen() {
       />
       {checking ? (
         <View style={styles.row} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={colors.brandStrong} />
+          <ActivityIndicator color={colors.ink} />
           <Text style={styles.muted}>Checking the account name…</Text>
         </View>
       ) : null}

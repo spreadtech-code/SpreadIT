@@ -1,6 +1,8 @@
-// FloatingNav (docs/design-system.md): a white pill floating 16px above the
-// safe-area bottom, 20px from each side. Four destinations; the active one is
-// an aqua pill with ink icon and label, the rest are ink-muted.
+// FloatingNav (docs/design-system.md v3): a black pill floating 16px above the
+// safe-area bottom, 20px from each side, from the home reference. Four
+// destinations; the active one is a white tile with ink icon and label, the
+// rest are light grey. Small labels stay under the icons so every tab is named
+// (the reference shows icons only).
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BottomTabBarProps } from 'expo-router/tabs';
 import { House, ListChecks, ArrowLeftRight, UserRound, type LucideIcon } from 'lucide-react-native';
@@ -35,7 +37,7 @@ export function FloatingNav({ state, descriptors, emitter, navigateToTab, insets
           const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
           if (!focused && !event.defaultPrevented) navigateToTab(route.key);
         };
-        const tint = focused ? colors.onBrand : colors.inkMuted;
+        const tint = focused ? colors.ink : colors.onInverseMuted;
 
         return (
           <Pressable
@@ -66,7 +68,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: space[1],
-    backgroundColor: colors.surface,
+    backgroundColor: colors.inverse,
     borderRadius: radius.pill,
     ...shadow.float,
   },
@@ -78,6 +80,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     gap: space[1],
   },
-  itemActive: { backgroundColor: colors.brand },
+  itemActive: { backgroundColor: colors.raised },
   label: { ...type.caption },
 });
