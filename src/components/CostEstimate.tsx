@@ -1,6 +1,6 @@
 // CostEstimate (added stage 4, founder-approved): the C6 monthly cost line on
 // the plan builder (S6) and the Payday Simulator (S10).
-// - Normal: an info Notice (pale aqua, v4).
+// - Normal: an info Notice (pale blue, v4).
 // - Above 1% of income: the existing warning-hint style (warning-soft fill,
 //   warning icon and text) plus a "Ways to lower your costs" link that opens a
 //   Sheet of tips. The wording and the 1% test come from the engine.

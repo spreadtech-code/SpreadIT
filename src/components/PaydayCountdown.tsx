@@ -2,9 +2,9 @@
 // window. Full screen, no nav.
 // - Top: an arrow-in bubble, "Payday's here", the amount, "just landed in your
 //   SpreadIT account".
-// - A pale-aqua card with the countdown ("until it sends by itself"), or "On hold"
+// - A pale-blue card with the countdown ("until it sends by itself"), or "On hold"
 //   when the window is paused.
-// - A split bar in the teal chart scale (same colours as the dots), decorative
+// - A split bar in the blue chart scale (same colours as the dots), decorative
 //   and hidden from screen readers; then one line per transfer: dot, name, bank
 //   and last 4 digits, amount, and the funding tag when money ran short (D4).
 // - Bank fees on their own line. The caller passes them from the fee schedule.

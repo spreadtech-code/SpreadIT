@@ -1,5 +1,5 @@
 // ActivityList (docs/design-system.md v4, Figma "ActivityItem"): a headline header,
-// then rows on white (no box): a pale-aqua icon bubble, name, muted meta, amount.
+// then rows on white (no box): a pale-blue icon bubble, name, muted meta, amount.
 // Used for activity, income history and settings lists.
 // Money in: down-left arrow, "+₦" in success, no badge.
 // Money out: up-right arrow, amount in ink, a status badge.

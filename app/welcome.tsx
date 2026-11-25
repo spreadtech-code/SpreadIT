@@ -1,4 +1,4 @@
-// S1 Welcome (v4, Figma "S1 Welcome"): a pale-aqua page with the SpreadIT mark,
+// S1 Welcome (v4, Figma "S1 Welcome"): a pale-blue page with the SpreadIT mark,
 // one big promise, one line of detail, "Get started" (sign up, S2) and
 // "Log in" (S31). PRD wording "Sign up / Sign in" maps to these (docs/copy.md).
 import { Pressable, StyleSheet, Text, View } from 'react-native';

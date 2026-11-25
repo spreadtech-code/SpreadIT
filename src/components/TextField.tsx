@@ -1,5 +1,5 @@
 // TextField (added stage 3, founder-approved): a sunken well like AmountField,
-// with the same focus ring (a 1.5px deep-teal border, v4).
+// with the same focus ring (a 1.5px deep-blue border, v4).
 // An error shows in critical text with an icon, never by colour alone.
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';

@@ -25,7 +25,7 @@ export interface SplitDonutProps {
   diameter?: number;
 }
 
-/** Rule slices cycle through the five teal shades; the two greys are kept for
+/** Rule slices cycle through the five blue shades; the two greys are kept for
  *  the leftovers (light grey) and bank fees (mid grey). */
 export function sliceColour(index: number): string {
   return chartColors[index % (chartColors.length - 2)];

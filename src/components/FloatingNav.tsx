@@ -1,7 +1,7 @@
 // NavBar (docs/design-system.md v4, Figma "NavBar"): a white bar fixed to the bottom
 // with rounded top corners and the card shadow. Icons only (each has a spoken label);
-// the active tab is deep teal with a small dot, the rest faint grey. A raised
-// pale-aqua centre button opens the Payday Simulator (S10), SpreadIT's signature action.
+// the active tab is deep blue with a small dot, the rest faint grey. A raised
+// pale-blue centre button opens the Payday Simulator (S10), SpreadIT's signature action.
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/tabs';

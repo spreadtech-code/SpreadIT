@@ -1,8 +1,8 @@
 // Button (docs/design-system.md v4): a 56px pill, sentence case, verb first.
-// primary: deep teal, white text; the main action, at most one per screen.
-// accent: aqua, dark-teal text; a friendly second action (e.g. "Send extra").
+// primary: deep blue, white text; the main action, at most one per screen.
+// accent: sky blue, navy text; a friendly second action (e.g. "Send extra").
 // secondary: white with a thin line border, ink text.
-// quiet: deep-teal text, no fill.
+// quiet: deep-blue text, no fill.
 // critical: critical-soft fill, critical text (Pause everything, destructive actions).
 // quietCritical: no fill, critical text.
 import { Pressable, StyleSheet, Text } from 'react-native';

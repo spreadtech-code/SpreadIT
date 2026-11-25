@@ -44,11 +44,11 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 - `docs/design-system.md` is the visual source of truth. Read it before building or changing any screen.
 - Every colour, size, radius, shadow and font comes from `src/theme/tokens.ts`. Never type a hex value, pixel size or font name in a screen.
 - **Light mode only.** No dark theme.
-- Design system v4 "teal" (founder decision, 25 Nov 2026) comes from the Figma file "SpreadIT — App designs" (https://www.figma.com/design/RDclWHQYxigUF1xz6zQFuk), page "v4 Screens". Each screen in the app matches its Figma frame.
-- White `colors.canvas` page; white `colors.surface` cards with `radius.lg` (24) and the soft teal `shadow.card`; grey `colors.surfaceSunken` wells for inputs and facts. Side margins `layout.screenPadding` (16).
-- Deep teal (`colors.primary`) is the action colour: the primary button is deep teal with white text, at most one showing at a time. Icons sit in pale-aqua (`colors.brandSoft`) bubbles.
-- Aqua (`colors.brand`) is the brand fill for big moments (Welcome tint, the accent "Send extra" button, avatars, the simulator and account cards). Text on aqua is `colors.onBrand`, never white.
-- Where money went is a donut (`SplitDonut`) with a dot legend. The nav is a white bar with a raised pale-aqua Simulate button in the middle.
+- Design system v4 in the Blue colours (founder decisions, 25 Nov 2026: v4 layout, then "stick to the Blue for now") comes from the Figma file "SpreadIT — App designs" (https://www.figma.com/design/RDclWHQYxigUF1xz6zQFuk), page "v4 Screens", colour mode "Blue". Each screen in the app matches its Figma frame.
+- White `colors.canvas` page; white `colors.surface` cards with `radius.lg` (24) and the soft navy `shadow.card`; grey `colors.surfaceSunken` wells for inputs and facts. Side margins `layout.screenPadding` (16).
+- Deep blue (`colors.primary`) is the action colour: the primary button is deep blue with white text, at most one showing at a time. Icons sit in pale-blue (`colors.brandSoft`) bubbles.
+- Sky blue (`colors.brand`) is the brand fill for big moments (Welcome tint, the accent "Send extra" button, avatars, the simulator and account cards). Text on sky blue is `colors.onBrand` (navy), never white.
+- Where money went is a donut (`SplitDonut`) with a dot legend. The nav is a white bar with a raised pale-blue Simulate button in the middle.
 - Build the components listed in `docs/design-system.md` first, in `src/components/`, then compose screens from them. Don't invent new components or colours; ask.
 - `docs/references/` holds the reference screenshots the look grew from. Match the feel, never copy another brand's logo, name or content.
 - If the design system and the PRD disagree, the PRD wins on behaviour; the design system (and Figma) wins on look; wording follows `docs/copy.md`. If unsure, ask.
@@ -90,7 +90,7 @@ docs/references/  Screenshots of reference apps the design is based on. Look, do
 6. **Dashboard, history, receipts, summary:** S15, S19–S21, S30.
    - *Order change (founder decision, 23 Nov 2026):* S15 Home was built early, after stage 4. Stage 5b wired it to fake-bank paydays and removed the temporary demo payday.
 7. **Settings, security and v1.1 features:** S22–S29 (Forward mode, salary-switch kit, send extra once, skip once, send to my account, pause).
-8. **Design system v4 (Figma):** port the Figma v4 teal design into the app: tokens, Host Grotesk, components, every screen, and the app wording in `docs/copy.md` (founder decision, 25 Nov 2026).
+8. **Design system v4 (Figma):** port the Figma v4 design into the app (now in the Blue colours): tokens, Host Grotesk, components, every screen, and the app wording in `docs/copy.md` (founder decision, 25 Nov 2026).
 
 ## UI rules (PRD 4.1)
 

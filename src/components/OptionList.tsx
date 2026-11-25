@@ -1,5 +1,5 @@
 // OptionList (v4, Figma "OptionRow"): pick one option. Separate rounded rows
-// with a radio circle; the selected row is pale aqua with a deep-teal border
+// with a radio circle; the selected row is pale blue with a deep-blue border
 // and a filled check.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check } from 'lucide-react-native';

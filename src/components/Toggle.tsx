@@ -1,4 +1,4 @@
-// Toggle (added stage 3, founder-approved): an on/off row. "On" is deep teal
+// Toggle (added stage 3, founder-approved): an on/off row. "On" is deep blue
 // (primary, design system v4).
 // The whole row is the touch target; the state is announced as on/off.
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';

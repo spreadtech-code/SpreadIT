@@ -1,6 +1,6 @@
 // S10 Payday Simulator, "Try a payday" (C1-C6). v2 layout approved by the founder
 // on 25 Nov 2026 (Figma frames 45:1816 and 45:2001).
-// - An aqua card holds the amount ("If this lands", tap the pencil or the number to
+// - A sky-blue card holds the amount ("If this lands", tap the pencil or the number to
 //   type) and the what-if slider. There is no Run button: the split updates live
 //   as the amount or the slider changes (founder decision; replaces C1's "Run
 //   simulation" tap).

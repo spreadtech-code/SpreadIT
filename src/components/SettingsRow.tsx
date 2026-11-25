@@ -1,6 +1,6 @@
 // SettingsRow + SettingsGroup (docs/design-system.md v4, Figma "SettingsRow", S22
 // Profile): a white card of rows split by thin lines, with an optional muted
-// group title above. Each row: a pale-aqua icon bubble, a label, an optional value
+// group title above. Each row: a pale-blue icon bubble, a label, an optional value
 // on the right ("On", "15 min") and a chevron when it opens something.
 // Tone "critical" is for Pause everything and Log out (red, no chevron).
 // With `switchValue` the row is an on/off switch instead (tap anywhere on it).

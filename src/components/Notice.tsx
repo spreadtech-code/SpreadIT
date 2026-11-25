@@ -1,5 +1,5 @@
 // Notice (docs/design-system.md v4, Figma "Notice"): a soft, rounded one-line message
-// with an icon. Tones: info (pale aqua, deep teal), warning (amber), critical (red).
+// with an icon. Tones: info (pale blue, deep blue), warning (amber), critical (red).
 // The words always say what happened; the colour only backs them up.
 import { StyleSheet, Text, View } from 'react-native';
 import { CircleX, Info, TriangleAlert } from 'lucide-react-native';

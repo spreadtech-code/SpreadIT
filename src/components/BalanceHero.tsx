@@ -3,9 +3,9 @@
 // - Greeting ("Hi, Tunde") with a one-line status under it, and a round bell on the right.
 // - A muted label ("Last payday · 25 November"), then the amount, large and regular
 //   weight, with faint kobo on the baseline.
-// - The autopilot chip: a pale-aqua pill with a dot (deep teal when on, red when
+// - The autopilot chip: a pale-blue pill with a dot (deep blue when on, red when
 //   paused, grey when off) and words.
-// - Actions: a deep-teal button, an aqua button and a round pale-aqua "+".
+// - Actions: a deep-blue button, a sky-blue button and a round pale-blue "+".
 // Prototype only: holding the greeting for 1 second opens the hidden Demo controls.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Bell, type LucideIcon } from 'lucide-react-native';
@@ -27,7 +27,7 @@ export interface BalanceHeroProps {
   /** e.g. "Last payday · 25 November". */
   label: string;
   amountKobo: number;
-  /** Up to three: the first is deep teal, the second aqua, the third a round button. */
+  /** Up to three: the first is deep blue, the second sky blue, the third a round button. */
   actions: HeroAction[];
   /** The chip under the amount. */
   autopilot: { state: 'on' | 'paused' | 'off'; text: string };

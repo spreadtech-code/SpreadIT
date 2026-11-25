@@ -1,8 +1,9 @@
-// SpreadIT design tokens — design system v4 "teal" (light mode only), approved by
-// the founder on 25 Nov 2026 and taken from the Figma file "SpreadIT — App designs"
-// (variable collection "SpreadIT v4", mode "Teal").
-// A white page, white cards with a soft teal-tinted shadow, deep-teal actions, aqua as
-// the brand fill, Host Grotesk in light-to-regular weights.
+// SpreadIT design tokens — design system v4 in the "Blue" colours (light mode only).
+// Layout and type approved by the founder on 25 Nov 2026; colours switched from teal to
+// blue the same day ("stick to the Blue for now"). Taken from the Figma file
+// "SpreadIT — App designs" (variable collection "SpreadIT v4", mode "Blue").
+// A white page, white cards with a soft navy-tinted shadow, deep-blue actions, sky blue
+// as the brand fill, Host Grotesk in light-to-regular weights.
 // Never type a colour, size or font name in a screen: import from here.
 
 export const colors = {
@@ -13,28 +14,28 @@ export const colors = {
   /** Sheets, alerts, the selected segment: white above everything. */
   raised: '#FFFFFF',
   /** Wells: inputs, code boxes, info panels, segmented tracks, neutral tags. */
-  surfaceSunken: '#F2F6F6',
-  line: '#E2E9EA',
-  ink: '#101819',
-  inkMuted: '#5C6A6C',
+  surfaceSunken: '#F2F5F9',
+  line: '#E3E8F0',
+  ink: '#0F1623',
+  inkMuted: '#5A6577',
   /** Decoration only (kobo, empty states, inactive nav icons). Never body text. */
-  inkFaint: '#97A3A5',
+  inkFaint: '#98A2B3',
 
-  /** SpreadIT aqua: the brand fill (Welcome, accent buttons, avatars, big cards). */
-  brand: '#6EE2E6',
-  /** Light aqua: chart slices, tints. */
-  brandMid: '#B8EEF0',
-  /** Pale aqua: icon bubbles, chips, notices, the selected option. */
-  brandSoft: '#E3F8F9',
-  /** Deep teal text on brandSoft (same as primary). */
-  brandStrong: '#0A6E73',
-  /** Text and icons on aqua. */
-  onBrand: '#08393C',
+  /** SpreadIT sky blue: the brand fill (Welcome, accent buttons, avatars, big cards). */
+  brand: '#7CC4FF',
+  /** Light blue: chart slices, the slider track on the brand card. */
+  brandMid: '#C7E3FF',
+  /** Pale blue: icon bubbles, chips, notices, the selected option. */
+  brandSoft: '#EAF4FF',
+  /** Deep blue text on brandSoft (same as primary). */
+  brandStrong: '#1846B8',
+  /** Text and icons on sky blue and pale blue (navy). */
+  onBrand: '#0B2A5B',
 
-  /** Deep teal: the main action (primary button), icons, active nav, toggles, slider. */
-  primary: '#0A6E73',
-  /** Darkest teal: big numbers on aqua. */
-  primaryDeep: '#064A4E',
+  /** Deep blue: the main action (primary button), icons, active nav, toggles, slider. */
+  primary: '#1846B8',
+  /** Navy: the darkest chart slice. */
+  primaryDeep: '#0B2A5B',
   onPrimary: '#FFFFFF',
 
   success: '#1E7B34',
@@ -43,12 +44,12 @@ export const colors = {
   warningSoft: '#FFF3DE',
   critical: '#B42330',
   criticalSoft: '#FDECEC',
-  scrim: 'rgba(16, 24, 25, 0.45)',
-  focusRing: '#0A6E73',
+  scrim: 'rgba(15, 22, 35, 0.45)',
+  focusRing: '#1846B8',
 } as const;
 
-/** Split slices in priority order (donut, split bar, legend dots): deep teal to light aqua, then greys. */
-export const chartColors = ['#064A4E', '#0A6E73', '#2A9CA2', '#6EE2E6', '#B8EEF0', '#CED6D8', '#8E9A9C'] as const;
+/** Split slices in priority order (donut, split bar, legend dots): navy to light blue, then greys. */
+export const chartColors = ['#0B2A5B', '#1846B8', '#3F7BE0', '#7CC4FF', '#C7E3FF', '#CDD5E0', '#8E99AA'] as const;
 
 export const space = {
   1: 4,
@@ -118,10 +119,10 @@ export const type = {
   caption: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, letterSpacing: 0.1 },
 } as const;
 
-// Shadows (Figma "v4/card" and "v4/float"): teal-tinted. iOS uses shadow*, Android elevation.
+// Shadows (Figma "v4/card" and "v4/float"): navy-tinted. iOS uses shadow*, Android elevation.
 export const shadow = {
-  card: { shadowColor: '#06282C', shadowOpacity: 0.1, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
-  float: { shadowColor: '#06282C', shadowOpacity: 0.16, shadowRadius: 22, shadowOffset: { width: 0, height: 12 }, elevation: 8 },
+  card: { shadowColor: '#0B1A3A', shadowOpacity: 0.1, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
+  float: { shadowColor: '#0B1A3A', shadowOpacity: 0.16, shadowRadius: 22, shadowOffset: { width: 0, height: 12 }, elevation: 8 },
 } as const;
 
 export const component = {

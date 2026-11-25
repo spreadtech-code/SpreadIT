@@ -1,6 +1,6 @@
 // Chip (docs/design-system.md v4, Figma "Chip"): a small pill for picking one of a
 // few quick values (e.g. ₦500k / ₦850k / ₦1.2m on the simulator). Selected: deep
-// teal with white text; otherwise pale aqua with deep-teal text.
+// blue with white text; otherwise pale blue with deep-blue text.
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors, radius, size, space, type } from '../theme/tokens';
 

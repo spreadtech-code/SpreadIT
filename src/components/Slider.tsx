@@ -1,8 +1,8 @@
 // Slider (added stage 4, founder-approved): drag to pick a value in steps.
 // Used by the Payday Simulator's what-if slider (C5).
 // - Built on @react-native-community/slider (works in Expo Go).
-// - Track and thumb are deep teal (primary, design system v4). On the aqua
-//   simulator card (tone "onBrand") everything is dark teal (onBrand).
+// - Track and thumb are deep blue (primary, design system v4). On the sky-blue
+//   simulator card (tone "onBrand") everything is navy (onBrand).
 // - The current value is always written above the track, never shown by position alone.
 // - Screen readers treat it as adjustable: swipe up or down to move one step.
 import RNSlider from '@react-native-community/slider';
@@ -21,7 +21,7 @@ export interface SliderProps {
   /** Words under each end of the track, e.g. "10%" and "150%". */
   minText?: string;
   maxText?: string;
-  /** "onBrand" when the slider sits on an aqua (brand) card. */
+  /** "onBrand" when the slider sits on a sky-blue (brand) card. */
   tone?: 'default' | 'onBrand';
 }
 
