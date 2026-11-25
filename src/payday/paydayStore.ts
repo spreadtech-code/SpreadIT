@@ -31,7 +31,12 @@ export interface PretendAlert {
   /** Where tapping it goes. */
   route: string;
   createdAt: number;
+  /** Notifications filter: money (paydays, transfers) or security (changes, pause). */
+  kind?: 'money' | 'security';
 }
+
+/** The Notifications screen keeps the newest alerts, even after the pop-down is closed. */
+export const INBOX_LIMIT = 50;
 
 /** B14 "Send extra once" and D13 "Send to my account": transfers outside a payday. */
 export interface OneOffTransfer {
@@ -52,6 +57,10 @@ export interface OneOffTransfer {
 interface PaydayStore {
   events: IncomeEvent[];
   alerts: PretendAlert[];
+  /** Notifications history, newest last (founder request, 25 Nov 2026). */
+  inbox: PretendAlert[];
+  /** When the Notifications screen was last opened: newer items show as unread. */
+  inboxSeenAt: number;
   oneOffs: OneOffTransfer[];
   /** A9: Forward mode reminders sent, per payday ("2026-11-25" -> 1 or 2). */
   forwardReminders: Record<string, number>;
@@ -64,6 +73,8 @@ interface PaydayStore {
 const emptyStore: PaydayStore = {
   events: [],
   alerts: [],
+  inbox: [],
+  inboxSeenAt: 0,
   oneOffs: [],
   forwardReminders: {},
   salaryKitOffered: false,
@@ -80,15 +91,24 @@ export const usePaydays = create<PaydayStore>()(
 let counter = 0;
 const newId = (prefix: string) => `${prefix}${bank.now().toString(36)}${(counter++).toString(36)}`;
 
-function alert(title: string, body: string, route: string): void {
-  const a: PretendAlert = { id: newId('AL'), title, body, route, createdAt: bank.now() };
-  usePaydays.setState((s) => ({ alerts: [...s.alerts, a] }));
+function alert(title: string, body: string, route: string, kind: 'money' | 'security' = 'money'): void {
+  const a: PretendAlert = { id: newId('AL'), title, body, route, createdAt: bank.now(), kind };
+  usePaydays.setState((s) => ({ alerts: [...s.alerts, a], inbox: [...(s.inbox ?? []), a].slice(-INBOX_LIMIT) }));
 }
 
 /** F4: the pretend email and SMS for a sensitive change. Tapping it = "This wasn't me". */
 export function securityAlerts(alerts: readonly ChangeAlert[]): void {
-  for (const a of alerts) alert(a.title, a.body, '/emergency-pause?notMe=1');
+  for (const a of alerts) alert(a.title, a.body, '/emergency-pause?notMe=1', 'security');
 }
+
+/** Notifications: everything up to now has been seen. */
+export function markInboxSeen(): void {
+  usePaydays.setState({ inboxSeenAt: bank.now() });
+}
+
+/** Notifications not seen yet (for the dot on the Home bell). */
+export const unreadCount = (s: Pick<PaydayStore, 'inbox' | 'inboxSeenAt'>): number =>
+  (s.inbox ?? []).filter((a) => a.createdAt > (s.inboxSeenAt ?? 0)).length;
 
 export function dismissAlert(id: string): void {
   usePaydays.setState((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) }));
@@ -515,6 +535,7 @@ function pauseReminder(t: number): void {
     'Autopilot is paused',
     next ? `Autopilot is paused. Resume before your next payday on ${dayMonth(next)}?` : 'Autopilot is paused. Resume before your next payday?',
     '/verify-change?resume=1',
+    'security',
   );
   app.notePauseReminder();
 }

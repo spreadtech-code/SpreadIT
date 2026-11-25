@@ -12,6 +12,8 @@
 //   failed-transfer alerts are always on and say so.
 // - Security: auto-lock after 5 minutes (F5) and signed-in phones with
 //   "Log out" for each (F6), in a sheet.
+// - PIN and face unlock (change PIN, the face/fingerprint switch) and Terms and
+//   privacy: founder additions, 25 Nov 2026.
 // - Log out of this phone (A3, PRD "Sign out").
 // Hidden: hold the "Profile" title for 1 second to open the Components screen.
 import { useState } from 'react';
@@ -27,6 +29,8 @@ import {
   CirclePlay,
   Clock,
   Forward,
+  FileText,
+  KeyRound,
   Landmark,
   LifeBuoy,
   Lock,
@@ -181,12 +185,14 @@ export default function SettingsScreen() {
       </SettingsGroup>
 
       <SettingsGroup title="Security">
+        <SettingsRow label="PIN and face unlock" Icon={KeyRound} onPress={() => router.push('/pin-and-unlock')} />
         <SettingsRow label="Auto-lock" Icon={Lock} value="5 min" accessibilityHint="After 5 minutes in the background, SpreadIT asks for your PIN." />
         <SettingsRow label="Signed-in phones" Icon={Smartphone} value={String(otherDevices.length + 1)} onPress={() => setSheet('phones')} />
       </SettingsGroup>
 
       <SettingsGroup title="Help">
         <SettingsRow label="Get help" Icon={LifeBuoy} onPress={() => router.push('/get-help')} />
+        <SettingsRow label="Terms and privacy" Icon={FileText} onPress={() => router.push('/terms')} />
       </SettingsGroup>
 
       <SettingsGroup>

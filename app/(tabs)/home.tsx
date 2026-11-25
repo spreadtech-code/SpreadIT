@@ -24,7 +24,7 @@ import { useBank } from '../../src/fakebank/bankStore';
 import { automationText, dayMonth, payDates } from '../../src/lib/payDates';
 import { unsplitKobo, WAITING_STAGES, type IncomeEvent } from '../../src/payday/events';
 import { useNow } from '../../src/payday/PaydayRunner';
-import { bankTransfer, eventRoute, usePaydays } from '../../src/payday/paydayStore';
+import { bankTransfer, eventRoute, unreadCount, usePaydays } from '../../src/payday/paydayStore';
 import { transferItems } from '../../src/payday/transferItems';
 import { goLiveRoute, isPaused, useApp } from '../../src/state/appStore';
 import { colors, layout, radius, shadow, size, space, type } from '../../src/theme/tokens';
@@ -39,6 +39,7 @@ export default function HomeDashboardScreen() {
   const paused = useApp((s) => isPaused(s));
   const events = usePaydays((s) => s.events);
   const oneOffs = usePaydays((s) => s.oneOffs);
+  const unread = usePaydays(unreadCount);
   const balance = useBank((s) => s.bank.balanceKobo);
   useBank((s) => s.bank.transfers); // re-render when a status changes
   const t = useNow();
@@ -101,7 +102,8 @@ export default function HomeDashboardScreen() {
               : { state: 'on', text: automationText(next, today) }
         }
         onGreetingLongPress={() => router.push('/demo-controls')}
-        onBellPress={() => router.navigate('/income-history')}
+        onBellPress={() => router.push('/notifications')}
+        unread={unread}
       />
 
       {!automationOn ? (

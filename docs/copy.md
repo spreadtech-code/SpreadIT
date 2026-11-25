@@ -124,6 +124,10 @@ The PRD (`docs/PRD.md`) stays as it is: it is the spec and uses formal product w
 | S30 Monthly summary | Your November |
 | S31 Sign in | Welcome back |
 | S32 Unlock | Hi again, Tunde |
+| Notifications (founder addition) | Notifications |
+| PIN and face unlock (founder addition) | PIN and face unlock / Change PIN: Enter your current PIN, Choose a new PIN, Enter it again |
+| Terms and privacy (founder addition) | Terms and privacy / Terms of use, Privacy notice, How your money is held, Fees |
+| Forgot password (founder addition) | Reset your password / Choose a new password |
 
 ## Short lines used across the app
 

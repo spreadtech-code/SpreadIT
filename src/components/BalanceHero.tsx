@@ -33,9 +33,11 @@ export interface BalanceHeroProps {
   autopilot: { state: 'on' | 'paused' | 'off'; text: string };
   onGreetingLongPress?: () => void;
   onBellPress?: () => void;
+  /** How many notifications are new: shows a dot on the bell and says the number. */
+  unread?: number;
 }
 
-export function BalanceHero({ greeting, status, label, amountKobo, actions, autopilot, onGreetingLongPress, onBellPress }: BalanceHeroProps) {
+export function BalanceHero({ greeting, status, label, amountKobo, actions, autopilot, onGreetingLongPress, onBellPress, unread = 0 }: BalanceHeroProps) {
   const parts = nairaParts(amountKobo);
   const dot = autopilot.state === 'on' ? colors.primary : autopilot.state === 'paused' ? colors.critical : colors.inkFaint;
   const chipFill = autopilot.state === 'paused' ? colors.criticalSoft : colors.brandSoft;
@@ -52,8 +54,9 @@ export function BalanceHero({ greeting, status, label, amountKobo, actions, auto
           <Text style={styles.status}>{status}</Text>
         </Pressable>
         {onBellPress ? (
-          <Pressable onPress={onBellPress} accessibilityRole="button" accessibilityLabel="Notifications" style={({ pressed }) => [styles.bell, pressed && styles.pressed]}>
+          <Pressable onPress={onBellPress} accessibilityRole="button" accessibilityLabel={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'} style={({ pressed }) => [styles.bell, pressed && styles.pressed]}>
             <Bell size={size.icon} color={colors.ink} strokeWidth={1.75} />
+            {unread > 0 ? <View style={styles.badge} /> : null}
           </Pressable>
         ) : null}
       </View>
@@ -125,4 +128,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pressed: { opacity: 0.8 },
+  badge: {
+    position: 'absolute',
+    top: space[2],
+    right: space[2],
+    width: space[3],
+    height: space[3],
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.surfaceSunken,
+  },
 });

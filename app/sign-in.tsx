@@ -1,4 +1,5 @@
 // S31 Sign in (founder addition): phone or email + password -> S15 Home.
+// "Forgot password?" opens the reset flow (founder addition, 25 Nov 2026).
 // Prototype: checks the one account saved on this phone. A real server comes later.
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -24,7 +25,16 @@ export default function SignInScreen() {
   };
 
   return (
-    <Screen title="Welcome back" subtitle="Log in with your phone or email." footer={<Button label="Log in" variant="primary" onPress={submit} />}>
+    <Screen
+      title="Welcome back"
+      subtitle="Log in with your phone or email."
+      footer={
+        <>
+          <Button label="Log in" variant="primary" onPress={submit} />
+          <Button label="Forgot password?" variant="quiet" onPress={() => router.push('/forgot-password')} />
+        </>
+      }
+    >
       <TextField label="Phone or email" value={id} onChangeText={setId} keyboardType="email-address" autoComplete="username" textContentType="username" autoFocus />
       <TextField label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" textContentType="password" onSubmitEditing={submit} />
       {error ? <FieldError message={error} /> : null}

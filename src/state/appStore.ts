@@ -116,6 +116,14 @@ interface AppState {
   setPin: (pin: string, biometric: boolean) => void;
   enterPin: (pin: string, now: number) => PinResult;
   signIn: (phoneOrEmail: string, password: string) => boolean;
+  /** PIN and face unlock: a new PIN after the current one was entered (keeps the face/fingerprint choice). */
+  changePin: (newPin: string) => void;
+  /** PIN and face unlock: the face or fingerprint switch. */
+  setBiometric: (on: boolean) => void;
+  /** Forgot password, step 1: sends the pretend SMS code if the phone or email is this account's. */
+  requestPasswordReset: (phoneOrEmail: string) => boolean;
+  /** Forgot password, step 2: the code from step 1 and a new password. Logs in on success. */
+  resetPassword: (code: string, newPassword: string, now: number) => 'ok' | 'wrong' | 'expired';
   saveIncome: (income: Income) => void;
   saveRule: (rule: Rule) => void;
   deleteRule: (id: RuleId) => void;
@@ -224,6 +232,28 @@ export const useApp = create<AppState>()(
         if (!matches || prototypeHash(password) !== account.passwordHash) return false;
         set({ unlocked: true, signedOut: false });
         return true;
+      },
+
+      changePin: (newPin) => set({ pin: { ...freshPin, pinHash: prototypeHash(newPin), biometric: get().pin.biometric } }),
+
+      setBiometric: (on) => set({ pin: { ...get().pin, biometric: on } }),
+
+      requestPasswordReset: (phoneOrEmail) => {
+        const { account } = get();
+        if (!account) return false;
+        const id = phoneOrEmail.trim().toLowerCase();
+        if (id !== account.email && normalisePhone(id) !== account.phone) return false;
+        set({ smsCode: { code: sixDigitCode(), expiresAt: Date.now() + SMS_CODE_MS } });
+        return true;
+      },
+
+      resetPassword: (code, newPassword, now) => {
+        const { smsCode, account } = get();
+        if (!smsCode || !account) return 'wrong';
+        if (now > smsCode.expiresAt) return 'expired';
+        if (code !== smsCode.code) return 'wrong';
+        set({ account: { ...account, passwordHash: prototypeHash(newPassword) }, smsCode: null, unlocked: true, signedOut: false });
+        return 'ok';
       },
 
       saveIncome: (income) => set({ income }),
