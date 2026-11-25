@@ -40,7 +40,7 @@ export function AlertBanner({ title, body, onOpen, onClose }: AlertBannerProps) 
           accessibilityHint="Opens it"
         >
           <View style={styles.iconCircle}>
-            <Bell size={size.icon} color={colors.ink} strokeWidth={1.75} />
+            <Bell size={size.icon} color={colors.primary} strokeWidth={1.75} />
           </View>
           <View style={styles.text}>
             <Text style={styles.title}>{title}</Text>
@@ -75,10 +75,10 @@ const styles = StyleSheet.create({
   },
   main: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space[3] },
   iconCircle: {
-    width: size.iconCircle,
-    height: size.iconCircle,
+    width: size.bubble,
+    height: size.bubble,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
+    backgroundColor: colors.brandSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },

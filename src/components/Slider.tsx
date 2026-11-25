@@ -1,7 +1,7 @@
 // Slider (added stage 4, founder-approved): drag to pick a value in steps.
 // Used by the Payday Simulator's what-if slider (C5).
 // - Built on @react-native-community/slider (works in Expo Go).
-// - Track and thumb are black (inverse, design system v3).
+// - Track and thumb are deep teal (primary, design system v4).
 // - The current value is always written above the track, never shown by position alone.
 // - Screen readers treat it as adjustable: swipe up or down to move one step.
 import RNSlider from '@react-native-community/slider';
@@ -36,9 +36,9 @@ export function Slider({ label, valueText, value, min, max, step, onChange, minT
         maximumValue={max}
         step={step}
         onValueChange={(v) => onChange(Math.round(v / step) * step)}
-        minimumTrackTintColor={colors.inverse}
+        minimumTrackTintColor={colors.primary}
         maximumTrackTintColor={colors.line}
-        thumbTintColor={colors.inverse}
+        thumbTintColor={colors.primary}
         tapToSeek
         accessibilityLabel={label}
         accessibilityValue={{ text: valueText }}
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   wrap: { gap: space[1] },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: space[3], flexWrap: 'wrap' },
   label: { ...type.headline, color: colors.ink },
-  value: { ...type.bodyStrong, color: colors.ink },
+  value: { ...type.bodyStrong, color: colors.primary },
   track: { width: '100%', height: size.touchMin },
   ends: { flexDirection: 'row', justifyContent: 'space-between' },
   end: { ...type.label, color: colors.inkMuted },

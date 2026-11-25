@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[2], ...shadow.card },
   summary: { ...type.headline, color: colors.ink },
   track: { height: space[2], borderRadius: radius.pill, backgroundColor: colors.surfaceSunken, overflow: 'hidden' },
-  fill: { height: space[2], backgroundColor: colors.inverse },
+  fill: { height: space[2], backgroundColor: colors.primary },
   warning: {
     flexDirection: 'row',
     alignItems: 'center',

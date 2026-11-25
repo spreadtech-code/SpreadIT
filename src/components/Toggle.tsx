@@ -1,5 +1,5 @@
-// Toggle (added stage 3, founder-approved): an on/off row. "On" is black
-// (inverse, design system v3), never aqua.
+// Toggle (added stage 3, founder-approved): an on/off row. "On" is deep teal
+// (primary, design system v4).
 // The whole row is the touch target; the state is announced as on/off.
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { colors, component, size, space, type } from '../theme/tokens';
@@ -34,7 +34,7 @@ export function Toggle({ label, value, onValueChange, description, disabled = fa
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
-        trackColor={{ false: colors.line, true: colors.inverse }}
+        trackColor={{ false: colors.line, true: colors.primary }}
         thumbColor={colors.raised}
         ios_backgroundColor={colors.line}
         importantForAccessibility="no"
@@ -47,7 +47,7 @@ export function Toggle({ label, value, onValueChange, description, disabled = fa
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: size.touchMin, paddingVertical: space[2] },
   text: { flex: 1, gap: space[1] },
-  label: { ...type.headline, color: colors.ink },
+  label: { ...type.bodyStrong, color: colors.ink },
   detail: { ...type.label, color: colors.inkMuted },
   disabled: { opacity: component.disabledOpacity },
 });

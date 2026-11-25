@@ -1,156 +1,128 @@
-// BalanceHero (docs/design-system.md v3): the top of Home, from the home
-// reference. A black card with a soft sheen (expo-linear-gradient), white text.
-// - Top row: the user's initials (left), the "SpreadIT" wordmark (centre) and a
-//   round Settings button (right).
-// - A muted label, then the amount in amount-xl with kobo on the baseline.
-// - Actions: dark glossy pills either side of a round "+" (RoundAction). With 3
-//   actions the middle one is the round button; otherwise all are pills.
-// - The status pill at the bottom: a dot and the automation status. The dot is
-//   aqua when on (the one aqua accent), critical when paused, grey when off.
-// Prototype only: holding the wordmark for 1 second opens the hidden Demo controls.
+// BalanceHero (docs/design-system.md v4, Figma "S15 Home"): the top of Home on the
+// white page — no card.
+// - Greeting ("Hi, Tunde") with a one-line status under it, and a round bell on the right.
+// - A muted label ("Last payday · 25 November"), then the amount, large and regular
+//   weight, with faint kobo on the baseline.
+// - The autopilot chip: a pale-aqua pill with a dot (deep teal when on, red when
+//   paused, grey when off) and words.
+// - Actions: a deep-teal button, an aqua button and a round pale-aqua "+".
+// Prototype only: holding the greeting for 1 second opens the hidden Demo controls.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Settings } from 'lucide-react-native';
-import { colors, component, fonts, gradients, radius, size, space, type } from '../theme/tokens';
+import { Bell, type LucideIcon } from 'lucide-react-native';
+import { colors, component, radius, size, space, type } from '../theme/tokens';
 import { formatNaira, nairaParts } from '../engine/format';
-import { RoundAction, type RoundActionProps } from './RoundAction';
+import { Button } from './Button';
+
+export interface HeroAction {
+  label: string;
+  Icon: LucideIcon;
+  onPress: () => void;
+}
 
 export interface BalanceHeroProps {
-  initials: string;
+  /** e.g. "Hi, Tunde". */
+  greeting: string;
+  /** One short line under the greeting, e.g. "Payday’s done. Everything’s sent." */
+  status: string;
   /** e.g. "Last payday · 25 November". */
   label: string;
   amountKobo: number;
-  actions: RoundActionProps[];
-  /** off: automation not switched on yet (grey dot, the given text). */
-  automation: { paused: false; text: string; off?: boolean } | { paused: true };
-  onWordmarkLongPress?: () => void;
-  onSettingsPress?: () => void;
+  /** Up to three: the first is deep teal, the second aqua, the third a round button. */
+  actions: HeroAction[];
+  /** The chip under the amount. */
+  autopilot: { state: 'on' | 'paused' | 'off'; text: string };
+  onGreetingLongPress?: () => void;
+  onBellPress?: () => void;
 }
 
-export function BalanceHero({ initials, label, amountKobo, actions, automation, onWordmarkLongPress, onSettingsPress }: BalanceHeroProps) {
+export function BalanceHero({ greeting, status, label, amountKobo, actions, autopilot, onGreetingLongPress, onBellPress }: BalanceHeroProps) {
   const parts = nairaParts(amountKobo);
-  const statusText = automation.paused ? 'Automation paused' : automation.text;
-  const dot = automation.paused ? colors.critical : automation.off ? colors.onInverseMuted : colors.brand;
-  const roundIndex = actions.length === 3 ? 1 : -1;
+  const dot = autopilot.state === 'on' ? colors.primary : autopilot.state === 'paused' ? colors.critical : colors.inkFaint;
+  const chipFill = autopilot.state === 'paused' ? colors.criticalSoft : colors.brandSoft;
+  const chipText = autopilot.state === 'paused' ? colors.critical : colors.primary;
+  const [first, second, round] = actions;
 
   return (
-    <LinearGradient colors={gradients.hero} style={styles.card}>
+    <View style={styles.wrap}>
       <View style={styles.topRow}>
-        <View style={styles.avatar} accessible accessibilityLabel={`Profile, ${initials}`}>
-          <Text style={styles.initials}>{initials}</Text>
-        </View>
-        <Pressable onLongPress={onWordmarkLongPress} delayLongPress={1000} disabled={!onWordmarkLongPress}>
-          <Text style={styles.wordmark} accessibilityRole="header">
-            SpreadIT
+        <Pressable onLongPress={onGreetingLongPress} delayLongPress={1000} disabled={!onGreetingLongPress} style={styles.greeting}>
+          <Text style={styles.hello} accessibilityRole="header">
+            {greeting}
           </Text>
+          <Text style={styles.status}>{status}</Text>
         </Pressable>
-        {onSettingsPress ? (
-          <Pressable onPress={onSettingsPress} accessibilityRole="button" accessibilityLabel="Settings" style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-            <Settings size={size.icon} color={colors.onInverse} strokeWidth={1.75} />
+        {onBellPress ? (
+          <Pressable onPress={onBellPress} accessibilityRole="button" accessibilityLabel="Notifications" style={({ pressed }) => [styles.bell, pressed && styles.pressed]}>
+            <Bell size={size.icon} color={colors.ink} strokeWidth={1.75} />
           </Pressable>
-        ) : (
-          <View style={styles.iconButtonSpace} />
-        )}
+        ) : null}
       </View>
 
-      <View style={styles.centre} accessible accessibilityLabel={`${label}. ${formatNaira(amountKobo)}`}>
+      <View style={styles.balance} accessible accessibilityLabel={`${label}. ${formatNaira(amountKobo)}. ${autopilot.text}`}>
         <Text style={styles.label}>{label}</Text>
         <Text style={styles.amount} adjustsFontSizeToFit numberOfLines={1}>
           {parts.sign}
           {parts.naira}
           <Text style={styles.kobo}>.{parts.kobo}</Text>
         </Text>
+        <View style={[styles.chip, { backgroundColor: chipFill }]}>
+          <View style={[styles.dot, { backgroundColor: dot }]} />
+          <Text style={[styles.chipText, { color: chipText }]}>{autopilot.text}</Text>
+        </View>
       </View>
 
-      <View style={styles.actions}>
-        {actions.map((a, i) => (i === roundIndex ? <RoundAction key={a.label} {...a} /> : <HeroPill key={a.label} {...a} />))}
-      </View>
-
-      <View style={styles.status} accessible accessibilityRole="text" accessibilityLabel={statusText}>
-        <View style={[styles.dot, { backgroundColor: dot }]} />
-        <Text style={styles.statusText}>{statusText}</Text>
-      </View>
-    </LinearGradient>
-  );
-}
-
-/** A dark glossy pill with an icon and a word, on the black hero. */
-function HeroPill({ label, Icon, onPress, accessibilityLabel }: RoundActionProps) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel ?? label} style={({ pressed }) => [styles.pillWrap, pressed && styles.pressed]}>
-      <LinearGradient colors={gradients.pill} style={styles.pill}>
-        <Icon size={size.icon} color={colors.onInverse} strokeWidth={1.75} />
-        <Text style={styles.pillText} numberOfLines={1}>
-          {label}
-        </Text>
-      </LinearGradient>
-    </Pressable>
+      {actions.length > 0 ? (
+        <View style={styles.actions}>
+          {first ? <View style={styles.flex}><Button label={first.label} icon={first.Icon} variant="primary" compact onPress={first.onPress} /></View> : null}
+          {second ? <View style={styles.flex}><Button label={second.label} icon={second.Icon} variant="accent" compact onPress={second.onPress} /></View> : null}
+          {round ? (
+            <Pressable onPress={round.onPress} accessibilityRole="button" accessibilityLabel={round.label} style={({ pressed }) => [styles.round, pressed && styles.pressed]}>
+              <round.Icon size={24} color={colors.primary} strokeWidth={1.75} />
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: radius.xl,
-    paddingTop: space[4],
-    paddingBottom: space[5],
-    paddingHorizontal: space[4],
-    gap: space[6],
-    alignItems: 'stretch',
-  },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  avatar: {
-    width: size.iconCircle,
-    height: size.iconCircle,
+  wrap: { gap: space[6] },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  greeting: { flex: 1, gap: space[1] },
+  hello: { ...type.titleSm, color: colors.ink },
+  status: { ...type.label, color: colors.inkMuted },
+  bell: {
+    width: size.bubble,
+    height: size.bubble,
     borderRadius: radius.pill,
-    backgroundColor: colors.inverseRaised,
-    borderWidth: 1,
-    borderColor: colors.inverseLine,
+    backgroundColor: colors.surfaceSunken,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  initials: { ...type.caption, color: colors.onInverse },
-  wordmark: { ...type.headline, fontFamily: fonts.bold, color: colors.onInverse },
-  iconButton: {
-    width: size.touchMin,
-    height: size.touchMin,
-    borderRadius: radius.pill,
-    backgroundColor: colors.inverseRaised,
-    borderWidth: 1,
-    borderColor: colors.inverseLine,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconButtonSpace: { width: size.touchMin, height: size.touchMin },
-  centre: { alignItems: 'center', gap: space[1] },
-  label: { ...type.label, color: colors.onInverseMuted, textAlign: 'center' },
-  amount: { ...type.amountXl, color: colors.onInverse, textAlign: 'center', fontVariant: ['tabular-nums'] },
-  kobo: { ...component.koboText, color: colors.onInverseMuted },
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[3] },
-  pillWrap: { flexShrink: 1 },
-  pill: {
-    minHeight: size.heroPill,
+  balance: { gap: space[2], alignItems: 'flex-start' },
+  label: { ...type.label, color: colors.inkMuted },
+  amount: { ...type.amountXl, color: colors.ink, fontVariant: ['tabular-nums'] },
+  kobo: { ...component.koboText, color: colors.inkFaint },
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[2],
-    paddingHorizontal: space[4],
+    minHeight: 32,
+    paddingHorizontal: space[3],
     borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.inverseLine,
-  },
-  pillText: { ...type.label, fontFamily: fonts.semibold, color: colors.onInverse, flexShrink: 1 },
-  status: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[2],
-    minHeight: size.touchMin - space[2],
-    paddingHorizontal: space[4],
-    borderRadius: radius.pill,
-    backgroundColor: colors.inverseRaised,
-    borderWidth: 1,
-    borderColor: colors.inverseLine,
   },
   dot: { width: space[2], height: space[2], borderRadius: radius.pill },
-  statusText: { ...type.label, color: colors.onInverse, flexShrink: 1 },
-  pressed: { opacity: 0.75 },
+  chipText: { ...type.labelStrong, flexShrink: 1 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+  flex: { flex: 1 },
+  round: {
+    width: size.buttonHeight,
+    height: size.buttonHeight,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brandSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: { opacity: 0.8 },
 });

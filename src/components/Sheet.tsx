@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius, space, type } from '../theme/tokens';
+import { colors, layout, radius, space, type } from '../theme/tokens';
 import { Button } from './Button';
 
 export interface SheetProps {
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.raised,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
-    paddingHorizontal: space[5],
+    paddingHorizontal: layout.screenPadding,
     paddingTop: space[6],
     gap: space[4],
   },

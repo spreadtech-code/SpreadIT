@@ -1,12 +1,12 @@
 // Every component from docs/design-system.md.
 export { ActivityList, type ActivityItem } from './ActivityList';
 export { AmountField } from './AmountField';
-export { BalanceHero } from './BalanceHero';
+export { BalanceHero, type HeroAction } from './BalanceHero';
+export { SplitDonut, SplitLegend, sliceColour, feeColour, leftoverColour, type SplitSlice } from './SplitDonut';
 export { Button, type ButtonVariant } from './Button';
 export { FloatingNav } from './FloatingNav';
 export { InsightCard } from './InsightCard';
 export { PaydayCountdown, type PaydayAllocation } from './PaydayCountdown';
-export { RoundAction } from './RoundAction';
 export { RuleCard, type FundingState } from './RuleCard';
 export { SegmentedControl } from './SegmentedControl';
 export { StatusBadge, badgeStates, type BadgeState } from './StatusBadge';
@@ -20,3 +20,10 @@ export { CostEstimate } from './CostEstimate';
 export { Sheet } from './Sheet';
 export { AlertBanner } from './AlertBanner';
 export { categoryIcon } from './categoryIcons';
+export { Notice, type NoticeTone } from './Notice';
+export { SectionHeader } from './SectionHeader';
+export { Chip } from './Chip';
+export { InfoRow } from './InfoRow';
+export { AccountCard } from './AccountCard';
+export { SettingsGroup, SettingsRow } from './SettingsRow';
+export { BackButton } from './Screen';

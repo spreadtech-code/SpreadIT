@@ -41,7 +41,7 @@ export function OptionList<T extends string>({ options, value, onChange, accessi
               <Text style={styles.label}>{o.label}</Text>
               {o.description ? <Text style={styles.description}>{o.description}</Text> : null}
             </View>
-            {selected ? <Check size={size.icon} color={colors.ink} strokeWidth={1.75} /> : null}
+            {selected ? <Check size={size.icon} color={colors.primary} strokeWidth={1.75} /> : null}
           </Pressable>
         );
       })}
@@ -56,13 +56,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space[3],
     minHeight: size.buttonHeight,
-    paddingHorizontal: space[5],
+    paddingHorizontal: space[4],
     paddingVertical: space[3],
   },
   hairline: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line },
   selected: { backgroundColor: colors.brandSoft },
   pressed: { opacity: 0.75 },
   text: { flex: 1, gap: space[1] },
-  label: { ...type.headline, color: colors.ink },
+  label: { ...type.bodyStrong, color: colors.ink },
   description: { ...type.label, color: colors.inkMuted },
 });

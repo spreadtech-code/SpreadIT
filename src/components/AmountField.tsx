@@ -1,5 +1,5 @@
 // AmountField (docs/design-system.md): naira entry for the rule editor, send
-// extra and the simulator. ₦ fixed in ink-muted; the amount in 30px heavy with
+// extra and the simulator. ₦ faint; the amount large and regular-weight with
 // thousands separators. The helper always shows the real transfer cost; when the
 // caller passes a stamp-duty warning, it replaces the helper.
 // Fees are worked out by the fee schedule (stage 2), never in this component.
@@ -46,8 +46,8 @@ export function AmountField({ label, valueKobo, onChangeKobo, helper, warning }:
             onBlur={() => setFocused(false)}
             keyboardType="number-pad"
             placeholder="0"
-            placeholderTextColor={colors.inkMuted}
-            selectionColor={colors.ink}
+            placeholderTextColor={colors.inkFaint}
+            selectionColor={colors.primary}
             accessibilityLabel={`${label}, in naira`}
             accessibilityHint={warning ?? helper}
             style={styles.input}
@@ -68,13 +68,9 @@ export function AmountField({ label, valueKobo, onChangeKobo, helper, warning }:
 
 const styles = StyleSheet.create({
   wrap: { gap: space[2] },
-  label: { ...type.label, color: colors.inkMuted },
-  halo: {
-    borderRadius: radius.md + component.focusHaloWidth,
-    borderWidth: component.focusHaloWidth,
-    borderColor: 'transparent',
-  },
-  haloFocused: { borderColor: colors.line },
+  label: { ...type.labelStrong, color: colors.inkMuted },
+  halo: {},
+  haloFocused: {},
   field: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -84,10 +80,10 @@ const styles = StyleSheet.create({
     borderWidth: component.focusRingWidth,
     borderColor: 'transparent',
     paddingHorizontal: space[4],
-    minHeight: size.buttonHeight,
+    minHeight: 72,
   },
   fieldFocused: { borderColor: colors.focusRing },
-  currency: { ...type.amountLg, color: colors.inkMuted },
+  currency: { ...type.amountLg, color: colors.inkFaint },
   input: { ...type.amountLg, color: colors.ink, flex: 1, paddingVertical: space[2] },
   helper: { ...type.label, color: colors.inkMuted },
   warning: {

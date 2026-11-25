@@ -1,69 +1,76 @@
-// SpreadIT design tokens — design system v3 (light mode only), from the founder's
-// "home" reference (docs/references/home.jpg), approved 25 Nov 2026.
-// A white page, a black glossy hero, black actions, light grey rounded rows.
+// SpreadIT design tokens — design system v4 "teal" (light mode only), approved by
+// the founder on 25 Nov 2026 and taken from the Figma file "SpreadIT — App designs"
+// (variable collection "SpreadIT v4", mode "Teal").
+// A white page, white cards with a soft teal-tinted shadow, deep-teal actions, aqua as
+// the brand fill, Host Grotesk in light-to-regular weights.
 // Never type a colour, size or font name in a screen: import from here.
 
 export const colors = {
-  /** The page: white. */
+  /** The page. */
   canvas: '#FFFFFF',
-  /** Cards and list rows: light grey on the white page, no shadow. */
-  surface: '#F4F4F5',
-  /** White panels that sit above everything: sheets, alerts, the selected segment. */
+  /** Cards and panels: white, lifted by shadow.card. */
+  surface: '#FFFFFF',
+  /** Sheets, alerts, the selected segment: white above everything. */
   raised: '#FFFFFF',
-  /** Wells inside cards: inputs, icon circles, secondary buttons, tracks. */
-  surfaceSunken: '#E8E8EB',
-  line: '#DFDFE3',
-  ink: '#111113',
-  inkMuted: '#5E5F66',
+  /** Wells: inputs, code boxes, info panels, segmented tracks, neutral tags. */
+  surfaceSunken: '#F2F6F6',
+  line: '#E2E9EA',
+  ink: '#101819',
+  inkMuted: '#5C6A6C',
+  /** Decoration only (kobo, empty states, inactive nav icons). Never body text. */
+  inkFaint: '#97A3A5',
 
-  /** Black: the Home hero, the nav and the primary button. */
-  inverse: '#0D0D0F',
-  /** Pills and the round button on the black hero. */
-  inverseRaised: '#1C1C20',
-  /** The thin glossy edge on pills and buttons on black. */
-  inverseLine: 'rgba(255, 255, 255, 0.16)',
-  onInverse: '#FFFFFF',
-  onInverseMuted: '#A9A9B2',
-
-  /** SpreadIT aqua: a small accent only (status dot, selected row tint). Never text. */
+  /** SpreadIT aqua: the brand fill (Welcome, accent buttons, avatars, big cards). */
   brand: '#6EE2E6',
+  /** Light aqua: chart slices, tints. */
   brandMid: '#B8EEF0',
+  /** Pale aqua: icon bubbles, chips, notices, the selected option. */
   brandSoft: '#E3F8F9',
-  /** Deep teal for the rare brand-coloured text: insight titles, text on brand-soft. */
+  /** Deep teal text on brandSoft (same as primary). */
   brandStrong: '#0A6E73',
-  onBrand: '#111113',
+  /** Text and icons on aqua. */
+  onBrand: '#08393C',
 
-  success: '#127A3E',
-  successSoft: '#E8F6EE',
-  warning: '#8F5200',
-  warningSoft: '#FFF4E0',
-  critical: '#B4232B',
+  /** Deep teal: the main action (primary button), icons, active nav, toggles, slider. */
+  primary: '#0A6E73',
+  /** Darkest teal: big numbers on aqua. */
+  primaryDeep: '#064A4E',
+  onPrimary: '#FFFFFF',
+
+  success: '#1E7B34',
+  successSoft: '#E7F6EA',
+  warning: '#8A5300',
+  warningSoft: '#FFF3DE',
+  critical: '#B42330',
   criticalSoft: '#FDECEC',
-  scrim: 'rgba(13, 13, 15, 0.45)',
-  focusRing: '#111113',
+  scrim: 'rgba(16, 24, 25, 0.45)',
+  focusRing: '#0A6E73',
 } as const;
 
-/** expo-linear-gradient stops, top to bottom: the sheen on black. */
-export const gradients = {
-  hero: ['#2C2C31', '#0D0D0F'],
-  pill: ['#303036', '#17171A'],
-} as const;
+/** Split slices in priority order (donut, split bar, legend dots): deep teal to light aqua, then greys. */
+export const chartColors = ['#064A4E', '#0A6E73', '#2A9CA2', '#6EE2E6', '#B8EEF0', '#CED6D8', '#8E9A9C'] as const;
 
 export const space = {
-  1: 4, // space-1
-  2: 8, // space-2
-  3: 12, // space-3
-  4: 16, // space-4
-  5: 20, // space-5
-  6: 24, // space-6
-  8: 32, // space-8
-  12: 48, // space-12
+  1: 4,
+  2: 8,
+  3: 12,
+  4: 16,
+  5: 20,
+  6: 24,
+  8: 32,
+  10: 40,
+  12: 48,
+} as const;
+
+/** Page layout. v4: 16px side margins (founder decision). */
+export const layout = {
+  screenPadding: 16,
 } as const;
 
 export const radius = {
   sm: 12,
   md: 16,
-  lg: 20,
+  lg: 24,
   xl: 32,
   pill: 999,
 } as const;
@@ -71,55 +78,60 @@ export const radius = {
 export const size = {
   touchMin: 44,
   buttonHeight: 56,
-  roundButton: 56,
-  /** The dark pills on the hero (Simulate, Send extra) and the status pill. */
-  heroPill: 44,
+  /** Round icon bubbles (list rows, back button). */
+  bubble: 44,
+  /** Small bubbles in settings rows. */
+  bubbleSm: 36,
+  /** The raised centre Simulate button in the nav. */
+  navCentre: 52,
   navHeight: 64,
   icon: 22,
-  /** The "+" in the hero's round button. */
+  iconSm: 18,
   iconLarge: 28,
-  iconCircle: 40,
+  /** One box of a PIN or SMS code. */
+  codeBoxWidth: 48,
+  codeBoxHeight: 56,
+  donut: 168,
 } as const;
 
-// Font files come from @expo-google-fonts/source-sans-3; load these names with useFonts().
+// Font files come from @expo-google-fonts/host-grotesk; load these names with useFonts().
 export const fonts = {
-  regular: 'SourceSans3_400Regular',
-  semibold: 'SourceSans3_600SemiBold',
-  bold: 'SourceSans3_700Bold',
-  extrabold: 'SourceSans3_800ExtraBold',
+  regular: 'HostGrotesk_400Regular',
+  medium: 'HostGrotesk_500Medium',
+  semibold: 'HostGrotesk_600SemiBold',
 } as const;
 
-// Text styles. In React Native, each weight is its own font file, so fontFamily carries the weight.
-// v3: lighter weights, as in the reference: amounts SemiBold, titles Bold.
+// Text styles (Figma "v4/…" text styles). Light-to-regular weights: big numbers and
+// headlines stay Regular, names and buttons Medium.
 export const type = {
-  amountXl: { fontFamily: fonts.semibold, fontSize: 48, lineHeight: 56, letterSpacing: -1.2 },
-  amountLg: { fontFamily: fonts.semibold, fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
-  amountMd: { fontFamily: fonts.semibold, fontSize: 17, lineHeight: 24 },
-  title: { fontFamily: fonts.bold, fontSize: 28, lineHeight: 34, letterSpacing: -0.4 },
-  titleSm: { fontFamily: fonts.semibold, fontSize: 20, lineHeight: 26 },
-  headline: { fontFamily: fonts.semibold, fontSize: 17, lineHeight: 24 },
+  display: { fontFamily: fonts.regular, fontSize: 40, lineHeight: 46, letterSpacing: -1.2 },
+  amountXl: { fontFamily: fonts.regular, fontSize: 40, lineHeight: 48, letterSpacing: -1.2 },
+  amountLg: { fontFamily: fonts.regular, fontSize: 28, lineHeight: 34, letterSpacing: -0.8 },
+  amountMd: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, letterSpacing: -0.1 },
+  title: { fontFamily: fonts.medium, fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
+  titleSm: { fontFamily: fonts.medium, fontSize: 20, lineHeight: 26, letterSpacing: -0.2 },
+  headline: { fontFamily: fonts.medium, fontSize: 17, lineHeight: 24, letterSpacing: -0.1 },
   body: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 24 },
-  bodyStrong: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 24 },
+  bodyStrong: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 24 },
   label: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
-  caption: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 18 },
+  labelStrong: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  caption: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, letterSpacing: 0.1 },
 } as const;
 
-// Shadows: iOS uses the shadow* values, Android uses elevation.
-// v3: cards have no shadow (grey on white is enough); float is for sheets, alerts and the nav.
+// Shadows (Figma "v4/card" and "v4/float"): teal-tinted. iOS uses shadow*, Android elevation.
 export const shadow = {
-  card: { shadowColor: '#0D0D0F', shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 }, elevation: 0 },
-  float: { shadowColor: '#0D0D0F', shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 10 }, elevation: 6 },
+  card: { shadowColor: '#06282C', shadowOpacity: 0.1, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
+  float: { shadowColor: '#06282C', shadowOpacity: 0.16, shadowRadius: 22, shadowOffset: { width: 0, height: 12 }, elevation: 8 },
 } as const;
 
-// Sizes the component specs name.
 export const component = {
-  koboText: { fontFamily: fonts.semibold, fontSize: 20, lineHeight: 26 }, // BalanceHero kobo, on the baseline
-  focusRingWidth: 2,
-  focusHaloWidth: 3,
-  badgeIcon: 14,
+  koboText: { fontFamily: fonts.regular, fontSize: 22, lineHeight: 28, letterSpacing: -0.4 },
+  focusRingWidth: 1.5,
+  badgeIcon: 12,
   splitBarHeight: 12,
+  donutThickness: 0.26,
   disabledOpacity: 0.45,
 } as const;
 
-export const theme = { colors, gradients, space, radius, size, fonts, type, shadow, component };
+export const theme = { colors, chartColors, space, layout, radius, size, fonts, type, shadow, component };
 export type Theme = typeof theme;

@@ -1,14 +1,25 @@
 // Hidden "Components" screen (stage 1b): every component from
 // docs/design-system.md in its states, to check on a phone.
-// Open it by holding the "Settings" title on the Profile tab for 1 second.
+// Open it by holding the "Profile" title on the Profile tab for 1 second.
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calculator, Church, Heart, House, PiggyBank, Plus, Send, Settings, ShieldCheck, TrendingUp } from 'lucide-react-native';
+import { Bot, Calculator, Church, CirclePause, Clock, Heart, House, Landmark, LogOut, PiggyBank, Plus, Send, Settings, ShieldCheck, TrendingUp } from 'lucide-react-native';
 import {
+  AccountCard,
   ActivityList,
   AmountField,
+  Chip,
+  InfoRow,
+  Notice,
+  SectionHeader,
+  SettingsGroup,
+  SettingsRow,
+  SplitDonut,
+  SplitLegend,
+  feeColour,
+  leftoverColour,
   CostEstimate,
   Slider,
   BalanceHero,
@@ -27,7 +38,7 @@ import {
 import { useApp } from '../src/state/appStore';
 import { resetBank } from '../src/fakebank/bankStore';
 import { resetPaydays } from '../src/payday/paydayStore';
-import { colors, radius, shadow, space, type } from '../src/theme/tokens';
+import { colors, layout, radius, shadow, space, type } from '../src/theme/tokens';
 import { tundeIncomeKobo } from '../src/components/demoData';
 import { feeSchedule } from '../src/data/feeSchedule';
 import { transferCostText } from '../src/engine/fees';
@@ -37,8 +48,17 @@ import { costTips } from '../src/engine/monthlyCost';
 const noop = () => {};
 const heroActions = [
   { label: 'Simulate', Icon: Calculator, onPress: noop },
-  { label: 'Add rule', Icon: Plus, onPress: noop },
   { label: 'Send extra', Icon: Send, onPress: noop },
+  { label: 'Add a rule', Icon: Plus, onPress: noop },
+];
+const tundeSlices = [
+  { id: 'mum', name: 'Mum', amountKobo: 8_000_000 },
+  { id: 'rent', name: 'Rent', amountKobo: 15_000_000 },
+  { id: 'tithe', name: 'Tithe', amountKobo: 8_500_000 },
+  { id: 'savings', name: 'Savings', amountKobo: 12_750_000 },
+  { id: 'invest', name: 'Investment', amountKobo: 5_000_000 },
+  { id: 'left', name: 'Leftovers', amountKobo: 35_662_500, colour: leftoverColour },
+  { id: 'fees', name: 'Bank fees', amountKobo: 87_500, colour: feeColour },
 ];
 
 export default function ComponentsScreen() {
@@ -68,23 +88,71 @@ export default function ComponentsScreen() {
       </Text>
       <Text style={styles.note}>Hidden check screen. Example numbers only.</Text>
 
-      <Section title="BalanceHero, automation on">
+      <Section title="BalanceHero, Autopilot on">
         <BalanceHero
-          initials="TA"
+          greeting="Hi, Tunde"
+          status="Payday’s done. Everything’s sent."
           label="Last payday · 25 November"
-          amountKobo={35_662_500}
+          amountKobo={85_000_000}
           actions={heroActions}
-          automation={{ paused: false, text: 'Automation on · next payday in 30 days' }}
+          autopilot={{ state: 'on', text: 'Autopilot on · next payday 25 Dec' }}
+          onBellPress={noop}
         />
       </Section>
       <Section title="BalanceHero, paused">
         <BalanceHero
-          initials="TA"
+          greeting="Hi, Tunde"
+          status="Everything is paused."
           label="Last payday · 25 November"
           amountKobo={100_020}
           actions={heroActions}
-          automation={{ paused: true }}
+          autopilot={{ state: 'paused', text: 'Autopilot paused' }}
         />
+      </Section>
+
+      <Section title="SplitDonut and legend">
+        <View style={styles.stack}>
+          <SectionHeader title="Where it went" action="Details" onPress={noop} />
+          <SplitDonut slices={tundeSlices} centre="₦850,000" caption="split 7 ways" />
+          <SplitLegend slices={tundeSlices} />
+        </View>
+      </Section>
+
+      <Section title="Notice">
+        <View style={styles.rules}>
+          <Notice text="Changes start from your next payday." />
+          <Notice tone="warning" text="Stamp duty: ₦50 on transfers of ₦10,000 or more." />
+          <Notice tone="critical" text="That PIN didn’t match. Try again." />
+        </View>
+      </Section>
+
+      <Section title="Chip">
+        <View style={styles.chips}>
+          <Chip label="₦500k" onPress={noop} />
+          <Chip label="₦850k" selected onPress={noop} />
+          <Chip label="₦1.2m" onPress={noop} />
+        </View>
+      </Section>
+
+      <Section title="AccountCard, InfoRow">
+        <AccountCard accountName="Folasade Adeyemi" bankName="GTBank" accountNumber="0123454821" onChange={noop} />
+        <View style={styles.stack}>
+          <InfoRow label="Amount" value="₦80,000" />
+          <InfoRow label="Fee" value="₦50" />
+          <InfoRow label="Total" value="₦80,050" strong />
+        </View>
+      </Section>
+
+      <Section title="SettingsGroup and SettingsRow">
+        <SettingsGroup title="Autopilot">
+          <SettingsRow label="Autopilot" Icon={Bot} value="On" onPress={noop} />
+          <SettingsRow label="Review time" Icon={Clock} value="15 min" onPress={noop} />
+          <SettingsRow label="Your SpreadIT account" Icon={Landmark} value="••5678" onPress={noop} />
+        </SettingsGroup>
+        <SettingsGroup>
+          <SettingsRow label="Pause everything" Icon={CirclePause} tone="critical" onPress={noop} />
+          <SettingsRow label="Log out" Icon={LogOut} tone="critical" onPress={noop} />
+        </SettingsGroup>
       </Section>
 
       <Section title="InsightCard">
@@ -93,12 +161,13 @@ export default function ComponentsScreen() {
 
       <Section title="Button">
         <View style={styles.stack}>
-          <Button label="Execute now" variant="primary" onPress={noop} />
-          <Button label="Pause for review" variant="secondary" onPress={noop} />
+          <Button label="Send it now" variant="primary" onPress={noop} />
+          <Button label="Send extra" icon={Send} variant="accent" onPress={noop} />
+          <Button label="Hold for review" variant="secondary" onPress={noop} />
           <Button label="Edit plan" variant="quiet" onPress={noop} />
-          <Button label="Emergency pause" variant="critical" onPress={noop} />
-          <Button label="Emergency cancel" variant="quietCritical" onPress={noop} />
-          <Button label="Switch on automation" variant="secondary" disabled onPress={noop} />
+          <Button label="Pause everything" icon={CirclePause} variant="critical" onPress={noop} />
+          <Button label="Stop this payday" variant="quietCritical" onPress={noop} />
+          <Button label="Turn on Autopilot" variant="primary" disabled onPress={noop} />
           <Text style={styles.note}>The last button is disabled: add a remainder destination first.</Text>
         </View>
       </Section>
@@ -177,7 +246,7 @@ export default function ComponentsScreen() {
           <TextField label="Email" value={text} onChangeText={setText} placeholder="name@example.com" helper="Helper text sits here." />
           <TextField label="With an error" value="tunde@" onChangeText={noop} error="Enter an email address, like name@example.com." />
           <PinField label="6-digit PIN" value={pin} onChange={setPin} autoFocus={false} />
-          <Toggle label="Keep trying if it fails" description="On is black, never aqua." value={toggle} onValueChange={setToggle} />
+          <Toggle label="Keep trying if it fails" description="On is deep teal." value={toggle} onValueChange={setToggle} />
           <Toggle label="Disabled switch" value={false} onValueChange={noop} disabled disabledReason="Shown greyed out with the reason." />
         </View>
         <OptionList
@@ -226,7 +295,7 @@ export default function ComponentsScreen() {
 
       <Section title="Demo controls">
         <Button label="Open Demo controls" variant="secondary" onPress={() => router.push('/demo-controls')} />
-        <Text style={styles.note}>Also opens by holding the "SpreadIT" name on Home for 1 second.</Text>
+        <Text style={styles.note}>Also opens by holding the greeting on Home for 1 second.</Text>
       </Section>
 
       <Section title="PaydayCountdown">
@@ -256,7 +325,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.canvas },
-  content: { paddingHorizontal: space[5], gap: space[6] },
+  content: { paddingHorizontal: layout.screenPadding, gap: space[6] },
   title: { ...type.title, color: colors.ink },
   note: { ...type.label, color: colors.inkMuted },
   section: { gap: space[3] },
@@ -265,9 +334,10 @@ const styles = StyleSheet.create({
     gap: space[2],
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    padding: space[5],
+    padding: space[4],
     ...shadow.card,
   },
+  chips: { flexDirection: 'row', gap: space[2] },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',

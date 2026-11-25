@@ -1,14 +1,14 @@
-// FloatingNav (docs/design-system.md v3): a black pill floating 16px above the
-// safe-area bottom, 20px from each side, from the home reference. Four
-// destinations; the active one is a white tile with ink icon and label, the
-// rest are light grey. Small labels stay under the icons so every tab is named
-// (the reference shows icons only).
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+// NavBar (docs/design-system.md v4, Figma "NavBar"): a white bar fixed to the bottom
+// with rounded top corners and the card shadow. Icons only (each has a spoken label);
+// the active tab is deep teal with a small dot, the rest faint grey. A raised
+// pale-aqua centre button opens the Payday Simulator (S10), SpreadIT's signature action.
+import { Pressable, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/tabs';
-import { House, ListChecks, ArrowLeftRight, UserRound, type LucideIcon } from 'lucide-react-native';
-import { colors, radius, shadow, size, space, type } from '../theme/tokens';
+import { ArrowLeftRight, Calculator, House, ListChecks, UserRound, type LucideIcon } from 'lucide-react-native';
+import { colors, radius, shadow, size, space } from '../theme/tokens';
 
-/** The four nav destinations, keyed by route name in app/(tabs)/. */
+/** The four tab destinations, keyed by route name in app/(tabs)/. */
 export const navItems: Record<string, { label: string; Icon: LucideIcon }> = {
   home: { label: 'Home', Icon: House },
   'plan-builder': { label: 'Plan', Icon: ListChecks },
@@ -18,43 +18,51 @@ export const navItems: Record<string, { label: string; Icon: LucideIcon }> = {
 
 /** Bottom padding a scrolling screen needs so its content clears the nav. */
 export function floatingNavInset(safeAreaBottom: number): number {
-  return size.navHeight + space[4] + safeAreaBottom + space[4];
+  return size.navHeight + safeAreaBottom + space[6];
 }
 
 export function FloatingNav({ state, descriptors, emitter, navigateToTab, insets }: BottomTabBarProps) {
+  const router = useRouter();
+  const tabs = state.routes.map((route, index) => ({ route, index })).filter(({ route }) => navItems[route.name]);
+
+  const tab = ({ route, index }: (typeof tabs)[number]) => {
+    const item = navItems[route.name];
+    const focused = index === state.index;
+    const { options } = descriptors[route.key];
+    const onPress = () => {
+      const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+      if (!focused && !event.defaultPrevented) navigateToTab(route.key);
+    };
+    const tint = focused ? colors.primary : colors.inkFaint;
+    return (
+      <Pressable
+        key={route.key}
+        onPress={onPress}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: focused }}
+        accessibilityLabel={options.tabBarAccessibilityLabel ?? item.label}
+        style={styles.item}
+      >
+        <item.Icon size={24} color={tint} strokeWidth={1.75} />
+        <View style={[styles.dot, focused && styles.dotOn]} />
+      </Pressable>
+    );
+  };
+
   return (
-    <View
-      style={[styles.bar, { bottom: insets.bottom + space[4] }]}
-      accessibilityRole="tablist"
-    >
-      {state.routes.map((route, index) => {
-        const item = navItems[route.name];
-        if (!item) return null;
-        const focused = index === state.index;
-        const { options } = descriptors[route.key];
-
-        const onPress = () => {
-          const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-          if (!focused && !event.defaultPrevented) navigateToTab(route.key);
-        };
-        const tint = focused ? colors.ink : colors.onInverseMuted;
-
-        return (
-          <Pressable
-            key={route.key}
-            onPress={onPress}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: focused }}
-            accessibilityLabel={options.tabBarAccessibilityLabel ?? item.label}
-            style={[styles.item, focused && styles.itemActive]}
-          >
-            <item.Icon size={size.icon} color={tint} strokeWidth={1.75} />
-            <Text style={[styles.label, { color: tint }]} numberOfLines={1}>
-              {item.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={[styles.bar, { paddingBottom: insets.bottom + space[2] }]} accessibilityRole="tablist">
+      {tabs.slice(0, 2).map(tab)}
+      <View style={styles.item}>
+        <Pressable
+          onPress={() => router.push('/payday-simulator')}
+          accessibilityRole="button"
+          accessibilityLabel="Simulate a payday"
+          style={({ pressed }) => [styles.centre, pressed && styles.pressed]}
+        >
+          <Calculator size={24} color={colors.primary} strokeWidth={1.75} />
+        </Pressable>
+      </View>
+      {tabs.slice(2).map(tab)}
     </View>
   );
 }
@@ -62,24 +70,29 @@ export function FloatingNav({ state, descriptors, emitter, navigateToTab, insets
 const styles = StyleSheet.create({
   bar: {
     position: 'absolute',
-    left: space[5],
-    right: space[5],
+    left: 0,
+    right: 0,
+    bottom: 0,
     minHeight: size.navHeight,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: space[1],
-    backgroundColor: colors.inverse,
-    borderRadius: radius.pill,
-    ...shadow.float,
+    paddingTop: space[2],
+    paddingHorizontal: space[4],
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    ...shadow.card,
   },
-  item: {
-    flex: 1,
-    minHeight: size.navHeight - space[2],
+  item: { flex: 1, minHeight: size.touchMin + space[2], alignItems: 'center', justifyContent: 'center', gap: space[1] },
+  dot: { width: 4, height: 4, borderRadius: radius.pill, backgroundColor: 'transparent' },
+  dotOn: { backgroundColor: colors.primary },
+  centre: {
+    width: size.navCentre,
+    height: size.navCentre,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brandSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.pill,
-    gap: space[1],
   },
-  itemActive: { backgroundColor: colors.raised },
-  label: { ...type.caption },
+  pressed: { opacity: 0.8 },
 });

@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
   lead: { ...type.headline, color: colors.ink },
   point: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
   iconCircle: {
-    width: size.iconCircle,
-    height: size.iconCircle,
+    width: size.bubble,
+    height: size.bubble,
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceSunken,
     alignItems: 'center',

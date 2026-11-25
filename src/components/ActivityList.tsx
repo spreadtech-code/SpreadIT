@@ -1,5 +1,5 @@
-// ActivityList (docs/design-system.md v3): a title-sm header, then each row as
-// its own light grey rounded tile, from the home reference's "Portfolio" list.
+// ActivityList (docs/design-system.md v4, Figma "ActivityItem"): a headline header,
+// then rows on white (no box): a pale-aqua icon bubble, name, muted meta, amount.
 // Used for activity, income history and settings lists.
 // Money in: down-left arrow, "+₦" in success, no badge.
 // Money out: up-right arrow, amount in ink, a status badge.
@@ -24,12 +24,14 @@ export interface ActivityItem {
   onPress?: () => void;
 }
 
-export function ActivityList({ title, items }: { title: string; items: ActivityItem[] }) {
+export function ActivityList({ title, items }: { title?: string; items: ActivityItem[] }) {
   return (
     <View style={styles.card}>
-      <Text style={styles.title} accessibilityRole="header">
-        {title}
-      </Text>
+      {title ? (
+        <Text style={styles.title} accessibilityRole="header">
+          {title}
+        </Text>
+      ) : null}
       {items.map((item) => (
         <Row key={item.id} item={item} />
       ))}
@@ -54,7 +56,7 @@ function Row({ item }: { item: ActivityItem }) {
   const body = (
     <View style={styles.row}>
       <View style={styles.iconCircle}>
-        <Icon size={size.icon} color={colors.ink} strokeWidth={1.75} />
+        <Icon size={size.icon} color={colors.primary} strokeWidth={1.75} />
       </View>
       <View style={styles.rowMain}>
         <View style={styles.text}>
@@ -93,22 +95,19 @@ function Row({ item }: { item: ActivityItem }) {
 }
 
 const styles = StyleSheet.create({
-  card: { gap: space[2] },
-  title: { ...type.titleSm, color: colors.ink, marginBottom: space[1] },
+  card: { gap: space[1] },
+  title: { ...type.headline, color: colors.ink, marginBottom: space[1] },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[3],
-    minHeight: size.touchMin,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    paddingHorizontal: space[4],
+    minHeight: 64,
   },
   iconCircle: {
-    width: size.iconCircle,
-    height: size.iconCircle,
+    width: size.bubble,
+    height: size.bubble,
     borderRadius: radius.pill,
-    backgroundColor: colors.raised,
+    backgroundColor: colors.brandSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -120,7 +119,7 @@ const styles = StyleSheet.create({
     paddingVertical: space[3],
   },
   text: { flex: 1 },
-  name: { ...type.headline, color: colors.ink },
+  name: { ...type.bodyStrong, color: colors.ink },
   meta: { ...type.label, color: colors.inkMuted },
   right: { alignItems: 'flex-end', gap: space[1] },
   amount: { ...type.amountMd, color: colors.ink, fontVariant: ['tabular-nums'] },

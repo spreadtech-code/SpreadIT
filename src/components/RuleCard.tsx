@@ -73,7 +73,7 @@ export function RuleCard({
       style={({ pressed }) => [styles.card, active && styles.active, pressed && !active && styles.pressed]}
     >
       <View style={styles.iconCircle}>
-        <Icon size={size.icon} color={colors.ink} strokeWidth={1.75} />
+        <Icon size={size.icon} color={colors.primary} strokeWidth={1.75} />
       </View>
       <View style={styles.text}>
         <Text style={styles.name}>{name}</Text>
@@ -90,7 +90,7 @@ export function RuleCard({
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
-          <GripVertical size={size.icon} color={colors.inkMuted} strokeWidth={1.75} />
+          <GripVertical size={size.icon} color={colors.inkFaint} strokeWidth={1.75} />
         </Pressable>
       ) : null}
     </Pressable>
@@ -109,15 +109,15 @@ const styles = StyleSheet.create({
   },
   active: { ...shadow.float },
   iconCircle: {
-    width: size.iconCircle,
-    height: size.iconCircle,
+    width: size.bubble,
+    height: size.bubble,
     borderRadius: radius.pill,
-    backgroundColor: colors.raised,
+    backgroundColor: colors.brandSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: { flex: 1, gap: space[1] },
-  name: { ...type.headline, color: colors.ink },
+  name: { ...type.bodyStrong, color: colors.ink },
   meta: { ...type.label, color: colors.inkMuted },
   note: { ...type.label, color: colors.warning },
   amount: { ...type.amountMd, color: colors.ink, fontVariant: ['tabular-nums'] },

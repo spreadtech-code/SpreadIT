@@ -2,7 +2,7 @@
 // Sunken track; the selected option is a white (raised) pill.
 // Each option is at least 44px tall and announces its selected state.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, size, space, type } from '../theme/tokens';
+import { colors, radius, shadow, size, space, type } from '../theme/tokens';
 
 export interface SegmentOption<T extends string> {
   value: T;
@@ -36,7 +36,7 @@ export function SegmentedControl<T extends string>({
             accessibilityLabel={option.label}
             style={[styles.option, selected && styles.selected]}
           >
-            <Text style={[styles.label, { color: selected ? colors.ink : colors.inkMuted }]}>
+            <Text style={[styles.label, { color: selected ? colors.primary : colors.inkMuted }]}>
               {option.label}
             </Text>
           </Pressable>
@@ -62,6 +62,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: space[3],
   },
-  selected: { backgroundColor: colors.raised },
+  selected: { backgroundColor: colors.raised, ...shadow.card },
   label: { ...type.bodyStrong, textAlign: 'center' },
 });

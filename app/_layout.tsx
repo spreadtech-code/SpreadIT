@@ -5,10 +5,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // Import each weight on its own so only these 4 font files ship in the app.
-import { SourceSans3_400Regular } from '@expo-google-fonts/source-sans-3/400Regular';
-import { SourceSans3_600SemiBold } from '@expo-google-fonts/source-sans-3/600SemiBold';
-import { SourceSans3_700Bold } from '@expo-google-fonts/source-sans-3/700Bold';
-import { SourceSans3_800ExtraBold } from '@expo-google-fonts/source-sans-3/800ExtraBold';
+import { HostGrotesk_400Regular } from '@expo-google-fonts/host-grotesk/400Regular';
+import { HostGrotesk_500Medium } from '@expo-google-fonts/host-grotesk/500Medium';
+import { HostGrotesk_600SemiBold } from '@expo-google-fonts/host-grotesk/600SemiBold';
 import { colors } from '../src/theme/tokens';
 import { useHydrated } from '../src/state/appStore';
 import { PaydayRunner, usePaydaysHydrated } from '../src/payday/PaydayRunner';
@@ -18,10 +17,9 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    SourceSans3_400Regular,
-    SourceSans3_600SemiBold,
-    SourceSans3_700Bold,
-    SourceSans3_800ExtraBold,
+    HostGrotesk_400Regular,
+    HostGrotesk_500Medium,
+    HostGrotesk_600SemiBold,
   });
   const hydrated = useHydrated() && usePaydaysHydrated();
   const ready = (fontsLoaded || fontError != null) && hydrated;

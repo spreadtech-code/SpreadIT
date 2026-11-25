@@ -16,9 +16,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.brandSoft,
     borderRadius: radius.lg,
-    padding: space[5],
+    padding: space[4],
     gap: space[1],
   },
-  title: { ...type.headline, color: colors.brandStrong },
-  text: { ...type.body, color: colors.ink },
+  title: { ...type.headline, color: colors.onBrand },
+  text: { ...type.body, color: colors.onBrand },
 });

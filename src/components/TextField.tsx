@@ -1,5 +1,5 @@
 // TextField (added stage 3, founder-approved): a sunken well like AmountField,
-// with the same focus ring (2px black border + line halo).
+// with the same focus ring (a 1.5px deep-teal border, v4).
 // An error shows in critical text with an icon, never by colour alone.
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
@@ -34,8 +34,8 @@ export function TextField({ label, value, onChangeText, placeholder, helper, err
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholder={placeholder}
-            placeholderTextColor={colors.inkMuted}
-            selectionColor={colors.ink}
+            placeholderTextColor={colors.inkFaint}
+            selectionColor={colors.primary}
             accessibilityLabel={label}
             accessibilityHint={error ?? helper}
             style={styles.input}
@@ -66,13 +66,9 @@ export function FieldError({ message }: { message: string }) {
 
 const styles = StyleSheet.create({
   wrap: { gap: space[2] },
-  label: { ...type.label, color: colors.inkMuted },
-  halo: {
-    borderRadius: radius.md + component.focusHaloWidth,
-    borderWidth: component.focusHaloWidth,
-    borderColor: 'transparent',
-  },
-  haloFocused: { borderColor: colors.line },
+  label: { ...type.labelStrong, color: colors.inkMuted },
+  halo: {},
+  haloFocused: {},
   field: {
     flexDirection: 'row',
     alignItems: 'center',

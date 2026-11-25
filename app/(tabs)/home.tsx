@@ -1,22 +1,23 @@
-// S15 Home dashboard (E1).
+// S15 Home dashboard (E1), v4 layout (Figma "S15 Home").
 // E1: latest income amount and date, allocation by category, status of each
-// transfer, unsplit balance, next expected pay date, Automation On label and
-// the Emergency pause button.
-// - Automation off: a prompt to switch on.
-// - Paused (F1): "Automation paused" in the hero, the pause message and Resume
+// transfer, unsplit balance, next expected pay date, the Autopilot label and
+// the Pause everything button (PRD "Emergency pause"; app words in docs/copy.md).
+// - Autopilot off: a prompt to turn it on.
+// - Paused (F1): "Autopilot paused" in the chip, the pause message and Resume
 //   (PIN + one-time code, S23).
-// - A payday waiting for the user (review window, short payday, "Is this
-//   income?", held) shows as a card at the top with the way to act on it.
-// - The last split payday shows where the money went, with live statuses.
-// - "Sent from your balance": the latest one-off transfers (B14, D13).
-// Hold the "SpreadIT" name for 1 second to open the hidden Demo controls.
+// - A payday waiting for the user (review window, short payday, "Is this pay?",
+//   held) shows as a card at the top with the way to act on it.
+// - "Where it went": the last split payday as a donut with a legend.
+// - "Recent activity": the payday, each transfer with its live status, and the
+//   latest one-off transfers (B14, D13).
+// Hold the greeting for 1 second to open the hidden Demo controls.
 // Goes to: S10 (Simulate), S28 (Send extra), S7 (Add rule), S16-S18 (a waiting
-// payday), S20 (Open event), S21 (a transfer), S29 (Send to my account), S6, S19, S24.
+// payday), S20 (Details), S21 (a transfer), S29 (Move to your account), S6, S19, S24.
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CalendarDays, Calculator, Plus, Receipt, Send, Wallet } from 'lucide-react-native';
-import { ActivityList, BalanceHero, Button, InsightCard, type ActivityItem } from '../../src/components';
+import { CalendarDays, Calculator, CirclePause, Plus, Send, Wallet } from 'lucide-react-native';
+import { ActivityList, BalanceHero, Button, feeColour, InsightCard, leftoverColour, SectionHeader, SplitDonut, SplitLegend, type ActivityItem, type SplitSlice } from '../../src/components';
 import { floatingNavInset } from '../../src/components/FloatingNav';
 import { formatNaira } from '../../src/engine/format';
 import { useBank } from '../../src/fakebank/bankStore';
@@ -26,14 +27,13 @@ import { useNow } from '../../src/payday/PaydayRunner';
 import { bankTransfer, eventRoute, usePaydays } from '../../src/payday/paydayStore';
 import { transferItems } from '../../src/payday/transferItems';
 import { goLiveRoute, isPaused, useApp } from '../../src/state/appStore';
-import { colors, radius, shadow, size, space, type } from '../../src/theme/tokens';
+import { colors, layout, radius, shadow, size, space, type } from '../../src/theme/tokens';
 
 export default function HomeDashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const plan = useApp((s) => s.plan);
   const income = useApp((s) => s.income);
-  const account = useApp((s) => s.account);
   const identity = useApp((s) => s.identity);
   const automationOn = useApp((s) => s.automation.on);
   const paused = useApp((s) => isPaused(s));
@@ -44,68 +44,85 @@ export default function HomeDashboardScreen() {
   const t = useNow();
   const today = new Date(t);
 
-  // The name comes from the identity check (A6); before that, the email.
-  const initials = identity
-    ? `${identity.firstName[0]}${identity.lastName[0]}`.toUpperCase()
-    : (account?.email.slice(0, 2) ?? 'SI').toUpperCase();
-
   const newestFirst = [...events].sort((a, b) => b.receivedAt - a.receivedAt);
   const waiting = newestFirst.filter((e) => WAITING_STAGES.includes(e.stage));
   const lastSplit = newestFirst.find((e) => e.stage === 'sending' || e.stage === 'done');
   const unsplit = unsplitKobo(balance, events);
   const next = income ? payDates(income, today).next : null;
 
-  // Design system v3: the middle action is the round "+" button.
+  const greeting = identity ? `Hi, ${identity.firstName}` : 'Hi there';
+  const status = !automationOn
+    ? 'Autopilot is off.'
+    : paused
+      ? 'Everything is paused.'
+      : waiting.length > 0
+        ? 'A payday needs you.'
+        : lastSplit
+          ? lastSplit.stage === 'done'
+            ? 'Payday’s done. Everything’s sent.'
+            : 'Your payday is going out.'
+          : 'Waiting for your next payday.';
+
   const heroActions = [
     { label: 'Simulate', Icon: Calculator, onPress: () => router.push('/payday-simulator') },
-    { label: 'Add rule', Icon: Plus, onPress: () => router.push('/rule-editor?custom=1') },
     { label: 'Send extra', Icon: Send, onPress: () => router.push('/send-extra-once') },
+    { label: 'Add a rule', Icon: Plus, onPress: () => router.push('/rule-editor?custom=1') },
   ];
+
+  const oneOffItems: ActivityItem[] = [...oneOffs]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 3)
+    .map((o) => ({
+      id: o.reference,
+      name: o.kind === 'extra' ? `Extra for ${o.name}` : o.name,
+      meta: dayMonth(new Date(o.createdAt)),
+      direction: 'out' as const,
+      amountKobo: o.amountKobo,
+      status: bankTransfer(o.reference)?.status ?? 'Pending',
+      onPress: () => router.push(`/transfer-receipt?ref=${o.reference}`),
+    }));
 
   return (
     <ScrollView
       style={styles.page}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + space[4], paddingBottom: floatingNavInset(insets.bottom) }]}
     >
-      <View style={styles.heroBleed}>
-        <BalanceHero
-          initials={initials}
-          label={lastSplit ? `Last payday · ${dayMonth(new Date(lastSplit.receivedAt))}` : 'No payday yet'}
-          amountKobo={lastSplit?.amountKobo ?? 0}
-          actions={heroActions}
-          automation={
-            !automationOn
-              ? { paused: false, off: true, text: 'Automation off' }
-              : paused
-                ? { paused: true }
-                : { paused: false, text: automationText(next, today) }
-          }
-          onWordmarkLongPress={() => router.push('/demo-controls')}
-          onSettingsPress={() => router.navigate('/settings')}
-        />
-      </View>
+      <BalanceHero
+        greeting={greeting}
+        status={status}
+        label={lastSplit ? `Last payday · ${dayMonth(new Date(lastSplit.receivedAt))}` : 'No payday yet'}
+        amountKobo={lastSplit?.amountKobo ?? 0}
+        actions={heroActions}
+        autopilot={
+          !automationOn
+            ? { state: 'off', text: 'Autopilot off' }
+            : paused
+              ? { state: 'paused', text: 'Autopilot paused' }
+              : { state: 'on', text: automationText(next, today) }
+        }
+        onGreetingLongPress={() => router.push('/demo-controls')}
+        onBellPress={() => router.navigate('/income-history')}
+      />
 
       {!automationOn ? (
-        <>
-          <InsightCard
-            title="Automation is off"
-            text={
-              plan.rules.length > 0
-                ? 'Switch it on and your next payday will be split by your plan.'
-                : 'Add at least one rule to your plan, then switch on automation.'
-            }
-          />
+        <View style={styles.card} accessibilityRole="summary">
+          <Text style={styles.cardTitle}>Autopilot is off</Text>
+          <Text style={styles.body}>
+            {plan.rules.length > 0
+              ? 'Turn it on and your next payday will be split by your plan.'
+              : 'Add at least one rule to your plan, then turn on Autopilot.'}
+          </Text>
           {plan.rules.length > 0 ? (
-            <Button label="Switch on automation" variant="secondary" onPress={() => router.push(goLiveRoute(useApp.getState()))} />
+            <Button label="Turn on Autopilot" variant="primary" onPress={() => router.push(goLiveRoute(useApp.getState()))} />
           ) : null}
-        </>
+        </View>
       ) : null}
 
       {automationOn && paused ? (
         <View style={styles.card} accessibilityRole="summary">
-          <Text style={styles.cardTitle}>Automation paused</Text>
-          <Text style={styles.body}>Income will stay in your SpreadIT account until you resume.</Text>
-          <Button label="Resume" variant="secondary" accessibilityHint="Needs your PIN and a one-time code." onPress={() => router.push('/verify-change?resume=1')} />
+          <Text style={styles.cardTitle}>Autopilot paused</Text>
+          <Text style={styles.body}>Your pay will stay in your SpreadIT account until you resume.</Text>
+          <Button label="Resume" variant="primary" accessibilityHint="Needs your PIN and a one-time code." onPress={() => router.push('/verify-change?resume=1')} />
         </View>
       ) : null}
 
@@ -114,26 +131,9 @@ export default function HomeDashboardScreen() {
       ))}
 
       {lastSplit ? (
-        <LastPayday event={lastSplit} now={t} />
+        <WhereItWent event={lastSplit} />
       ) : automationOn && waiting.length === 0 ? (
-        <InsightCard title="Waiting for your next payday" text="When income reaches your SpreadIT account, you'll see it here." />
-      ) : null}
-
-      {oneOffs.length > 0 ? (
-        <ActivityList
-          title="Sent from your balance"
-          items={[...oneOffs]
-            .sort((a, b) => b.createdAt - a.createdAt)
-            .slice(0, 3)
-            .map((o) => ({
-              id: o.reference,
-              name: o.kind === 'extra' ? `Extra for ${o.name}` : o.name,
-              meta: `${dayMonth(new Date(o.createdAt))} · ${bankTransfer(o.reference)?.status ?? 'Pending'}`,
-              direction: 'out' as const,
-              amountKobo: o.amountKobo,
-              onPress: () => router.push(`/transfer-receipt?ref=${o.reference}`),
-            }))}
-        />
+        <InsightCard title="Waiting for your next payday" text="When your pay reaches your SpreadIT account, you’ll see it here." />
       ) : null}
 
       <View style={styles.card}>
@@ -141,28 +141,31 @@ export default function HomeDashboardScreen() {
           Icon={Wallet}
           label="Unsplit money"
           value={formatNaira(unsplit)}
-          detail={unsplit > 0 ? 'In your SpreadIT account, not part of any split.' : 'Nothing waiting. Every naira was split.'}
+          detail={unsplit > 0 ? 'In your SpreadIT account, not in any split.' : 'Nothing waiting. Every naira was split.'}
         />
-        <Button label="Send to my account" variant="secondary" disabled={unsplit === 0} onPress={() => router.push('/send-to-my-account')} />
+        {unsplit > 0 ? <Button label="Move to your account" variant="secondary" onPress={() => router.push('/send-to-my-account')} /> : null}
         <View style={styles.hairline} />
         <Fact
           Icon={CalendarDays}
           label="Next payday"
-          value={next ? dayMonth(next) : 'When income arrives'}
-          detail={next ? undefined : 'Your income varies, so there is no set date.'}
+          value={next ? dayMonth(next) : 'When pay lands'}
+          detail={next ? undefined : 'Your pay varies, so there’s no set date.'}
         />
       </View>
 
-      <View style={styles.links}>
-        <Button label="Open plan" variant="secondary" onPress={() => router.navigate('/plan-builder')} />
-        <Button label="Income history" variant="secondary" onPress={() => router.navigate('/income-history')} />
-      </View>
+      {lastSplit || oneOffItems.length > 0 ? (
+        <View style={styles.section}>
+          <SectionHeader title="Recent activity" action="See all" onPress={() => router.navigate('/income-history')} />
+          <RecentActivity event={lastSplit} now={t} extra={oneOffItems} />
+        </View>
+      ) : null}
 
       {automationOn && !paused ? (
         <Button
-          label="Emergency pause"
+          label="Pause everything"
+          icon={CirclePause}
           variant="critical"
-          accessibilityHint="Stops all automation. You will need your PIN."
+          accessibilityHint="Stops Autopilot. You will need your PIN."
           onPress={() => router.push('/emergency-pause')}
         />
       ) : null}
@@ -170,7 +173,7 @@ export default function HomeDashboardScreen() {
   );
 }
 
-/** A payday that needs the user: review window, short payday, "Is this income?" or held. */
+/** A payday that needs the user: review window, short payday, "Is this pay?" or held. */
 function WaitingCard({ event, now }: { event: IncomeEvent; now: number }) {
   const router = useRouter();
   const amount = formatNaira(event.amountKobo);
@@ -180,63 +183,63 @@ function WaitingCard({ event, now }: { event: IncomeEvent; now: number }) {
   let action = 'Open payday';
   if (event.stage === 'review') {
     const s = Math.max(0, Math.floor(((event.reviewEndsAt ?? now) - now) / 1000));
-    title = `${amount} received`;
+    title = `${amount} just landed`;
     text = `Your split goes out in ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}.`;
   } else if (event.stage === 'needsApproval') {
     title = `Short payday: ${amount}`;
-    text = 'Less than half of what you expect. Nothing is sent until you choose.';
+    text = 'Less than half of what you expect. Nothing goes out until you choose.';
     action = 'Review it';
   } else if (event.stage === 'askIncome') {
-    title = 'Is this income?';
-    text = `${amount} arrived, below your qualifying minimum.`;
+    title = 'Is this pay?';
+    text = `${amount} arrived, below your minimum for a payday.`;
     action = 'Answer';
   } else {
-    title = `${amount} held, not split yet`;
-    text = 'Nothing is sent until you split it.';
+    title = `${amount} on hold, not split yet`;
+    text = 'Nothing goes out until you split it.';
     action = 'Split now';
   }
   return (
-    <View style={styles.card} accessibilityRole="summary">
+    <View style={[styles.card, styles.waiting]} accessibilityRole="summary">
       <Text style={styles.cardTitle}>{title}</Text>
       <Text style={styles.body}>{text}</Text>
-      <Button label={action} variant="secondary" onPress={open} />
-      {event.stage === 'held' ? (
-        <Button label="Send to my account" variant="quiet" onPress={() => router.push('/send-to-my-account')} />
-      ) : null}
+      <Button label={action} variant="primary" onPress={open} />
+      {event.stage === 'held' ? <Button label="Move to your account" variant="quiet" onPress={() => router.push('/send-to-my-account')} /> : null}
     </View>
   );
 }
 
-function LastPayday({ event, now }: { event: IncomeEvent; now: number }) {
+/** The last split payday as a donut: each rule, the leftovers and the bank fees. */
+function WhereItWent({ event }: { event: IncomeEvent }) {
   const router = useRouter();
-  const date = dayMonth(new Date(event.receivedAt));
-  const first = event.transfers.find((tr) => tr.id !== 'remainder' && bankTransfer(tr.reference)?.status === 'Successful');
-  const items: ActivityItem[] = [
-    { id: 'income', name: 'Payday', meta: date, direction: 'in', amountKobo: event.amountKobo, onPress: () => router.push(`/income-event?event=${event.id}`) },
-    ...transferItems(event, now, (ref) => router.push(`/transfer-receipt?event=${event.id}&ref=${ref}`)),
-    {
-      id: 'fees',
-      name: 'Bank fees',
-      meta: `${formatNaira(event.split.inflowFeeKobo)} to receive + ${formatNaira(event.split.totalFeesKobo - event.split.inflowFeeKobo)} to send`,
-      direction: 'out',
-      amountKobo: event.split.totalFeesKobo,
-      Icon: Receipt,
-    },
+  const slices: SplitSlice[] = [
+    ...event.transfers.map((tr) => ({ id: tr.reference, name: tr.name, amountKobo: tr.amountKobo, colour: tr.id === 'remainder' ? leftoverColour : undefined })),
+    { id: 'fees', name: 'Bank fees', amountKobo: event.split.totalFeesKobo, colour: feeColour },
   ];
   return (
-    <>
-      {first ? <InsightCard title={`${first.name} paid`} text={`${first.name} got ${formatNaira(first.amountKobo)} on ${date}.`} /> : null}
-      <ActivityList title="Where it went" items={items} />
-      <Button label="Open event" variant="quiet" onPress={() => router.push(`/income-event?event=${event.id}`)} />
-    </>
+    <View style={styles.card}>
+      <SectionHeader title="Where it went" action="Details" onPress={() => router.push(`/income-event?event=${event.id}`)} />
+      <SplitDonut slices={slices} centre={formatNaira(event.amountKobo)} caption={`split ${slices.length} ways`} />
+      <SplitLegend slices={slices} />
+    </View>
   );
+}
+
+function RecentActivity({ event, now, extra }: { event?: IncomeEvent; now: number; extra: ActivityItem[] }) {
+  const router = useRouter();
+  const items: ActivityItem[] = event
+    ? [
+        { id: 'income', name: 'Pay in', meta: dayMonth(new Date(event.receivedAt)), direction: 'in', amountKobo: event.amountKobo, onPress: () => router.push(`/income-event?event=${event.id}`) },
+        ...transferItems(event, now, (ref) => router.push(`/transfer-receipt?event=${event.id}&ref=${ref}`)).slice(0, 3),
+      ]
+    : [];
+  return <ActivityList items={[...extra, ...items]} />;
 }
 
 function Fact({ Icon, label, value, detail }: { Icon: typeof Wallet; label: string; value: string; detail?: string }) {
   return (
     <View style={styles.fact} accessible accessibilityLabel={`${label}: ${value}.${detail ? ` ${detail}` : ''}`}>
-      <View style={styles.iconCircle}>
-        <Icon size={size.icon} color={colors.ink} strokeWidth={1.75} />
+      <View style={styles.bubble}>
+        <Icon size={size.icon} color={colors.primary} strokeWidth={1.75} />
       </View>
       <View style={styles.factText}>
         <Text style={styles.factLabel}>{label}</Text>
@@ -249,25 +252,24 @@ function Fact({ Icon, label, value, detail }: { Icon: typeof Wallet; label: stri
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.canvas },
-  // The black hero sits closer to the screen edges than the rest, as in the reference.
-  heroBleed: { marginHorizontal: -space[3] },
-  content: { paddingHorizontal: space[5], gap: space[4] },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[5], gap: space[3], ...shadow.card },
+  content: { paddingHorizontal: layout.screenPadding, gap: space[6] },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space[4], gap: space[4], ...shadow.card },
+  waiting: { borderWidth: 1, borderColor: colors.brandMid },
   cardTitle: { ...type.headline, color: colors.ink },
   body: { ...type.body, color: colors.ink },
+  section: { gap: space[2] },
   fact: { flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: size.touchMin },
-  iconCircle: {
-    width: size.iconCircle,
-    height: size.iconCircle,
+  bubble: {
+    width: size.bubble,
+    height: size.bubble,
     borderRadius: radius.pill,
-    backgroundColor: colors.raised,
+    backgroundColor: colors.brandSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   factText: { flex: 1, gap: space[1] },
-  factLabel: { ...type.headline, color: colors.ink },
+  factLabel: { ...type.bodyStrong, color: colors.ink },
   factValue: { ...type.amountMd, color: colors.ink, fontVariant: ['tabular-nums'] },
   muted: { ...type.label, color: colors.inkMuted },
   hairline: { height: StyleSheet.hairlineWidth, backgroundColor: colors.line },
-  links: { gap: space[2] },
 });
