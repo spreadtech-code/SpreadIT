@@ -14,6 +14,7 @@ export function ruleTypeText(rule: Rule | undefined, incomeKobo: number, line: R
 /** C3: the shortfall in naira, or why a rule was skipped. */
 export function lineNote(line: RuleLine): string | undefined {
   if (line.funding === 'Fully funded') return undefined;
+  if (line.amountKobo === 0 && line.targetKobo > 0) return `Needed ${formatNaira(line.targetKobo)}`;
   if (line.shortfallKobo > 0) return `${formatNaira(line.shortfallKobo)} short of ${formatNaira(line.targetKobo)}`;
   return line.reason;
 }

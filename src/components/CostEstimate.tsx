@@ -1,14 +1,15 @@
 // CostEstimate (added stage 4, founder-approved): the C6 monthly cost line on
 // the plan builder (S6) and the Payday Simulator (S10).
-// - Normal: the sentence in ink-muted.
+// - Normal: an info Notice (pale aqua, v4).
 // - Above 1% of income: the existing warning-hint style (warning-soft fill,
 //   warning icon and text) plus a "Ways to lower your costs" link that opens a
 //   Sheet of tips. The wording and the 1% test come from the engine.
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Receipt, TriangleExclamationPoint } from 'lucide-react-native';
+import { TriangleExclamationPoint } from 'lucide-react-native';
 import { colors, radius, size, space, type } from '../theme/tokens';
 import { Button } from './Button';
+import { Notice } from './Notice';
 import { Sheet } from './Sheet';
 
 export interface CostEstimateProps {
@@ -23,12 +24,7 @@ export function CostEstimate({ text, overLimit, tips }: CostEstimateProps) {
   const [open, setOpen] = useState(false);
 
   if (!overLimit) {
-    return (
-      <View style={styles.row} accessible accessibilityLabel={text}>
-        <Receipt size={size.icon} color={colors.inkMuted} strokeWidth={1.75} />
-        <Text style={styles.text}>{text}</Text>
-      </View>
-    );
+    return <Notice text={text} />;
   }
 
   return (
