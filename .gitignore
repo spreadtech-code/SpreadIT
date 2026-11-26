@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Reference screenshots of other designers' work: kept locally, never published
+docs/references/
+
+# Claude Code desktop app settings (local only)
+.claude/
